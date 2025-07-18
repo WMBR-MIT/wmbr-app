@@ -1,0 +1,49 @@
+# React Native
+node_modules/
+android/.gradle/
+android/app/build/
+ios/Pods/
+ios/build/
+*.keystore
+*.jks
+*.p8
+*.p12
+
+# macOS
+.DS_Store
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# dotenv
+.env
+
+# Metro
+.expo/
+.expo-shared/
+
+# Xcode
+*.xcworkspace
+*.xcodeproj
+xcuserdata/
+DerivedData/
+build/
+
+# Watchman
+.watchmanconfig
+
+# OS
+Thumbs.db
+ehthumbs.db
+
+# IDEs
+.idea/
+.vscode/
+
+# Misc
+coverage/
+
+# Vendor
+/vendor/

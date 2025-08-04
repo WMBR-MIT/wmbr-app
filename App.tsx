@@ -24,6 +24,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SvgXml } from 'react-native-svg';
 import SongHistoryDrawer from './components/SongHistoryDrawer';
+import SplashScreen from './components/SplashScreen';
 import MetadataService, { ShowInfo, Song } from './services/MetadataService';
 
 const { width, height } = Dimensions.get('window');
@@ -50,6 +51,7 @@ export default function App() {
   const [songHistory, setSongHistory] = useState<Song[]>([]);
   const [hosts, setHosts] = useState<string | undefined>();
   const [showDescription, setShowDescription] = useState<string | undefined>();
+  const [showSplash, setShowSplash] = useState(true);
   
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const rotateAnim = useRef(new Animated.Value(0)).current;
@@ -172,6 +174,14 @@ export default function App() {
     inputRange: [0, 1],
     outputRange: ['0deg', '360deg'],
   });
+
+  const handleSplashEnd = () => {
+    setShowSplash(false);
+  };
+
+  if (showSplash) {
+    return <SplashScreen onAnimationEnd={handleSplashEnd} />;
+  }
 
   return (
     <GestureHandlerRootView style={styles.container}>

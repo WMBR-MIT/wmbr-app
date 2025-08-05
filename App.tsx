@@ -23,7 +23,7 @@ import TrackPlayer, {
 import LinearGradient from 'react-native-linear-gradient';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SvgXml } from 'react-native-svg';
-import SongHistoryDrawer from './components/SongHistoryDrawer';
+import RecentlyPlayedDrawer from './components/RecentlyPlayedDrawer';
 import SplashScreen from './components/SplashScreen';
 import MetadataService, { ShowInfo, Song } from './services/MetadataService';
 
@@ -52,6 +52,7 @@ export default function App() {
   const [hosts, setHosts] = useState<string | undefined>();
   const [showDescription, setShowDescription] = useState<string | undefined>();
   const [showSplash, setShowSplash] = useState(true);
+  const [showDrawer, setShowDrawer] = useState(false);
   
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const rotateAnim = useRef(new Animated.Value(0)).current;
@@ -248,13 +249,32 @@ export default function App() {
                 </Text>
               )}
               <Text style={styles.liveText}>● LIVE</Text>
+              
+              <TouchableOpacity
+                style={[
+                  styles.recentlyPlayedButton,
+                  isPlaying && styles.recentlyPlayedButtonActive
+                ]}
+                onPress={() => setShowDrawer(!showDrawer)}
+                activeOpacity={0.7}
+              >
+                <Text style={[
+                  styles.recentlyPlayedButtonText,
+                  isPlaying && styles.recentlyPlayedButtonTextActive
+                ]}>
+                  Recently Played {showDrawer ? '▼' : '▲'}
+                </Text>
+              </TouchableOpacity>
             </View>
 
             <View style={styles.bottomSpace} />
           </View>
         </SafeAreaView>
 
-        <SongHistoryDrawer songs={songHistory} isVisible={true} />
+        <RecentlyPlayedDrawer 
+          isVisible={showDrawer} 
+          onClose={() => setShowDrawer(false)} 
+        />
       </LinearGradient>
     </GestureHandlerRootView>
   );
@@ -414,5 +434,27 @@ const styles = StyleSheet.create({
   },
   bottomSpace: {
     height: 100,
+  },
+  recentlyPlayedButton: {
+    marginTop: 16,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    backgroundColor: 'rgba(0, 132, 61, 0.2)',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#00843D',
+  },
+  recentlyPlayedButtonActive: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderColor: '#000000',
+  },
+  recentlyPlayedButtonText: {
+    color: '#00843D',
+    fontSize: 14,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  recentlyPlayedButtonTextActive: {
+    color: '#000000',
   },
 });

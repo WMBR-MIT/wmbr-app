@@ -323,11 +323,18 @@ export default function ShowDetailsView({ show, isVisible, onClose }: ShowDetail
                   style={styles.albumGradient}
                 >
                   <View style={styles.albumContent}>
-                    <SvgXml xml={getWMBRLogoSVG('#FFFFFF')} width={60} height={13} />
-                    <Text style={styles.albumShowName} numberOfLines={2}>
-                      {show.name}
-                    </Text>
-                    <Text style={styles.albumFrequency}>88.1 FM</Text>
+                    {/* Centered logo at top */}
+                    <View style={styles.albumLogoContainer}>
+                      <SvgXml xml={getWMBRLogoSVG('#FFFFFF')} width={60} height={13} />
+                    </View>
+                    
+                    {/* Left-aligned content area */}
+                    <View style={styles.albumTextContainer}>
+                      <Text style={styles.albumShowName} numberOfLines={2}>
+                        {show.name}
+                      </Text>
+                      <Text style={styles.albumFrequency}>88.1 FM</Text>
+                    </View>
                   </View>
                 </LinearGradient>
               </View>
@@ -485,16 +492,15 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     paddingHorizontal: 16,
     paddingTop: 10,
     paddingBottom: 10,
   },
   backButton: {
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
+    flexDirection: 'row',
     alignItems: 'center',
+    flex: 1,
   },
   backButtonText: {
     color: '#FFFFFF',
@@ -505,6 +511,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
+    marginLeft: 8,
   },
   headerSpacer: {
     width: 40,
@@ -531,21 +538,33 @@ const styles = StyleSheet.create({
     height: '100%',
     borderRadius: 8,
     justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
+    alignItems: 'stretch',
+    padding: 0,
   },
   albumContent: {
+    flex: 1,
+    justifyContent: 'space-between',
+    paddingVertical: 20,
+    paddingHorizontal: 0,
+  },
+  albumLogoContainer: {
     alignItems: 'center',
-    gap: 12,
+  },
+  albumTextContainer: {
+    alignItems: 'flex-start',
+    flex: 1,
+    justifyContent: 'flex-end',
+    paddingLeft: 20,
   },
   albumShowName: {
     color: '#FFFFFF',
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: 'bold',
-    textAlign: 'center',
+    textAlign: 'left',
     textShadowColor: 'rgba(0, 0, 0, 0.3)',
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 3,
+    marginBottom: 4,
   },
   albumFrequency: {
     color: '#FFFFFF',
@@ -554,6 +573,7 @@ const styles = StyleSheet.create({
     textShadowColor: 'rgba(0, 0, 0, 0.3)',
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 3,
+    textAlign: 'left',
   },
   infoSection: {
     paddingHorizontal: 20,

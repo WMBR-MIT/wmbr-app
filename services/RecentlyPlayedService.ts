@@ -28,10 +28,15 @@ export class RecentlyPlayedService {
     }
 
     try {
-      // Fetch both APIs in parallel
+      // Fetch both APIs in parallel with cache-busting
+      const timestamp = Date.now();
       const [songsResponse, showsResponse] = await Promise.all([
-        fetch('https://wmbr.alexandersimoes.com/'),
-        fetch('https://wmbr.org/cgi-bin/xmlarch')
+        fetch('https://wmbr.alexandersimoes.com/', {
+          headers: { 'Cache-Control': 'no-cache' }
+        }),
+        fetch(`https://wmbr.org/cgi-bin/xmlarch?t=${timestamp}`, {
+          headers: { 'Cache-Control': 'no-cache' }
+        })
       ]);
 
       const songsData: RecentlyPlayedSong[] = await songsResponse.json();
@@ -93,12 +98,14 @@ export class RecentlyPlayedService {
                   : [showData.archives.archive];
                 
                 archiveArray.forEach((archive: any) => {
-                  if (archive.url && archive.date) {
+                  if (archive.url && archive.date && !archive.url.includes('rebroadcast')) {
                     archives.push({
                       url: archive.url,
                       date: archive.date,
                       size: archive.size || '0'
                     });
+                  } else {
+                    console.log(`Skipping archive for ${showData.name}: url=${!!archive.url}, date=${!!archive.date}, rebroadcast=${archive.url?.includes('rebroadcast')}`);
                   }
                 });
               }
@@ -117,8 +124,6 @@ export class RecentlyPlayedService {
             }
           });
           
-          console.log('Parsed shows count:', shows.length);
-          console.log('Sample shows:', shows.slice(0, 3).map(s => `${s.name} - Day ${s.day} at ${s.time_str} (${s.time} mins)`));
           resolve(shows);
         } catch (error) {
           console.error('Error processing parsed XML:', error);

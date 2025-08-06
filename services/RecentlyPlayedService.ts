@@ -15,6 +15,10 @@ export class RecentlyPlayedService {
     return RecentlyPlayedService.instance;
   }
 
+  getShowsCache(): Show[] {
+    return this.showsCache;
+  }
+
   async fetchRecentlyPlayed(forceRefresh = false): Promise<ShowGroup[]> {
     const now = Date.now();
     
@@ -154,17 +158,17 @@ export class RecentlyPlayedService {
     for (let i = 0; i < processedSongs.length; i++) {
       const currentSong = processedSongs[i];
       
-      // Check if this song is the same as the previous one
+      // Check if this song is the same as the previous one in the array
       if (i > 0) {
-        const prevSong = processed[processed.length - 1];
+        const prevSong = processedSongs[i - 1];
         
-        if (prevSong && 
-            prevSong.title.toLowerCase() === currentSong.title.toLowerCase() && 
+        if (prevSong.title.toLowerCase() === currentSong.title.toLowerCase() && 
             prevSong.artist.toLowerCase() === currentSong.artist.toLowerCase()) {
           
           // Same song as previous - check if it's within a reasonable time window (10 minutes)
           const timeDiff = Math.abs(prevSong.playedAt.getTime() - currentSong.playedAt.getTime());
           if (timeDiff < 10 * 60 * 1000) { // 10 minutes
+            console.log(`Skipping duplicate: "${currentSong.title}" by ${currentSong.artist}`);
             continue; // Skip this duplicate
           }
         }
@@ -179,6 +183,8 @@ export class RecentlyPlayedService {
   private parseEDTTimestamp(timestamp: string): Date {
     try {
       // Handle "2025-08-03 19:47:31 EDT" format
+      const isEDT = timestamp.includes(' EDT');
+      const isEST = timestamp.includes(' EST');
       const cleanTimestamp = timestamp.replace(' EDT', '').replace(' EST', '');
       
       // Split into date and time parts
@@ -198,10 +204,15 @@ export class RecentlyPlayedService {
         return new Date();
       }
       
-      // Create date object (month is 0-indexed)
-      const date = new Date(year, month - 1, day, hour, minute, second);
+      // Create date object as if it's in EDT/EST timezone
+      // EDT is UTC-4, EST is UTC-5
+      const offsetHours = isEDT ? -4 : isEST ? -5 : -4; // Default to EDT
       
-      return date;
+      // Create UTC date and adjust for timezone
+      const utcDate = new Date(Date.UTC(year, month - 1, day, hour, minute, second));
+      const localDate = new Date(utcDate.getTime() - (offsetHours * 60 * 60 * 1000));
+      
+      return localDate;
     } catch (error) {
       console.error('Error parsing timestamp:', timestamp, error);
       return new Date(); // Return current date as fallback

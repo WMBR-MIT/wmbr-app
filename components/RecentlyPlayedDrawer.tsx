@@ -23,13 +23,15 @@ import Animated, {
 import { PanGestureHandler } from 'react-native-gesture-handler';
 import { RecentlyPlayedService } from '../services/RecentlyPlayedService';
 import { AudioPreviewService, PreviewState } from '../services/AudioPreviewService';
-import { ShowGroup, ProcessedSong } from '../types/RecentlyPlayed';
+import { ShowGroup, ProcessedSong, Show } from '../types/RecentlyPlayed';
 import CircularProgress from './CircularProgress';
+import ShowDetailsView from './ShowDetailsView';
 
 const { height: screenHeight } = Dimensions.get('window');
-const DRAWER_HEIGHT = screenHeight * 0.7;
+const DRAWER_HEIGHT = screenHeight * 0.8;
 const HEADER_HEIGHT = 60;
 const HANDLE_HEIGHT = 20;
+const PEEK_HEIGHT = 80; // How much of the drawer shows when collapsed
 
 interface RecentlyPlayedDrawerProps {
   isVisible: boolean;
@@ -41,6 +43,8 @@ export default function RecentlyPlayedDrawer({ isVisible, onClose }: RecentlyPla
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedShow, setSelectedShow] = useState<Show | null>(null);
+  const [showDetailsVisible, setShowDetailsVisible] = useState(false);
   const [previewState, setPreviewState] = useState<PreviewState>({
     isPlaying: false,
     duration: 0,
@@ -49,30 +53,27 @@ export default function RecentlyPlayedDrawer({ isVisible, onClose }: RecentlyPla
     url: null,
   });
   
-  // Animation values
-  const translateY = useSharedValue(DRAWER_HEIGHT);
-  const opacity = useSharedValue(0);
+  // Animation values - start in peeking position
+  const translateY = useSharedValue(DRAWER_HEIGHT - PEEK_HEIGHT);
+  const opacity = useSharedValue(1);
   
   const scrollViewRef = useRef<ScrollView>(null);
   const recentlyPlayedService = RecentlyPlayedService.getInstance();
   const audioPreviewService = AudioPreviewService.getInstance();
 
   useEffect(() => {
-    if (isVisible) {
-      translateY.value = withSpring(0);
-      opacity.value = withSpring(1);
-      fetchRecentlyPlayed();
-      // Force light content for refresh control
-      Appearance.setColorScheme('light');
-    } else {
-      translateY.value = withSpring(DRAWER_HEIGHT);
-      opacity.value = withSpring(0);
-      // Stop any playing preview when drawer closes
+    // Always load data since drawer is always visible
+    fetchRecentlyPlayed();
+    // Force light content for refresh control
+    Appearance.setColorScheme('light');
+    
+    return () => {
+      // Stop any playing preview when component unmounts
       audioPreviewService.stop();
       // Reset appearance
       Appearance.setColorScheme(null);
-    }
-  }, [isVisible]);
+    };
+  }, []);
 
   useEffect(() => {
     // Subscribe to preview state changes
@@ -107,6 +108,22 @@ export default function RecentlyPlayedDrawer({ isVisible, onClose }: RecentlyPla
     fetchRecentlyPlayed(true);
   };
 
+  const handleShowTitlePress = (showName: string, showId: string) => {
+    // Find the show details from the service's cache
+    const showsCache = recentlyPlayedService.getShowsCache();
+    const show = showsCache.find(s => s.id === showId);
+    
+    if (show) {
+      setSelectedShow(show);
+      setShowDetailsVisible(true);
+    }
+  };
+
+  const handleCloseShowDetails = () => {
+    setShowDetailsVisible(false);
+    setSelectedShow(null);
+  };
+
   const handlePlayPreview = async (song: ProcessedSong) => {
     if (!song.appleStreamLink) {
       Alert.alert('Preview Unavailable', 'No preview available for this song');
@@ -138,20 +155,25 @@ export default function RecentlyPlayedDrawer({ isVisible, onClose }: RecentlyPla
     },
     onActive: (event, context) => {
       const newY = context.startY + event.translationY;
-      translateY.value = Math.max(0, Math.min(DRAWER_HEIGHT, newY));
+      translateY.value = Math.max(0, Math.min(DRAWER_HEIGHT - PEEK_HEIGHT, newY));
     },
     onEnd: (event) => {
-      const shouldClose = event.translationY > 100 || event.velocityY > 500;
+      const currentPosition = translateY.value;
+      const isExpanded = currentPosition < (DRAWER_HEIGHT - PEEK_HEIGHT) / 2;
       
-      if (shouldClose) {
-        translateY.value = withSpring(DRAWER_HEIGHT);
-        opacity.value = withSpring(0);
-        if (onClose) {
-          runOnJS(onClose)();
-        }
-      } else {
+      if (event.translationY > 0 && event.velocityY > 300) {
+        // Swiping down fast - collapse
+        translateY.value = withSpring(DRAWER_HEIGHT - PEEK_HEIGHT);
+      } else if (event.translationY < 0 && event.velocityY < -300) {
+        // Swiping up fast - expand
         translateY.value = withSpring(0);
-        opacity.value = withSpring(1);
+      } else {
+        // Snap to nearest position based on current position
+        if (isExpanded) {
+          translateY.value = withSpring(0); // Fully expanded
+        } else {
+          translateY.value = withSpring(DRAWER_HEIGHT - PEEK_HEIGHT); // Peeking
+        }
       }
     },
   });
@@ -163,7 +185,7 @@ export default function RecentlyPlayedDrawer({ isVisible, onClose }: RecentlyPla
   const backgroundAnimatedStyle = useAnimatedStyle(() => ({
     opacity: interpolate(
       translateY.value,
-      [0, DRAWER_HEIGHT],
+      [0, DRAWER_HEIGHT - PEEK_HEIGHT],
       [0.5, 0],
       Extrapolate.CLAMP
     ),
@@ -251,10 +273,18 @@ export default function RecentlyPlayedDrawer({ isVisible, onClose }: RecentlyPla
       // Add sticky header
       stickyIndices.push(content.length);
       content.push(
-        <View key={`header-${groupIndex}`} style={styles.stickyHeader}>
+        <TouchableOpacity 
+          key={`header-${groupIndex}`} 
+          style={styles.stickyHeader}
+          onPress={() => handleShowTitlePress(group.showName, validSongs[0].showId)}
+          activeOpacity={0.7}
+        >
           <Text style={styles.showTitle}>{group.showName}</Text>
-          <Text style={styles.songCount}>{validSongs.length} songs</Text>
-        </View>
+          <View style={styles.headerRight}>
+            <Text style={styles.songCount}>{validSongs.length} songs</Text>
+            <Text style={styles.chevron}>›</Text>
+          </View>
+        </TouchableOpacity>
       );
       
       // Add songs
@@ -273,15 +303,14 @@ export default function RecentlyPlayedDrawer({ isVisible, onClose }: RecentlyPla
     return { content, stickyIndices };
   };
 
-  if (!isVisible) return null;
+  // Drawer is always visible, just in different positions
 
   return (
     <>
-      {/* Background overlay */}
-      <TouchableOpacity
+      {/* Background overlay - only show when expanded */}
+      <Animated.View 
         style={[styles.overlay, backgroundAnimatedStyle]}
-        onPress={onClose}
-        activeOpacity={1}
+        pointerEvents="none"
       />
       
       {/* Drawer */}
@@ -291,11 +320,14 @@ export default function RecentlyPlayedDrawer({ isVisible, onClose }: RecentlyPla
           <View style={styles.handle} />
           
           {/* Header */}
-          <View style={styles.header}>
-            <Text style={styles.headerTitle}>Recently Played</Text>
-            <TouchableOpacity onPress={handleRefresh} style={styles.refreshButton}>
-              <Text style={styles.refreshButtonText}>↻</Text>
-            </TouchableOpacity>
+          <View style={styles.peekHeader}>
+            <Text style={styles.peekHeaderTitle}>Recently Played</Text>
+            <View style={styles.headerActions}>
+              <TouchableOpacity onPress={handleRefresh} style={styles.refreshButton}>
+                <Text style={styles.refreshButtonText}>↻</Text>
+              </TouchableOpacity>
+              <Text style={styles.dragHint}>▲</Text>
+            </View>
           </View>
           
           {/* Content */}
@@ -342,6 +374,15 @@ export default function RecentlyPlayedDrawer({ isVisible, onClose }: RecentlyPla
           </ScrollView>
         </Animated.View>
       </PanGestureHandler>
+
+      {/* Show Details View - only render when visible */}
+      {showDetailsVisible && selectedShow && (
+        <ShowDetailsView
+          show={selectedShow}
+          isVisible={showDetailsVisible}
+          onClose={handleCloseShowDetails}
+        />
+      )}
     </>
   );
 }
@@ -390,12 +431,36 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#FFFFFF',
   },
+  peekHeader: {
+    height: PEEK_HEIGHT - HANDLE_HEIGHT,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#333',
+  },
+  peekHeaderTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
   refreshButton: {
     padding: 8,
   },
   refreshButtonText: {
     fontSize: 20,
     color: '#00843D',
+  },
+  dragHint: {
+    fontSize: 16,
+    color: '#888',
+    fontWeight: 'bold',
   },
   scrollView: {
     flex: 1,
@@ -427,9 +492,19 @@ const styles = StyleSheet.create({
     color: '#00843D',
     flex: 1,
   },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   songCount: {
     fontSize: 12,
     color: '#888',
+  },
+  chevron: {
+    fontSize: 16,
+    color: '#888',
+    fontWeight: 'bold',
   },
   songItem: {
     flexDirection: 'row',

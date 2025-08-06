@@ -25,7 +25,9 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SvgXml } from 'react-native-svg';
 import RecentlyPlayedDrawer from './components/RecentlyPlayedDrawer';
 import SplashScreen from './components/SplashScreen';
+import ShowDetailsView from './components/ShowDetailsView';
 import MetadataService, { ShowInfo, Song } from './services/MetadataService';
+import { ArchiveService, ArchivePlaybackState } from './services/ArchiveService';
 
 const { width, height } = Dimensions.get('window');
 const streamUrl = 'https://wmbr.org:8002/hi';
@@ -52,7 +54,13 @@ export default function App() {
   const [hosts, setHosts] = useState<string | undefined>();
   const [showDescription, setShowDescription] = useState<string | undefined>();
   const [showSplash, setShowSplash] = useState(true);
-  const [showDrawer, setShowDrawer] = useState(false);
+  const [archiveState, setArchiveState] = useState<ArchivePlaybackState>({
+    isPlayingArchive: false,
+    currentArchive: null,
+    currentShow: null,
+    liveStreamUrl: streamUrl,
+  });
+  const [showDetailsVisible, setShowDetailsVisible] = useState(false);
   
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const rotateAnim = useRef(new Animated.Value(0)).current;
@@ -61,8 +69,12 @@ export default function App() {
     setupPlayer();
     setupMetadata();
     
+    // Subscribe to archive service
+    const unsubscribeArchive = ArchiveService.getInstance().subscribe(setArchiveState);
+    
     return () => {
       MetadataService.getInstance().stopPolling();
+      unsubscribeArchive();
     };
   }, []);
 
@@ -180,6 +192,24 @@ export default function App() {
     setShowSplash(false);
   };
 
+  const handleSwitchToLive = async () => {
+    try {
+      await ArchiveService.getInstance().switchToLive();
+    } catch (error) {
+      console.error('Error switching to live:', error);
+    }
+  };
+
+  const handleShowNamePress = () => {
+    if (archiveState.currentShow) {
+      setShowDetailsVisible(true);
+    }
+  };
+
+  const handleCloseShowDetails = () => {
+    setShowDetailsVisible(false);
+  };
+
   if (showSplash) {
     return <SplashScreen onAnimationEnd={handleSplashEnd} />;
   }
@@ -204,9 +234,22 @@ export default function App() {
             </View>
             
             <View style={styles.showInfo}>
-              <Text style={styles.showTitle}>{currentShow}</Text>
-              {hosts && (
-                <Text style={[styles.hosts, isPlaying && styles.hostsActive]}>with {hosts}</Text>
+              {archiveState.isPlayingArchive ? (
+                <TouchableOpacity onPress={handleShowNamePress} activeOpacity={0.7}>
+                  <Text style={[styles.showTitle, styles.clickableTitle]}>
+                    {archiveState.currentShow?.name || 'Archive'}
+                  </Text>
+                  <Text style={[styles.archiveInfo, isPlaying && styles.archiveInfoActive]}>
+                    Archive from {archiveState.currentArchive?.date}
+                  </Text>
+                </TouchableOpacity>
+              ) : (
+                <>
+                  <Text style={styles.showTitle}>{currentShow}</Text>
+                  {hosts && (
+                    <Text style={[styles.hosts, isPlaying && styles.hostsActive]}>with {hosts}</Text>
+                  )}
+                </>
               )}
             </View>
 
@@ -243,28 +286,25 @@ export default function App() {
             </View>
 
             <View style={styles.bottomInfo}>
-              {showDescription && (
+              {!archiveState.isPlayingArchive && showDescription && (
                 <Text style={[styles.showDescription, isPlaying && styles.showDescriptionActive]} numberOfLines={3}>
                   {showDescription}
                 </Text>
               )}
-              <Text style={styles.liveText}>● LIVE</Text>
               
-              <TouchableOpacity
-                style={[
-                  styles.recentlyPlayedButton,
-                  isPlaying && styles.recentlyPlayedButtonActive
-                ]}
-                onPress={() => setShowDrawer(!showDrawer)}
-                activeOpacity={0.7}
-              >
-                <Text style={[
-                  styles.recentlyPlayedButtonText,
-                  isPlaying && styles.recentlyPlayedButtonTextActive
-                ]}>
-                  Recently Played {showDrawer ? '▼' : '▲'}
-                </Text>
-              </TouchableOpacity>
+              {archiveState.isPlayingArchive ? (
+                <TouchableOpacity 
+                  style={[styles.liveButton, isPlaying && styles.liveButtonActive]}
+                  onPress={handleSwitchToLive}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.liveButtonText, isPlaying && styles.liveButtonTextActive]}>
+                    ← Switch to LIVE
+                  </Text>
+                </TouchableOpacity>
+              ) : (
+                <Text style={styles.liveText}>● LIVE</Text>
+              )}
             </View>
 
             <View style={styles.bottomSpace} />
@@ -272,9 +312,18 @@ export default function App() {
         </SafeAreaView>
 
         <RecentlyPlayedDrawer 
-          isVisible={showDrawer} 
-          onClose={() => setShowDrawer(false)} 
+          isVisible={true} 
+          onClose={() => {}} 
         />
+
+        {/* Show Details View for archive shows */}
+        {showDetailsVisible && archiveState.currentShow && (
+          <ShowDetailsView
+            show={archiveState.currentShow}
+            isVisible={showDetailsVisible}
+            onClose={handleCloseShowDetails}
+          />
+        )}
       </LinearGradient>
     </GestureHandlerRootView>
   );
@@ -312,6 +361,18 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     textAlign: 'center',
     marginBottom: 8,
+  },
+  clickableTitle: {
+    textDecorationLine: 'underline',
+  },
+  archiveInfo: {
+    fontSize: 14,
+    color: '#CCCCCC',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  archiveInfoActive: {
+    color: '#E0E0E0',
   },
   hosts: {
     fontSize: 16,
@@ -433,28 +494,28 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   bottomSpace: {
-    height: 100,
+    height: 100, // Space for peeking drawer
   },
-  recentlyPlayedButton: {
+  liveButton: {
     marginTop: 16,
     paddingHorizontal: 20,
     paddingVertical: 12,
-    backgroundColor: 'rgba(0, 132, 61, 0.2)',
+    backgroundColor: 'rgba(255, 68, 68, 0.2)',
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#00843D',
+    borderColor: '#FF4444',
   },
-  recentlyPlayedButtonActive: {
+  liveButtonActive: {
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    borderColor: '#000000',
+    borderColor: '#FFFFFF',
   },
-  recentlyPlayedButtonText: {
-    color: '#00843D',
+  liveButtonText: {
+    color: '#FF4444',
     fontSize: 14,
     fontWeight: '600',
     textAlign: 'center',
   },
-  recentlyPlayedButtonTextActive: {
-    color: '#000000',
+  liveButtonTextActive: {
+    color: '#FFFFFF',
   },
 });

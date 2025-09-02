@@ -113,10 +113,38 @@ class MetadataService {
       description = this.stripHTML(description).trim();
       console.log('Final description:', description);
 
+      // Extract current song from wmbr_plays section (most recent entry)
+      let currentSong = '';
+      let currentArtist = '';
+      
+      try {
+        const playsMatch = xmlText.match(/<wmbr_plays>(.*?)<\/wmbr_plays>/s);
+        if (playsMatch) {
+          const playsContent = playsMatch[1];
+          const decodedPlaysContent = this.decodeHTMLEntities(playsContent);
+          
+          // Get the first (most recent) song entry
+          const firstSongMatch = decodedPlaysContent.match(/<p class="recent">(.*?)<\/p>/);
+          if (firstSongMatch) {
+            const songContent = firstSongMatch[1];
+            // Parse format: "7:59p&nbsp;<b>Earl Grant</b>: Dreamy"
+            const songMatch = songContent.match(/\d+:\d+[ap].*?<b>(.*?)<\/b>:\s*(.*)/);
+            if (songMatch) {
+              currentArtist = this.stripHTML(songMatch[1]).trim();
+              currentSong = this.stripHTML(songMatch[2]).trim();
+            }
+          }
+        }
+      } catch (error) {
+        console.warn('Error parsing current song:', error);
+      }
+
       const result = {
         showTitle,
         hosts: hosts || undefined,
         description: description || undefined,
+        currentSong: currentSong || undefined,
+        currentArtist: currentArtist || undefined,
       };
       
       console.log('=== Final parsed result ===', result);
@@ -243,7 +271,7 @@ class MetadataService {
     });
   }
 
-  startPolling(intervalMs: number = 30000): void {
+  startPolling(intervalMs: number = 15000): void {
     this.stopPolling();
     
     const poll = async () => {

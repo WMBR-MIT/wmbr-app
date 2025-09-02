@@ -78,7 +78,7 @@ export class ArchiveService {
     }
   }
 
-  async switchToLive(): Promise<void> {
+  async switchToLive(currentShowTitle?: string): Promise<void> {
     try {
       console.log('Switching to live stream');
       
@@ -91,7 +91,7 @@ export class ArchiveService {
         id: 'wmbr-stream',
         url: this.currentState.liveStreamUrl,
         title: 'WMBR 88.1 FM',
-        artist: 'Live Radio',
+        artist: currentShowTitle || 'Live Radio',
         artwork: require('../assets/cover.png'),
       };
 

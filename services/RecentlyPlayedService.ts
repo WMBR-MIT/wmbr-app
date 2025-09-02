@@ -5,6 +5,7 @@ export class RecentlyPlayedService {
   private static instance: RecentlyPlayedService;
   private songsCache: ProcessedSong[] = [];
   private showsCache: Show[] = [];
+  private seasonStart: Date | null = null;
   private lastFetch: number = 0;
   private readonly CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
@@ -71,6 +72,12 @@ export class RecentlyPlayedService {
         try {
           console.log('XML parsing result keys:', Object.keys(result || {}));
           
+          // Parse season start date if available
+          if (result?.wmbr_archives?.$ && result.wmbr_archives.$.season_start) {
+            this.seasonStart = new Date(result.wmbr_archives.$.season_start);
+            console.log('Season start:', this.seasonStart);
+          }
+          
           const shows: Show[] = [];
           const showsData = result?.wmbr_archives?.show;
           
@@ -119,6 +126,7 @@ export class RecentlyPlayedService {
                 time_str: showData.time_str || '',
                 length: parseInt(showData.length) || 0,
                 hosts: showData.hosts || '',
+                alternates: parseInt(showData.alternates) || 0,
                 archives
               });
             }
@@ -230,80 +238,14 @@ export class RecentlyPlayedService {
     
     console.log('Finding show for:', timestamp.toString(), 'Day:', dayOfWeek, 'Minutes:', minutesFromMidnight);
     
-    // Find shows for this day of the week AND previous day (for midnight crossover)
-    const todayShows = this.showsCache.filter(show => {
-      if (show.day === 7) {
-        return dayOfWeek >= 1 && dayOfWeek <= 5; // Monday-Friday
-      }
-      return show.day === dayOfWeek;
-    });
-    
-    const prevDay = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-    const yesterdayShows = this.showsCache.filter(show => {
-      if (show.day === 7) {
-        return prevDay >= 1 && prevDay <= 5; // Monday-Friday
-      }
-      return show.day === prevDay;
-    });
-    
-    console.log('Shows for today:', todayShows.map(s => `${s.name} (${s.time_str})`));
-    console.log('Shows for yesterday:', yesterdayShows.map(s => `${s.name} (${s.time_str})`));
-    
-    // Check for shows that cross midnight from yesterday
-    const midnightCrossoverShows = yesterdayShows.filter(show => {
-      const showStart = show.time;
-      const showEnd = showStart + show.length;
-      
-      // Show crosses midnight if it ends after 1440 minutes (24 hours)
-      if (showEnd > 1440) {
-        const endMinutesToday = showEnd - 1440; // Minutes into today
-        // Song is in this show if it's before the show ends today
-        return minutesFromMidnight < endMinutesToday;
-      }
-      return false;
-    });
-    
-    if (midnightCrossoverShows.length > 0) {
-      // Sort by start time (most recent first)
-      midnightCrossoverShows.sort((a, b) => b.time - a.time);
-      console.log('Found midnight crossover show:', midnightCrossoverShows[0].name);
-      return { name: midnightCrossoverShows[0].name, id: midnightCrossoverShows[0].id };
+    // Find the currently playing show using the new alternating schedule logic
+    const currentShow = this.getCurrentlyPlayingShow(timestamp);
+    if (currentShow) {
+      console.log('Found currently playing show:', currentShow.name);
+      return { name: currentShow.name, id: currentShow.id };
     }
     
-    // Check for currently playing shows today
-    const currentShows = todayShows.filter(show => {
-      const showStart = show.time;
-      const showEnd = showStart + show.length;
-      
-      // Handle shows that might cross midnight
-      if (showEnd > 1440) {
-        // Show crosses midnight, check if we're in the first part (today)
-        return minutesFromMidnight >= showStart;
-      } else {
-        // Normal show within the day
-        return minutesFromMidnight >= showStart && minutesFromMidnight < showEnd;
-      }
-    });
-    
-    if (currentShows.length > 0) {
-      console.log('Found current show:', currentShows[0].name);
-      return { name: currentShows[0].name, id: currentShows[0].id };
-    }
-    
-    // Find the most recently started show today
-    const recentShows = todayShows.filter(show => {
-      return show.time <= minutesFromMidnight;
-    });
-    
-    // Sort by start time (most recent first)
-    recentShows.sort((a, b) => b.time - a.time);
-    
-    if (recentShows.length > 0) {
-      console.log('Found recent show:', recentShows[0].name);
-      return { name: recentShows[0].name, id: recentShows[0].id };
-    }
-    
-    // Also check archives for better matching
+    // Fallback to archive matching for better accuracy
     const archiveMatches = this.showsCache.filter(show => {
       return show.archives.some(archive => {
         const archiveDate = new Date(archive.date);
@@ -319,6 +261,167 @@ export class RecentlyPlayedService {
     
     console.log('No show found, using Unknown Show');
     return { name: 'Unknown Show', id: 'unknown' };
+  }
+
+  private getCurrentlyPlayingShow(targetTime: Date): Show | null {
+    if (!this.seasonStart) {
+      console.log('No season start date available, using fallback logic');
+      return this.fallbackShowLogic(targetTime);
+    }
+
+    const dayOfWeek = targetTime.getDay(); // 0 = Sunday, 1 = Monday, etc.
+    const minutesFromMidnight = targetTime.getHours() * 60 + targetTime.getMinutes();
+    
+    // Find shows for this day of the week (including weekday shows)
+    const candidateShows = this.showsCache.filter(show => {
+      if (show.day === 7) {
+        return dayOfWeek >= 1 && dayOfWeek <= 5; // Monday-Friday
+      }
+      return show.day === dayOfWeek;
+    });
+    
+    // Group shows by time slot
+    const showsByTime = new Map<number, Show[]>();
+    candidateShows.forEach(show => {
+      // Check if show is currently playing
+      const showStart = show.time;
+      const showEnd = showStart + show.length;
+      
+      let isCurrentlyPlaying = false;
+      if (showEnd > 1440) {
+        // Show crosses midnight
+        isCurrentlyPlaying = minutesFromMidnight >= showStart || minutesFromMidnight < (showEnd - 1440);
+      } else {
+        // Normal show within the day
+        isCurrentlyPlaying = minutesFromMidnight >= showStart && minutesFromMidnight < showEnd;
+      }
+      
+      if (isCurrentlyPlaying) {
+        if (!showsByTime.has(showStart)) {
+          showsByTime.set(showStart, []);
+        }
+        showsByTime.get(showStart)!.push(show);
+      }
+    });
+    
+    // For each time slot with multiple shows, determine which one should be playing
+    for (const [timeSlot, shows] of showsByTime) {
+      if (shows.length === 1) {
+        return shows[0]; // Only one show, must be it
+      }
+      
+      // Multiple shows at this time slot, use alternates logic
+      const activeShow = this.getActiveShowForTimeSlot(shows, timeSlot, targetTime);
+      if (activeShow) {
+        return activeShow;
+      }
+    }
+    
+    return null;
+  }
+
+  private getActiveShowForTimeSlot(shows: Show[], timeSlot: number, targetTime: Date): Show | null {
+    if (!this.seasonStart) return shows[0]; // Fallback to first show
+    
+    // Find the first matching weekday/time on or after the season start
+    const firstSlotTime = this.findFirstSlotTime(timeSlot, targetTime.getDay());
+    if (!firstSlotTime) return shows[0];
+    
+    // Calculate weeks since the first slot
+    const weeksSince = Math.floor((targetTime.getTime() - firstSlotTime.getTime()) / (7 * 24 * 60 * 60 * 1000));
+    const cycleIndex = weeksSince % 4; // 0=week1, 1=week2, 2=week3, 3=week4
+    
+    console.log(`Time slot ${timeSlot}: weeksSince=${weeksSince}, cycleIndex=${cycleIndex}`);
+    
+    // Find the show that matches this cycle
+    for (const show of shows) {
+      const alternates = show.alternates;
+      let shouldPlay = false;
+      
+      switch (alternates) {
+        case 0: // Weekly show
+          shouldPlay = true;
+          break;
+        case 1: // Weeks 1 & 3 (first of every 2 weeks)
+          shouldPlay = (weeksSince % 2) === 0;
+          break;
+        case 2: // Weeks 2 & 4 (second of every 2 weeks)
+          shouldPlay = (weeksSince % 2) === 1;
+          break;
+        case 5: // Week 1 (first of every 4 weeks)
+          shouldPlay = cycleIndex === 0;
+          break;
+        case 6: // Week 2 (second of every 4 weeks)
+          shouldPlay = cycleIndex === 1;
+          break;
+        case 7: // Week 3 (third of every 4 weeks)
+          shouldPlay = cycleIndex === 2;
+          break;
+        case 8: // Week 4 (fourth of every 4 weeks)
+          shouldPlay = cycleIndex === 3;
+          break;
+      }
+      
+      if (shouldPlay) {
+        console.log(`Selected show: ${show.name} (alternates=${alternates})`);
+        return show;
+      }
+    }
+    
+    // If no show matches, return the first one as fallback
+    return shows[0];
+  }
+
+  private findFirstSlotTime(timeSlot: number, targetDayOfWeek: number): Date | null {
+    if (!this.seasonStart) return null;
+    
+    const seasonStartTime = new Date(this.seasonStart);
+    
+    // Find the first occurrence of this day/time on or after season start
+    let searchDate = new Date(seasonStartTime);
+    
+    // Move to the target day of week
+    while (searchDate.getDay() !== targetDayOfWeek) {
+      searchDate.setDate(searchDate.getDate() + 1);
+    }
+    
+    // Set the time to the show time
+    const hours = Math.floor(timeSlot / 60);
+    const minutes = timeSlot % 60;
+    searchDate.setHours(hours, minutes, 0, 0);
+    
+    // If this is before season start, move to next week
+    if (searchDate < seasonStartTime) {
+      searchDate.setDate(searchDate.getDate() + 7);
+    }
+    
+    return searchDate;
+  }
+
+  private fallbackShowLogic(targetTime: Date): Show | null {
+    const dayOfWeek = targetTime.getDay();
+    const minutesFromMidnight = targetTime.getHours() * 60 + targetTime.getMinutes();
+    
+    // Simple fallback: find any show currently playing
+    const candidateShows = this.showsCache.filter(show => {
+      if (show.day === 7) {
+        return dayOfWeek >= 1 && dayOfWeek <= 5; // Monday-Friday
+      }
+      return show.day === dayOfWeek;
+    });
+    
+    const currentShows = candidateShows.filter(show => {
+      const showStart = show.time;
+      const showEnd = showStart + show.length;
+      
+      if (showEnd > 1440) {
+        return minutesFromMidnight >= showStart || minutesFromMidnight < (showEnd - 1440);
+      } else {
+        return minutesFromMidnight >= showStart && minutesFromMidnight < showEnd;
+      }
+    });
+    
+    return currentShows.length > 0 ? currentShows[0] : null;
   }
 
 

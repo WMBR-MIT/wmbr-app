@@ -26,24 +26,17 @@ import { SvgXml } from 'react-native-svg';
 import RecentlyPlayedDrawer from './components/RecentlyPlayedDrawer';
 import SplashScreen from './components/SplashScreen';
 import ShowDetailsView from './components/ShowDetailsView';
+import ArchivedShowView from './components/ArchivedShowView';
+import ShowScheduleView from './components/ShowScheduleView';
 import MetadataService, { ShowInfo, Song } from './services/MetadataService';
 import { ArchiveService, ArchivePlaybackState } from './services/ArchiveService';
+import { AudioPreviewService } from './services/AudioPreviewService';
+import { getWMBRLogoSVG } from './utils/WMBRLogo';
 
 const { width, height } = Dimensions.get('window');
 const streamUrl = 'https://wmbr.org:8002/hi';
 const WMBR_GREEN = '#00843D';
 
-const getWMBRLogoSVG = (isPlaying: boolean) => `
-<svg viewBox="0 0 155.57 33.9" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <style>.b{fill:${isPlaying ? '#000000' : '#00843D'};}</style>
-  </defs>
-  <polygon class="b" points="22.7 18.9 31.2 33.7 44.1 5.8 42.4 5.8 36 19.6 28.3 5.3 19.9 19.8 12.8 5.8 0 5.8 14.2 33.9 22.7 18.9"/>
-  <path class="b" d="M57.4,31.8V11.3s1.8-2.3,4.8-2.4c.9,0,2.1.4,2.5,1.4v21.5h11.8V11.6s2.3-2.1,4.6-2.3c1.6-.1,2.7,1,2.8,1.6v20.8h11.8V11.2c-.3-2.2-2.4-4.1-4.7-5-2.6-1-6.8-.7-9.2.3-2.7,1.1-5.8,3.1-5.8,3.1,0,0-1.8-2.5-4.4-3.3-2.6-.9-5.6-1-8.3-.2-2.7.9-5.9,2.9-5.9,2.9v-3.2h-11.9v26h11.9Z"/>
-  <path class="b" d="M110.3,31.8v-2.5s1.8,1.8,4.7,2.6c3.5.9,9.3.1,12.8-4.1,3.9-4.7,4.2-12.1-.4-17.4-3.5-4.1-8.7-5.4-13.2-4.2-2.2.6-3.5,1.7-3.9,2.2V0h-11.8v31.8h11.8ZM113,8.4c2-1,3.2-.6,3.9-.2,1.1.7,1,1.6,1,1.6v18.2s.1.7-.8,1.5c-1.1,1-2.9.7-4.2-.2-1.8-1.2-2.6-2.4-2.6-2.4V10.8c.4-.5,1.4-1.8,2.7-2.4Z"/>
-  <path class="b" d="M144.5,14s.6-2.5,3.8-4.7c2.4-1.6,3.8-1,4.1-.5.5,1.1,2.3,1.2,2.9.2.5-.8.3-2.1-.5-2.6-1.4-.9-3.9-1-6.7.9-2.8,2-3.5,2.9-3.5,2.9v-4.4h-11.6v26h11.5V14Z"/>
-</svg>
-`;
 
 export default function App() {
   const playbackState = usePlaybackState();
@@ -53,7 +46,10 @@ export default function App() {
   const [songHistory, setSongHistory] = useState<Song[]>([]);
   const [hosts, setHosts] = useState<string | undefined>();
   const [showDescription, setShowDescription] = useState<string | undefined>();
+  const [currentSong, setCurrentSong] = useState<string | undefined>();
+  const [currentArtist, setCurrentArtist] = useState<string | undefined>();
   const [showSplash, setShowSplash] = useState(true);
+  const [previousSong, setPreviousSong] = useState<string>('');
   const [archiveState, setArchiveState] = useState<ArchivePlaybackState>({
     isPlayingArchive: false,
     currentArchive: null,
@@ -61,9 +57,14 @@ export default function App() {
     liveStreamUrl: streamUrl,
   });
   const [showDetailsVisible, setShowDetailsVisible] = useState(false);
+  const [archivedShowViewVisible, setArchivedShowViewVisible] = useState(false);
+  const [scheduleViewVisible, setScheduleViewVisible] = useState(false);
   
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const rotateAnim = useRef(new Animated.Value(0)).current;
+  const songChangeScale = useRef(new Animated.Value(1)).current;
+  const songChangeRotate = useRef(new Animated.Value(0)).current;
+  const songChangeOpacity = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
     setupPlayer();
@@ -88,6 +89,18 @@ export default function App() {
       stopAnimations();
     }
   }, [playbackState]);
+
+  // Trigger animation when song changes
+  useEffect(() => {
+    if (currentSong && currentArtist && !archiveState.isPlayingArchive) {
+      const newSongKey = `${currentArtist}-${currentSong}`;
+      if (previousSong && previousSong !== newSongKey) {
+        // Song changed! Trigger fun animation
+        startSongChangeAnimation();
+      }
+      setPreviousSong(newSongKey);
+    }
+  }, [currentSong, currentArtist, archiveState.isPlayingArchive]);
 
   const setupPlayer = async () => {
     try {
@@ -120,18 +133,37 @@ export default function App() {
       setCurrentShow(data.showTitle);
       setHosts(data.hosts);
       setShowDescription(data.description);
+      setCurrentSong(data.currentSong);
+      setCurrentArtist(data.currentArtist);
+      
+      // Update track metadata with current show name for lock screen
+      updateLiveTrackMetadata(data.showTitle);
     });
 
     const unsubscribeSongs = metadataService.subscribeSongHistory((songs: Song[]) => {
       setSongHistory(songs);
     });
 
-    metadataService.startPolling(30000);
+    metadataService.startPolling(15000);
 
     return () => {
       unsubscribeMetadata();
       unsubscribeSongs();
     };
+  };
+
+  const updateLiveTrackMetadata = async (showTitle: string) => {
+    try {
+      // Only update if we're not playing an archive
+      if (!archiveState.isPlayingArchive) {
+        await TrackPlayer.updateMetadataForTrack('wmbr-stream', {
+          title: 'WMBR 88.1 FM',
+          artist: showTitle || 'Live Radio',
+        });
+      }
+    } catch (error) {
+      console.error('Error updating track metadata:', error);
+    }
   };
 
   const startPulseAnimation = () => {
@@ -171,11 +203,108 @@ export default function App() {
     }).start();
   };
 
+  const startSongChangeAnimation = () => {
+    // Reset animation values
+    songChangeScale.setValue(1);
+    songChangeRotate.setValue(0);
+    songChangeOpacity.setValue(1);
+
+    // Create a fun bouncy scale + rotate + opacity animation
+    Animated.sequence([
+      // Phase 1: Bounce up with rotation and opacity flash
+      Animated.parallel([
+        Animated.timing(songChangeScale, {
+          toValue: 1.3,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(songChangeRotate, {
+          toValue: 0.25, // 90 degrees
+          duration: 200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(songChangeOpacity, {
+          toValue: 0.3,
+          duration: 100,
+          useNativeDriver: true,
+        }),
+      ]),
+      // Phase 2: Bounce down slightly with opacity return
+      Animated.parallel([
+        Animated.timing(songChangeScale, {
+          toValue: 0.9,
+          duration: 150,
+          useNativeDriver: true,
+        }),
+        Animated.timing(songChangeRotate, {
+          toValue: -0.1, // -36 degrees
+          duration: 150,
+          useNativeDriver: true,
+        }),
+        Animated.timing(songChangeOpacity, {
+          toValue: 1,
+          duration: 150,
+          useNativeDriver: true,
+        }),
+      ]),
+      // Phase 3: Settle to normal with slight overshoot
+      Animated.parallel([
+        Animated.timing(songChangeScale, {
+          toValue: 1.05,
+          duration: 100,
+          useNativeDriver: true,
+        }),
+        Animated.timing(songChangeRotate, {
+          toValue: 0.05, // 18 degrees
+          duration: 100,
+          useNativeDriver: true,
+        }),
+      ]),
+      // Phase 4: Return to normal
+      Animated.parallel([
+        Animated.timing(songChangeScale, {
+          toValue: 1,
+          duration: 150,
+          useNativeDriver: true,
+        }),
+        Animated.timing(songChangeRotate, {
+          toValue: 0,
+          duration: 150,
+          useNativeDriver: true,
+        }),
+      ]),
+    ]).start();
+  };
+
   const togglePlayback = async () => {
     try {
+      const audioPreviewService = AudioPreviewService.getInstance();
+      const previewState = audioPreviewService.getCurrentState();
+      
       if (isPlaying) {
         await TrackPlayer.pause();
       } else {
+        // Check if we're in preview mode and need to return to live stream
+        if (previewState.url !== null) {
+          // Stop preview and return to live stream
+          await audioPreviewService.stop();
+          
+          // Ensure we have the live stream track
+          const queue = await TrackPlayer.getQueue();
+          const hasLiveStream = queue.some(track => track.id === 'wmbr-stream');
+          
+          if (!hasLiveStream) {
+            // Re-add the live stream track if it's missing
+            await TrackPlayer.add({
+              id: 'wmbr-stream',
+              url: streamUrl,
+              title: 'WMBR 88.1 FM',
+              artist: currentShow || 'Live Radio',
+              artwork: require('./assets/cover.png'),
+            });
+          }
+        }
+        
         await TrackPlayer.play();
       }
     } catch (error) {
@@ -188,13 +317,18 @@ export default function App() {
     outputRange: ['0deg', '360deg'],
   });
 
+  const songRotation = songChangeRotate.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
+  });
+
   const handleSplashEnd = () => {
     setShowSplash(false);
   };
 
   const handleSwitchToLive = async () => {
     try {
-      await ArchiveService.getInstance().switchToLive();
+      await ArchiveService.getInstance().switchToLive(currentShow);
     } catch (error) {
       console.error('Error switching to live:', error);
     }
@@ -202,12 +336,47 @@ export default function App() {
 
   const handleShowNamePress = () => {
     if (archiveState.currentShow) {
-      setShowDetailsVisible(true);
+      if (showDetailsVisible) {
+        // If already on the show details page, close it (go back to home)
+        setShowDetailsVisible(false);
+      } else if (archivedShowViewVisible) {
+        // If on the individual archive view, go back to the show list
+        setArchivedShowViewVisible(false);
+        setShowDetailsVisible(true);
+      } else if (archiveState.isPlayingArchive && archiveState.currentArchive) {
+        // If on home page and playing an archive, go directly to the archived show view
+        setArchivedShowViewVisible(true);
+      } else {
+        // If on home page and not playing an archive, show the show details (archive list)
+        setShowDetailsVisible(true);
+      }
     }
   };
 
   const handleCloseShowDetails = () => {
     setShowDetailsVisible(false);
+  };
+
+  const handleCloseArchivedShowView = () => {
+    setArchivedShowViewVisible(false);
+  };
+
+  const handleShowSchedule = () => {
+    setScheduleViewVisible(true);
+  };
+
+  const handleCloseScheduleView = () => {
+    setScheduleViewVisible(false);
+  };
+
+  const formatArchiveDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
   };
 
   if (showSplash) {
@@ -218,7 +387,7 @@ export default function App() {
     <GestureHandlerRootView style={styles.container}>
       <StatusBar 
         barStyle="light-content" 
-        backgroundColor={isPlaying ? '#00843D' : '#000000'} 
+        backgroundColor={isPlaying ? '#00843D' : '#000000'}
         translucent={false}
       />
       
@@ -230,7 +399,14 @@ export default function App() {
           <View style={styles.content}>
             
             <View style={styles.logoContainer}>
-              <SvgXml xml={getWMBRLogoSVG(isPlaying)} width={80} height={17} />
+              <SvgXml xml={getWMBRLogoSVG(isPlaying ? "#000000" : "#00843D")} width={80} height={17} />
+              <TouchableOpacity 
+                style={styles.scheduleButton} 
+                onPress={handleShowSchedule}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.scheduleButtonText}>Schedule</Text>
+              </TouchableOpacity>
             </View>
             
             <View style={styles.showInfo}>
@@ -240,7 +416,7 @@ export default function App() {
                     {archiveState.currentShow?.name || 'Archive'}
                   </Text>
                   <Text style={[styles.archiveInfo, isPlaying && styles.archiveInfoActive]}>
-                    Archive from {archiveState.currentArchive?.date}
+                    Archive from {archiveState.currentArchive?.date ? formatArchiveDate(archiveState.currentArchive.date) : ''}
                   </Text>
                 </TouchableOpacity>
               ) : (
@@ -303,7 +479,31 @@ export default function App() {
                   </Text>
                 </TouchableOpacity>
               ) : (
-                <Text style={styles.liveText}>● LIVE</Text>
+                <>
+                  <Text style={styles.liveText}>● LIVE</Text>
+                  {currentSong && currentArtist && (
+                    <View style={styles.nowPlayingContainer}>
+                      <Text style={[styles.nowPlayingLabel, isPlaying && styles.nowPlayingLabelActive]}>
+                        Now playing:
+                      </Text>
+                      <Animated.Text 
+                        style={[
+                          styles.currentSongText, 
+                          isPlaying && styles.currentSongTextActive,
+                          {
+                            transform: [
+                              { scale: songChangeScale },
+                              { rotate: songRotation }
+                            ],
+                            opacity: songChangeOpacity
+                          }
+                        ]}
+                      >
+                        {currentArtist}: {currentSong}
+                      </Animated.Text>
+                    </View>
+                  )}
+                </>
               )}
             </View>
 
@@ -324,6 +524,23 @@ export default function App() {
             onClose={handleCloseShowDetails}
           />
         )}
+
+        {/* Archived Show View for individual archive */}
+        {archivedShowViewVisible && archiveState.currentShow && archiveState.currentArchive && (
+          <ArchivedShowView
+            show={archiveState.currentShow}
+            archive={archiveState.currentArchive}
+            isVisible={archivedShowViewVisible}
+            onClose={handleCloseArchivedShowView}
+          />
+        )}
+
+        {/* Show Schedule View */}
+        <ShowScheduleView
+          isVisible={scheduleViewVisible}
+          onClose={handleCloseScheduleView}
+          currentShow={currentShow}
+        />
       </LinearGradient>
     </GestureHandlerRootView>
   );
@@ -351,6 +568,21 @@ const styles = StyleSheet.create({
     marginTop: 10,
     marginBottom: 5,
   },
+  scheduleButton: {
+    marginTop: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  scheduleButtonText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '500',
+    textAlign: 'center',
+  },
   showInfo: {
     alignItems: 'center',
     marginTop: 20,
@@ -376,7 +608,7 @@ const styles = StyleSheet.create({
   },
   hosts: {
     fontSize: 16,
-    color: '#888',
+    color: '#CCCCCC',
     textAlign: 'center',
     marginBottom: 8,
   },
@@ -390,7 +622,7 @@ const styles = StyleSheet.create({
   },
   showDescription: {
     fontSize: 12,
-    color: '#666',
+    color: '#CCCCCC',
     textAlign: 'center',
     marginBottom: 12,
     lineHeight: 16,
@@ -403,6 +635,30 @@ const styles = StyleSheet.create({
     color: '#FF4444',
     fontWeight: '500',
     marginBottom: 8,
+  },
+  nowPlayingContainer: {
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  nowPlayingLabel: {
+    fontSize: 10,
+    color: '#999999',
+    fontWeight: '500',
+    marginBottom: 2,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  nowPlayingLabelActive: {
+    color: '#BBBBBB',
+  },
+  currentSongText: {
+    fontSize: 12,
+    color: '#CCCCCC',
+    textAlign: 'center',
+    fontStyle: 'italic',
+  },
+  currentSongTextActive: {
+    color: '#E0E0E0',
   },
   centerButton: {
     flex: 1,

@@ -14,13 +14,12 @@ import {
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
-  useAnimatedGestureHandler,
   withSpring,
   runOnJS,
   interpolate,
   Extrapolate,
 } from 'react-native-reanimated';
-import { PanGestureHandler } from 'react-native-gesture-handler';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { RecentlyPlayedService } from '../services/RecentlyPlayedService';
 import { AudioPreviewService, PreviewState } from '../services/AudioPreviewService';
 import { ShowGroup, ProcessedSong, Show } from '../types/RecentlyPlayed';
@@ -31,7 +30,7 @@ const { height: screenHeight } = Dimensions.get('window');
 const DRAWER_HEIGHT = screenHeight * 0.8;
 const HEADER_HEIGHT = 60;
 const HANDLE_HEIGHT = 20;
-const PEEK_HEIGHT = 80; // How much of the drawer shows when collapsed
+const PEEK_HEIGHT = 100; // How much of the drawer shows when collapsed
 
 interface RecentlyPlayedDrawerProps {
   isVisible: boolean;
@@ -149,15 +148,19 @@ export default function RecentlyPlayedDrawer({ isVisible, onClose }: RecentlyPla
     }
   };
 
-  const gestureHandler = useAnimatedGestureHandler({
-    onStart: (_, context) => {
-      context.startY = translateY.value;
-    },
-    onActive: (event, context) => {
-      const newY = context.startY + event.translationY;
+  const startPosition = useSharedValue(0);
+
+  const panGesture = Gesture.Pan()
+    .onBegin(() => {
+      // Store the initial position when gesture starts
+      startPosition.value = translateY.value;
+    })
+    .onUpdate((event) => {
+      // Calculate new position based on initial position + translation
+      const newY = startPosition.value + event.translationY;
       translateY.value = Math.max(0, Math.min(DRAWER_HEIGHT - PEEK_HEIGHT, newY));
-    },
-    onEnd: (event) => {
+    })
+    .onEnd((event) => {
       const currentPosition = translateY.value;
       const isExpanded = currentPosition < (DRAWER_HEIGHT - PEEK_HEIGHT) / 2;
       
@@ -175,8 +178,7 @@ export default function RecentlyPlayedDrawer({ isVisible, onClose }: RecentlyPla
           translateY.value = withSpring(DRAWER_HEIGHT - PEEK_HEIGHT); // Peeking
         }
       }
-    },
-  });
+    });
 
   const drawerAnimatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: translateY.value }],
@@ -314,7 +316,7 @@ export default function RecentlyPlayedDrawer({ isVisible, onClose }: RecentlyPla
       />
       
       {/* Drawer */}
-      <PanGestureHandler onGestureEvent={gestureHandler}>
+      <GestureDetector gesture={panGesture}>
         <Animated.View style={[styles.drawer, drawerAnimatedStyle]}>
           {/* Handle */}
           <View style={styles.handle} />
@@ -373,7 +375,7 @@ export default function RecentlyPlayedDrawer({ isVisible, onClose }: RecentlyPla
             <View style={styles.bottomPadding} />
           </ScrollView>
         </Animated.View>
-      </PanGestureHandler>
+      </GestureDetector>
 
       {/* Show Details View - only render when visible */}
       {showDetailsVisible && selectedShow && (

@@ -9,13 +9,12 @@ import {
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
-  useAnimatedGestureHandler,
   withSpring,
   runOnJS,
 } from 'react-native-reanimated';
 import {
-  PanGestureHandler,
-  PanGestureHandlerGestureEvent,
+  Gesture,
+  GestureDetector,
 } from 'react-native-gesture-handler';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -39,18 +38,18 @@ const SongHistoryDrawer: React.FC<SongHistoryDrawerProps> = ({ songs, isVisible 
   const translateY = useSharedValue(DRAWER_HEIGHT - PEEK_HEIGHT);
   const isExpanded = useSharedValue(false);
 
-  const gestureHandler = useAnimatedGestureHandler<PanGestureHandlerGestureEvent>({
-    onStart: (_, context) => {
-      context.startY = translateY.value;
-    },
-    onActive: (event, context) => {
-      const newTranslateY = context.startY + event.translationY;
+  const panGesture = Gesture.Pan()
+    .onBegin(() => {
+      // Store initial position
+    })
+    .onUpdate((event) => {
+      const newTranslateY = event.translationY;
       
       if (newTranslateY >= 0 && newTranslateY <= DRAWER_HEIGHT - PEEK_HEIGHT) {
         translateY.value = newTranslateY;
       }
-    },
-    onEnd: (event) => {
+    })
+    .onEnd((event) => {
       const { translationY, velocityY } = event;
       
       if (velocityY > 500 || (velocityY > 0 && translationY > SNAP_THRESHOLD)) {
@@ -66,8 +65,7 @@ const SongHistoryDrawer: React.FC<SongHistoryDrawerProps> = ({ songs, isVisible 
           translateY.value = withSpring(DRAWER_HEIGHT - PEEK_HEIGHT);
         }
       }
-    },
-  });
+    });
 
   const animatedStyle = useAnimatedStyle(() => {
     return {
@@ -87,7 +85,7 @@ const SongHistoryDrawer: React.FC<SongHistoryDrawerProps> = ({ songs, isVisible 
   }
 
   return (
-    <PanGestureHandler onGestureEvent={gestureHandler}>
+    <GestureDetector gesture={panGesture}>
       <Animated.View style={[styles.drawer, animatedStyle]}>
         <Animated.View style={[styles.handle, handleOpacity]} />
         
@@ -125,7 +123,7 @@ const SongHistoryDrawer: React.FC<SongHistoryDrawerProps> = ({ songs, isVisible 
           )}
         </ScrollView>
       </Animated.View>
-    </PanGestureHandler>
+    </GestureDetector>
   );
 };
 

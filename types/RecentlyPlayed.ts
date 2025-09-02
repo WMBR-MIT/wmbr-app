@@ -17,6 +17,7 @@ export interface Show {
   time_str: string;
   length: number;
   hosts: string;
+  alternates: number;
   archives: Archive[];
 }
 

@@ -16,17 +16,18 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
-  useAnimatedGestureHandler,
   runOnJS,
   interpolate,
   Extrapolate,
 } from 'react-native-reanimated';
 import { SvgXml } from 'react-native-svg';
-import { Show } from '../types/RecentlyPlayed';
+import { Show, Archive } from '../types/RecentlyPlayed';
 import { ArchiveService } from '../services/ArchiveService';
 import { useProgress, usePlaybackState, State } from 'react-native-track-player';
 import TrackPlayer from 'react-native-track-player';
-import { PanGestureHandler } from 'react-native-gesture-handler';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import ArchivedShowView from './ArchivedShowView';
+import { getWMBRLogoSVG } from '../utils/WMBRLogo';
 
 const { width, height } = Dimensions.get('window');
 const ALBUM_SIZE = width * 0.6;
@@ -80,18 +81,27 @@ const generateGradientColors = (showName: string): [string, string] => {
   return colors[index];
 };
 
-// WMBR Logo SVG
-const getWMBRLogoSVG = (color: string = '#FFFFFF') => `
-<svg viewBox="0 0 155.57 33.9" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <style>.b{fill:${color};}</style>
-  </defs>
-  <polygon class="b" points="22.7 18.9 31.2 33.7 44.1 5.8 42.4 5.8 36 19.6 28.3 5.3 19.9 19.8 12.8 5.8 0 5.8 14.2 33.9 22.7 18.9"/>
-  <path class="b" d="M57.4,31.8V11.3s1.8-2.3,4.8-2.4c.9,0,2.1.4,2.5,1.4v21.5h11.8V11.6s2.3-2.1,4.6-2.3c1.6-.1,2.7,1,2.8,1.6v20.8h11.8V11.2c-.3-2.2-2.4-4.1-4.7-5-2.6-1-6.8-.7-9.2.3-2.7,1.1-5.8,3.1-5.8,3.1,0,0-1.8-2.5-4.4-3.3-2.6-.9-5.6-1-8.3-.2-2.7.9-5.9,2.9-5.9,2.9v-3.2h-11.9v26h11.9Z"/>
-  <path class="b" d="M110.3,31.8v-2.5s1.8,1.8,4.7,2.6c3.5.9,9.3.1,12.8-4.1,3.9-4.7,4.2-12.1-.4-17.4-3.5-4.1-8.7-5.4-13.2-4.2-2.2.6-3.5,1.7-3.9,2.2V0h-11.8v31.8h11.8ZM113,8.4c2-1,3.2-.6,3.9-.2,1.1.7,1,1.6,1,1.6v18.2s.1.7-.8,1.5c-1.1,1-2.9.7-4.2-.2-1.8-1.2-2.6-2.4-2.6-2.4V10.8c.4-.5,1.4-1.8,2.7-2.4Z"/>
-  <path class="b" d="M144.5,14s.6-2.5,3.8-4.7c2.4-1.6,3.8-1,4.1-.5.5,1.1,2.3,1.2,2.9.2.5-.8.3-2.1-.5-2.6-1.4-.9-3.9-1-6.7.9-2.8,2-3.5,2.9-3.5,2.9v-4.4h-11.6v26h11.5V14Z"/>
-</svg>
-`;
+// Generate much darker versions of the colors for backgrounds
+const generateDarkGradientColors = (showName: string): [string, string] => {
+  const [originalStart, originalEnd] = generateGradientColors(showName);
+  
+  // Function to convert hex to RGB and darken significantly
+  const darkenColor = (hex: string) => {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    
+    // Darken to about 15% of original brightness
+    const darkenedR = Math.floor(r * 0.15);
+    const darkenedG = Math.floor(g * 0.15);
+    const darkenedB = Math.floor(b * 0.15);
+    
+    return `rgb(${darkenedR}, ${darkenedG}, ${darkenedB})`;
+  };
+  
+  return [darkenColor(originalStart), darkenColor(originalEnd)];
+};
+
 
 export default function ShowDetailsView({ show, isVisible, onClose }: ShowDetailsViewProps) {
   // Always call hooks at the top level, never conditionally
@@ -106,6 +116,8 @@ export default function ShowDetailsView({ show, isVisible, onClose }: ShowDetail
   const [previewTime, setPreviewTime] = useState(0);
   const [progressBarWidth, setProgressBarWidth] = useState(0);
   const [progressBarX, setProgressBarX] = useState(0);
+  const [selectedArchive, setSelectedArchive] = useState<Archive | null>(null);
+  const [archivedShowViewVisible, setArchivedShowViewVisible] = useState(false);
   
   // Ref for measuring progress bar position
   const progressBarRef = useRef<View>(null);
@@ -164,6 +176,7 @@ export default function ShowDetailsView({ show, isVisible, onClose }: ShowDetail
 
   // Since we're now conditionally rendered, show will always exist
   const [gradientStart, gradientEnd] = generateGradientColors(show.name);
+  const [darkGradientStart, darkGradientEnd] = generateDarkGradientColors(show.name);
   const archives = show.archives || [];
 
   const formatDate = (dateString: string) => {
@@ -238,6 +251,26 @@ export default function ShowDetailsView({ show, isVisible, onClose }: ShowDetail
     }
   };
 
+  const handleArchiveRowPress = (archive: Archive) => {
+    setSelectedArchive(archive);
+    setArchivedShowViewVisible(true);
+  };
+
+  const handlePlayButtonPress = (archive: Archive, isCurrentlyPlaying: boolean) => {
+    if (isCurrentlyPlaying) {
+      // If this show is currently playing, handle pause/resume
+      handlePauseResume();
+    } else {
+      // If not currently playing, navigate to the archive page
+      handleArchiveRowPress(archive);
+    }
+  };
+
+  const handleCloseArchivedShowView = () => {
+    setArchivedShowViewVisible(false);
+    setSelectedArchive(null);
+  };
+
   const handleProgressPress = async (event: any) => {
     if (!currentlyPlayingArchive || progress.duration === 0 || progressBarWidth <= 0 || progressBarX <= 0) return;
     
@@ -262,13 +295,12 @@ export default function ShowDetailsView({ show, isVisible, onClose }: ShowDetail
     }
   };
 
-  const dragGestureHandler = useAnimatedGestureHandler({
-    onStart: (_, context) => {
+  const dragGesture = Gesture.Pan()
+    .onStart(() => {
       circleScale.value = withSpring(1.5);
       runOnJS(setIsScrubbing)(true);
-      context.startX = dragX.value;
-    },
-    onActive: (event, context) => {
+    })
+    .onUpdate((event) => {
       if (progressBarWidth <= 0 || progressBarX <= 0) return; // Wait for layout to be measured
       
       const relativeX = event.absoluteX - progressBarX;
@@ -279,8 +311,8 @@ export default function ShowDetailsView({ show, isVisible, onClose }: ShowDetail
       const percentage = newX / progressBarWidth;
       const previewSeconds = percentage * (progress?.duration || 0);
       runOnJS(setPreviewTime)(previewSeconds);
-    },
-    onEnd: () => {
+    })
+    .onEnd(() => {
       circleScale.value = withSpring(1);
       runOnJS(setIsScrubbing)(false);
       
@@ -292,16 +324,15 @@ export default function ShowDetailsView({ show, isVisible, onClose }: ShowDetail
           runOnJS(handleSeekTo)(seekPosition);
         }
       }
-    },
-  });
+    });
 
   return (
     <Animated.View style={[styles.container, animatedStyle]}>
       <StatusBar barStyle="light-content" backgroundColor={gradientStart} />
       
       <LinearGradient
-        colors={[gradientStart, gradientEnd, '#000000']}
-        locations={[0, 0.4, 1]}
+        colors={[darkGradientStart, darkGradientEnd, '#000000']}
+        locations={[0, 0.3, 1]}
         style={styles.gradient}
       >
         <SafeAreaView style={styles.safeArea}>
@@ -319,7 +350,8 @@ export default function ShowDetailsView({ show, isVisible, onClose }: ShowDetail
             <View style={styles.albumSection}>
               <View style={[styles.albumCover, { backgroundColor: gradientStart }]}>
                 <LinearGradient
-                  colors={[gradientStart, gradientEnd]}
+                  colors={[gradientStart, gradientEnd, 'rgba(0,0,0,0.3)']}
+                  locations={[0, 0.6, 1]}
                   style={styles.albumGradient}
                 >
                   <View style={styles.albumContent}>
@@ -371,37 +403,37 @@ export default function ShowDetailsView({ show, isVisible, onClose }: ShowDetail
                           styles.archiveItem,
                           isCurrentlyPlaying && styles.archiveItemPlaying
                         ]}
-                        onPress={!isCurrentlyPlaying ? () => handlePlayArchive(archive, index) : undefined}
-                        activeOpacity={!isCurrentlyPlaying ? 0.7 : 1}
-                        disabled={isCurrentlyPlaying}
+                        onPress={() => handleArchiveRowPress(archive)}
+                        activeOpacity={0.7}
                       >
-                        <View style={styles.archiveInfo}>
-                          <Text style={[
-                            styles.archiveDate,
-                            isCurrentlyPlaying && styles.archiveDatePlaying
-                          ]}>
-                            {formatDate(archive.date)}
-                          </Text>
-                          <Text style={[
-                            styles.archiveSize,
-                            isCurrentlyPlaying && styles.archiveSizePlaying
-                          ]}>
-                            {isCurrentlyPlaying 
-                              ? `${formatTime(progress.position)} / ${formatTime(progress.duration)}`
-                              : getDurationFromSize(archive.size)
-                            }
-                          </Text>
+                        <View style={styles.archiveInfoContainer}>
+                          <View style={styles.archiveInfo}>
+                            <Text style={[
+                              styles.archiveDate,
+                              isCurrentlyPlaying && styles.archiveDatePlaying
+                            ]}>
+                              {formatDate(archive.date)}
+                            </Text>
+                            <Text style={[
+                              styles.archiveSize,
+                              isCurrentlyPlaying && styles.archiveSizePlaying
+                            ]}>
+                              {isCurrentlyPlaying 
+                                ? `${formatTime(progress.position)} / ${formatTime(progress.duration)}`
+                                : getDurationFromSize(archive.size)
+                              }
+                            </Text>
+                          </View>
                         </View>
                         
-                        {/* Play/pause button - only functional when item is already playing */}
+                        {/* Play/pause button - clickable for both play and pause */}
                         <TouchableOpacity
-                          onPress={isCurrentlyPlaying ? handlePauseResume : undefined}
-                          style={[
-                            styles.playIconContainer,
-                            !isCurrentlyPlaying && styles.playIconDisabled
-                          ]}
-                          activeOpacity={isCurrentlyPlaying ? 0.7 : 1}
-                          disabled={!isCurrentlyPlaying}
+                          onPress={(e) => {
+                            e.stopPropagation();
+                            handlePlayButtonPress(archive, isCurrentlyPlaying);
+                          }}
+                          style={styles.playIconContainer}
+                          activeOpacity={0.7}
                         >
                           <Icon 
                             name={isCurrentlyPlaying && playbackState?.state === State.Playing ? 'pause-circle' : 'play-circle'} 
@@ -434,7 +466,7 @@ export default function ShowDetailsView({ show, isVisible, onClose }: ShowDetail
                             </TouchableOpacity>
                             
                             {/* Draggable progress circle */}
-                            <PanGestureHandler onGestureEvent={dragGestureHandler}>
+                            <GestureDetector gesture={dragGesture}>
                               <Animated.View 
                                 style={[
                                   styles.progressCircleContainer,
@@ -445,7 +477,7 @@ export default function ShowDetailsView({ show, isVisible, onClose }: ShowDetail
                                   style={[styles.progressCircle, circleAnimatedStyle]}
                                 />
                               </Animated.View>
-                            </PanGestureHandler>
+                            </GestureDetector>
                             
                             {/* Preview time display when scrubbing */}
                             {isScrubbing && (
@@ -471,6 +503,16 @@ export default function ShowDetailsView({ show, isVisible, onClose }: ShowDetail
           </ScrollView>
         </SafeAreaView>
       </LinearGradient>
+
+      {/* Archived Show Detail View */}
+      {archivedShowViewVisible && selectedArchive && (
+        <ArchivedShowView
+          show={show}
+          archive={selectedArchive}
+          isVisible={archivedShowViewVisible}
+          onClose={handleCloseArchivedShowView}
+        />
+      )}
     </Animated.View>
   );
 }
@@ -624,6 +666,9 @@ const styles = StyleSheet.create({
   archiveItemPlaying: {
     borderWidth: 2,
     borderColor: '#FFFFFF',
+  },
+  archiveInfoContainer: {
+    flex: 1,
   },
   archiveInfo: {
     flex: 1,

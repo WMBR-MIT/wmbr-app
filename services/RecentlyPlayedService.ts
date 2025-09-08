@@ -1,5 +1,21 @@
 import { RecentlyPlayedSong, Show, Archive, ProcessedSong, ShowGroup } from '../types/RecentlyPlayed';
+import { ScheduleService } from './ScheduleService';
+import { ScheduleShow } from '../types/Schedule';
 import { parseString } from 'react-native-xml2js';
+
+interface PlaylistSong {
+  time: string; // Format: YYYY/MM/DD HH:MM:SS
+  artist: string;
+  song: string;
+  album?: string | null;
+}
+
+interface PlaylistResponse {
+  show_name: string;
+  date: string; // Format: YYYY-MM-DD
+  playlist_id: string | number;
+  songs: PlaylistSong[];
+}
 
 export class RecentlyPlayedService {
   private static instance: RecentlyPlayedService;
@@ -29,26 +45,44 @@ export class RecentlyPlayedService {
     }
 
     try {
-      // Fetch both APIs in parallel with cache-busting
+      // Get today's date in YYYY-MM-DD format
+      const today = new Date();
+      const dateStr = today.toISOString().split('T')[0];
+      
+      // Fetch schedule for today to get shows playing today
+      const scheduleService = ScheduleService.getInstance();
+      const scheduleResponse = await scheduleService.fetchSchedule();
+      const todayShows = this.getShowsForToday(scheduleResponse.shows, today);
+      
+      console.log(`Found ${todayShows.length} shows playing today:`, todayShows.map(s => s.name));
+      
+      // Fetch archive shows for show matching
       const timestamp = Date.now();
-      const [songsResponse, showsResponse] = await Promise.all([
-        fetch('https://wmbr.alexandersimoes.com/', {
-          headers: { 'Cache-Control': 'no-cache' }
-        }),
-        fetch(`https://wmbr.org/cgi-bin/xmlarch?t=${timestamp}`, {
-          headers: { 'Cache-Control': 'no-cache' }
-        })
-      ]);
-
-      const songsData: RecentlyPlayedSong[] = await songsResponse.json();
+      const showsResponse = await fetch(`https://wmbr.org/cgi-bin/xmlarch?t=${timestamp}`, {
+        headers: { 'Cache-Control': 'no-cache' }
+      });
       const showsXml = await showsResponse.text();
-      
-      // Parse shows XML
       this.showsCache = await this.parseShowsXML(showsXml);
-      console.log('Total shows loaded:', this.showsCache.length);
       
-      // Process and deduplicate songs
-      this.songsCache = this.processSongs(songsData);
+      // Fetch playlist data for each show playing today
+      const allSongs: ProcessedSong[] = [];
+      const playlistPromises = todayShows.map(show => 
+        this.fetchPlaylistForShow(show.name, dateStr)
+      );
+      
+      const playlistResponses = await Promise.allSettled(playlistPromises);
+      
+      playlistResponses.forEach((response, index) => {
+        if (response.status === 'fulfilled' && response.value) {
+          const songs = this.processPlaylistSongs(response.value, todayShows[index]);
+          allSongs.push(...songs);
+        } else {
+          console.warn(`Failed to fetch playlist for ${todayShows[index].name}:`, response.status === 'rejected' ? response.reason : 'No data');
+        }
+      });
+      
+      // Sort all songs by played time (newest first) and deduplicate
+      this.songsCache = this.deduplicateAndSortSongs(allSongs);
       console.log('Total songs processed:', this.songsCache.length);
       
       this.lastFetch = now;
@@ -141,58 +175,128 @@ export class RecentlyPlayedService {
     });
   }
 
-  private processSongs(rawSongs: RecentlyPlayedSong[]): ProcessedSong[] {
-    const processed: ProcessedSong[] = [];
+  private getShowsForToday(scheduleShows: ScheduleShow[], targetDate: Date): ScheduleShow[] {
+    const dayOfWeek = targetDate.getDay(); // 0 = Sunday, 1 = Monday, etc.
+    
+    return scheduleShows.filter(show => {
+      if (show.day === 7) {
+        // Weekday show (Monday-Friday)
+        return dayOfWeek >= 1 && dayOfWeek <= 5;
+      }
+      return show.day === dayOfWeek;
+    });
+  }
+
+  private async fetchPlaylistForShow(showName: string, date: string): Promise<PlaylistResponse | null> {
+    try {
+      const encodedShowName = encodeURIComponent(showName);
+      const url = `https://wmbr.alexandersimoes.com/get_playlist?show_name=${encodedShowName}&date=${date}`;
+      
+      console.log(`Fetching playlist for "${showName}" on ${date}`);
+      
+      const response = await fetch(url, {
+        headers: { 'Cache-Control': 'no-cache' }
+      });
+      
+      if (!response.ok) {
+        console.warn(`Playlist fetch failed for ${showName}: ${response.status}`);
+        return null;
+      }
+      
+      const data: PlaylistResponse = await response.json();
+      console.log(`Got ${data.songs?.length || 0} songs for "${showName}"`);
+      
+      return data;
+    } catch (error) {
+      console.error(`Error fetching playlist for ${showName}:`, error);
+      return null;
+    }
+  }
+
+  private processPlaylistSongs(playlist: PlaylistResponse, scheduleShow: ScheduleShow): ProcessedSong[] {
+    if (!playlist.songs || playlist.songs.length === 0) {
+      return [];
+    }
+    
+    return playlist.songs.map(song => {
+      // Parse time in format: YYYY/MM/DD HH:MM:SS
+      const playedAt = this.parsePlaylistTimestamp(song.time);
+      
+      return {
+        title: song.song.trim(),
+        artist: song.artist.trim(),
+        album: song.album?.trim() || undefined,
+        released: undefined, // Not provided in new API
+        appleStreamLink: '', // Not provided in new API - could be fetched separately if needed
+        playedAt,
+        showName: playlist.show_name,
+        showId: scheduleShow.id
+      };
+    });
+  }
+
+  private parsePlaylistTimestamp(timeStr: string): Date {
+    try {
+      // Format: YYYY/MM/DD HH:MM:SS
+      const [datePart, timePart] = timeStr.split(' ');
+      
+      if (!datePart || !timePart) {
+        console.error('Invalid playlist timestamp format:', timeStr);
+        return new Date();
+      }
+      
+      const [year, month, day] = datePart.split('/').map(Number);
+      const [hour, minute, second] = timePart.split(':').map(Number);
+      
+      if (isNaN(year) || isNaN(month) || isNaN(day) || isNaN(hour) || isNaN(minute) || isNaN(second)) {
+        console.error('Invalid date components in playlist timestamp:', timeStr);
+        return new Date();
+      }
+      
+      // Create date object (month is 0-based in JS Date constructor)
+      return new Date(year, month - 1, day, hour, minute, second);
+    } catch (error) {
+      console.error('Error parsing playlist timestamp:', timeStr, error);
+      return new Date();
+    }
+  }
+
+  private deduplicateAndSortSongs(songs: ProcessedSong[]): ProcessedSong[] {
     const now = new Date();
     
-    // Process songs and filter out future songs
-    const processedSongs: ProcessedSong[] = rawSongs
-      .map((song, index) => {
-        const playedAt = this.parseEDTTimestamp(song['Last Updated']);
-        const showInfo = this.findShowForTimestamp(playedAt);
+    // Filter out future songs and sort by time (newest first)
+    const validSongs = songs
+      .filter(song => song.playedAt.getTime() <= now.getTime())
+      .sort((a, b) => b.playedAt.getTime() - a.playedAt.getTime());
+    
+    // Deduplicate consecutive songs (same title + artist within 10 minutes)
+    const deduplicated: ProcessedSong[] = [];
+    
+    for (const currentSong of validSongs) {
+      const isDuplicate = deduplicated.some(prevSong => {
+        const isSameSong = prevSong.title.toLowerCase() === currentSong.title.toLowerCase() && 
+                          prevSong.artist.toLowerCase() === currentSong.artist.toLowerCase();
         
-        return {
-          title: song.Title.trim(),
-          artist: song.Artist.trim(),
-          album: song.Album?.trim(),
-          released: song.Released?.trim(),
-          appleStreamLink: song['Apple Stream Link'],
-          playedAt,
-          showName: showInfo.name,
-          showId: showInfo.id
-        };
-      })
-      .filter(song => {
-        // Only include songs that were played before now
-        return song.playedAt.getTime() <= now.getTime();
-      });
-
-    // Deduplicate consecutive songs (same title + artist)
-    for (let i = 0; i < processedSongs.length; i++) {
-      const currentSong = processedSongs[i];
-      
-      // Check if this song is the same as the previous one in the array
-      if (i > 0) {
-        const prevSong = processedSongs[i - 1];
-        
-        if (prevSong.title.toLowerCase() === currentSong.title.toLowerCase() && 
-            prevSong.artist.toLowerCase() === currentSong.artist.toLowerCase()) {
-          
-          // Same song as previous - check if it's within a reasonable time window (10 minutes)
+        if (isSameSong) {
           const timeDiff = Math.abs(prevSong.playedAt.getTime() - currentSong.playedAt.getTime());
           if (timeDiff < 10 * 60 * 1000) { // 10 minutes
             console.log(`Skipping duplicate: "${currentSong.title}" by ${currentSong.artist}`);
-            continue; // Skip this duplicate
+            return true;
           }
         }
+        
+        return false;
+      });
+      
+      if (!isDuplicate) {
+        deduplicated.push(currentSong);
       }
-
-      processed.push(currentSong);
     }
-
-    return processed;
+    
+    return deduplicated;
   }
 
+  // Keep this method for backward compatibility with archive matching
   private parseEDTTimestamp(timestamp: string): Date {
     try {
       // Handle "2025-08-03 19:47:31 EDT" format

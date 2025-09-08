@@ -17,6 +17,9 @@ A React Native app for streaming WMBR 88.1 FM and browsing show archives, song h
 - Install dependencies: `npm install`
 - Install iOS pods: `cd ios && pod install`
 
+## Create your local environment file
+- Copy `ios/.xcode.env` to `ios/.xcode.env.local` and modify the node path.
+
 ### Run the App
 ```bash
 npm run ios -- --simulator="iPhone 16"

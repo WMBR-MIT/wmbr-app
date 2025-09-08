@@ -4,6 +4,7 @@ android/.gradle/
 android/app/build/
 ios/Pods/
 ios/build/
+ios/.xcode.env.local
 *.keystore
 *.jks
 *.p8

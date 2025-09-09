@@ -7,7 +7,9 @@
     "ios": "react-native run-ios",
     "lint": "eslint .",
     "start": "react-native start",
-    "test": "jest"
+    "test": "jest",
+    "bundle:ios": "npx react-native bundle --entry-file index.ts --platform ios --dev true --bundle-output dist/ios/main.jsbundle --assets-dest dist/ios/assets",
+    "bundle:android": "npx react-native bundle --entry-file index.ts --platform android --dev true --bundle-output dist/android/main.jsbundle --assets-dest dist/android/assets"
   },
   "dependencies": {
     "@react-native/new-app-screen": "0.80.1",

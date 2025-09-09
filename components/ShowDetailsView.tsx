@@ -29,6 +29,7 @@ import TrackPlayer from 'react-native-track-player';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import ArchivedShowView from './ArchivedShowView';
 import { getWMBRLogoSVG } from '../utils/WMBRLogo';
+import { formatDate, getDurationFromSize, formatShowTime, secondsToTime } from '../utils/DateTime';
 import { generateDarkGradientColors, generateGradientColors } from '../utils/Colors';
 
 const { width, height } = Dimensions.get('window');
@@ -116,56 +117,6 @@ export default function ShowDetailsView({ show, isVisible, onClose }: ShowDetail
   const [gradientStart, gradientEnd] = generateGradientColors(show.name);
   const [darkGradientStart, darkGradientEnd] = generateDarkGradientColors(show.name);
   const archives = show.archives || [];
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
-
-  const formatTime = (seconds: number) => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = Math.floor(seconds % 60);
-    
-    if (hours > 0) {
-      return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-    } else {
-      return `${minutes}:${secs.toString().padStart(2, '0')}`;
-    }
-  };
-
-  const getDurationFromSize = (
-    sizeInBytesString: string,
-    bitrateKbps = 128
-  ): string => {
-    const sizeInBytes = parseInt(sizeInBytesString, 10);
-    if (isNaN(sizeInBytes) || sizeInBytes <= 0) return 'Unknown';
-  
-    // Convert bitrate to bits per second
-    const bitrateBps = bitrateKbps * 1000;
-  
-    // Duration in seconds = (bytes * 8) / bitrate in bits per second
-    const durationSeconds = Math.floor((sizeInBytes * 8) / bitrateBps);
-  
-    const hours = Math.floor(durationSeconds / 3600);
-    const minutes = Math.floor((durationSeconds % 3600) / 60);
-  
-    if (hours > 0 && minutes > 0) return `${hours}h ${minutes}m`;
-    if (hours > 0) return `${hours}h`;
-    return `${minutes}m`;
-  };
-
-  const formatShowTime = () => {
-    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    const dayName = show.day === 7 ? 'Weekdays' : dayNames[show.day];
-    // Only add 's' if it's not already plural (weekdays)
-    const plural = show.day === 7 ? dayName : `${dayName}s`;
-    return `${plural} at ${show.time_str}`;
-  };
 
   const handlePlayArchive = async (archive: any, index: number) => {
     try {
@@ -313,7 +264,7 @@ export default function ShowDetailsView({ show, isVisible, onClose }: ShowDetail
             {/* Show Info */}
             <View style={styles.infoSection}>
               <Text style={styles.showTitle}>{show.name}</Text>
-              <Text style={styles.showSchedule}>{formatShowTime()}</Text>
+              <Text style={styles.showSchedule}>{formatShowTime(show)}</Text>
               {show.hosts && (
                 <Text style={styles.showHosts}>Hosted by {show.hosts}</Text>
               )}
@@ -357,7 +308,7 @@ export default function ShowDetailsView({ show, isVisible, onClose }: ShowDetail
                               isCurrentlyPlaying && styles.archiveSizePlaying
                             ]}>
                               {isCurrentlyPlaying 
-                                ? `${formatTime(progress.position)} / ${formatTime(progress.duration)}`
+                                ? `${secondsToTime(progress.position)} / ${secondsToTime(progress.duration)}`
                                 : getDurationFromSize(archive.size)
                               }
                             </Text>
@@ -421,7 +372,7 @@ export default function ShowDetailsView({ show, isVisible, onClose }: ShowDetail
                             {isScrubbing && (
                               <Animated.View style={[styles.previewTime, circlePositionStyle]}>
                                 <Text style={styles.previewTimeText}>
-                                  {formatTime(previewTime)}
+                                  {secondsToTime(previewTime)}
                                 </Text>
                               </Animated.View>
                             )}

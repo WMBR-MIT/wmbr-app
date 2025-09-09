@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
+import { debugLog, debugError } from '../utils/debug';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -69,11 +70,11 @@ export default function ShowScheduleView({ isVisible, onClose, currentShow }: Sh
     
     try {
       const scheduleData = await scheduleService.fetchSchedule();
-      console.log('Schedule data received:', scheduleData);
+      debugLog('Schedule data received:', scheduleData);
       setSchedule(scheduleData);
       
     } catch (err) {
-      console.error('Error fetching schedule:', err);
+      debugError('Error fetching schedule:', err);
       setError(`Failed to load schedule: ${err instanceof Error ? err.message : 'Unknown error'}`);
     } finally {
       setLoading(false);
@@ -112,7 +113,7 @@ export default function ShowScheduleView({ isVisible, onClose, currentShow }: Sh
         );
       }
     } catch (error) {
-      console.error('Error fetching show archives:', error);
+      debugError('Error fetching show archives:', error);
       Alert.alert(
         'Error', 
         'Unable to fetch archive data. Please try again later.',

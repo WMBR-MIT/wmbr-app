@@ -2,6 +2,7 @@ import { RecentlyPlayedSong, Show, Archive, ProcessedSong, ShowGroup } from '../
 import { ScheduleService } from './ScheduleService';
 import { ScheduleShow } from '../types/Schedule';
 import { parseString } from 'react-native-xml2js';
+import { debugLog, debugError } from '../utils/debug';
 
 interface PlaylistSong {
   time: string; // Format: YYYY/MM/DD HH:MM:SS
@@ -54,7 +55,7 @@ export class RecentlyPlayedService {
       const scheduleResponse = await scheduleService.fetchSchedule();
       const todayShows = this.getShowsForToday(scheduleResponse.shows, today);
       
-      console.log(`Found ${todayShows.length} shows playing today:`, todayShows.map(s => s.name));
+      debugLog(`Found ${todayShows.length} shows playing today:`, todayShows.map(s => s.name));
       
       // Fetch archive shows for show matching
       const timestamp = Date.now();
@@ -77,19 +78,19 @@ export class RecentlyPlayedService {
           const songs = this.processPlaylistSongs(response.value, todayShows[index]);
           allSongs.push(...songs);
         } else {
-          console.warn(`Failed to fetch playlist for ${todayShows[index].name}:`, response.status === 'rejected' ? response.reason : 'No data');
+          debugError(`Failed to fetch playlist for ${todayShows[index].name}:`, response.status === 'rejected' ? response.reason : 'No data');
         }
       });
       
       // Sort all songs by played time (newest first) and deduplicate
       this.songsCache = this.deduplicateAndSortSongs(allSongs);
-      console.log('Total songs processed:', this.songsCache.length);
+      debugLog('Total songs processed:', this.songsCache.length);
       
       this.lastFetch = now;
       
       return this.groupSongsByShow(this.songsCache);
     } catch (error) {
-      console.error('Error fetching recently played data:', error);
+      debugError('Error fetching recently played data:', error);
       return [];
     }
   }
@@ -98,28 +99,28 @@ export class RecentlyPlayedService {
     return new Promise<Show[]>((resolve) => {
       parseString(xmlString, { explicitArray: false }, (err, result) => {
         if (err) {
-          console.error('Error parsing shows XML:', err);
+          debugError('Error parsing shows XML:', err);
           resolve([]);
           return;
         }
 
         try {
-          console.log('XML parsing result keys:', Object.keys(result || {}));
+          debugLog('XML parsing result keys:', Object.keys(result || {}));
           
           // Parse season start date if available
           if (result?.wmbr_archives?.$ && result.wmbr_archives.$.season_start) {
             this.seasonStart = new Date(result.wmbr_archives.$.season_start);
-            console.log('Season start:', this.seasonStart);
+            debugLog('Season start:', this.seasonStart);
           }
           
           const shows: Show[] = [];
           const showsData = result?.wmbr_archives?.show;
           
           if (!showsData) {
-            console.log('No shows data found in XML result');
-            console.log('Available keys in result:', Object.keys(result || {}));
+            debugLog('No shows data found in XML result');
+            debugLog('Available keys in result:', Object.keys(result || {}));
             if (result?.wmbr_archives) {
-              console.log('Available keys in wmbr_archives:', Object.keys(result.wmbr_archives));
+              debugLog('Available keys in wmbr_archives:', Object.keys(result.wmbr_archives));
             }
             resolve([]);
             return;
@@ -146,7 +147,7 @@ export class RecentlyPlayedService {
                       size: archive.size || '0'
                     });
                   } else {
-                    console.log(`Skipping archive for ${showData.name}: url=${!!archive.url}, date=${!!archive.date}, rebroadcast=${archive.url?.includes('rebroadcast')}`);
+                    debugLog(`Skipping archive for ${showData.name}: url=${!!archive.url}, date=${!!archive.date}, rebroadcast=${archive.url?.includes('rebroadcast')}`);
                   }
                 });
               }
@@ -168,7 +169,7 @@ export class RecentlyPlayedService {
           
           resolve(shows);
         } catch (error) {
-          console.error('Error processing parsed XML:', error);
+          debugError('Error processing parsed XML:', error);
           resolve([]);
         }
       });
@@ -192,23 +193,23 @@ export class RecentlyPlayedService {
       const encodedShowName = encodeURIComponent(showName);
       const url = `https://wmbr.alexandersimoes.com/get_playlist?show_name=${encodedShowName}&date=${date}`;
       
-      console.log(`Fetching playlist for "${showName}" on ${date}`);
+      debugLog(`Fetching playlist for "${showName}" on ${date}`);
       
       const response = await fetch(url, {
         headers: { 'Cache-Control': 'no-cache' }
       });
       
       if (!response.ok) {
-        console.warn(`Playlist fetch failed for ${showName}: ${response.status}`);
+        debugError(`Playlist fetch failed for ${showName}: ${response.status}`);
         return null;
       }
       
       const data: PlaylistResponse = await response.json();
-      console.log(`Got ${data.songs?.length || 0} songs for "${showName}"`);
+      debugLog(`Got ${data.songs?.length || 0} songs for "${showName}"`);
       
       return data;
     } catch (error) {
-      console.error(`Error fetching playlist for ${showName}:`, error);
+      debugError(`Error fetching playlist for ${showName}:`, error);
       return null;
     }
   }
@@ -241,7 +242,7 @@ export class RecentlyPlayedService {
       const [datePart, timePart] = timeStr.split(' ');
       
       if (!datePart || !timePart) {
-        console.error('Invalid playlist timestamp format:', timeStr);
+        debugError('Invalid playlist timestamp format:', timeStr);
         return new Date();
       }
       
@@ -249,14 +250,14 @@ export class RecentlyPlayedService {
       const [hour, minute, second] = timePart.split(':').map(Number);
       
       if (isNaN(year) || isNaN(month) || isNaN(day) || isNaN(hour) || isNaN(minute) || isNaN(second)) {
-        console.error('Invalid date components in playlist timestamp:', timeStr);
+        debugError('Invalid date components in playlist timestamp:', timeStr);
         return new Date();
       }
       
       // Create date object (month is 0-based in JS Date constructor)
       return new Date(year, month - 1, day, hour, minute, second);
     } catch (error) {
-      console.error('Error parsing playlist timestamp:', timeStr, error);
+      debugError('Error parsing playlist timestamp:', timeStr, error);
       return new Date();
     }
   }
@@ -280,7 +281,7 @@ export class RecentlyPlayedService {
         if (isSameSong) {
           const timeDiff = Math.abs(prevSong.playedAt.getTime() - currentSong.playedAt.getTime());
           if (timeDiff < 10 * 60 * 1000) { // 10 minutes
-            console.log(`Skipping duplicate: "${currentSong.title}" by ${currentSong.artist}`);
+            debugLog(`Skipping duplicate: "${currentSong.title}" by ${currentSong.artist}`);
             return true;
           }
         }
@@ -308,7 +309,7 @@ export class RecentlyPlayedService {
       const [datePart, timePart] = cleanTimestamp.split(' ');
       
       if (!datePart || !timePart) {
-        console.error('Invalid timestamp format:', timestamp);
+        debugError('Invalid timestamp format:', timestamp);
         return new Date();
       }
       
@@ -317,7 +318,7 @@ export class RecentlyPlayedService {
       
       // Validate parsed values
       if (isNaN(year) || isNaN(month) || isNaN(day) || isNaN(hour) || isNaN(minute) || isNaN(second)) {
-        console.error('Invalid date components:', { year, month, day, hour, minute, second });
+        debugError('Invalid date components:', { year, month, day, hour, minute, second });
         return new Date();
       }
       
@@ -331,7 +332,7 @@ export class RecentlyPlayedService {
       
       return localDate;
     } catch (error) {
-      console.error('Error parsing timestamp:', timestamp, error);
+      debugError('Error parsing timestamp:', timestamp, error);
       return new Date(); // Return current date as fallback
     }
   }
@@ -340,12 +341,12 @@ export class RecentlyPlayedService {
     const dayOfWeek = timestamp.getDay(); // 0 = Sunday, 1 = Monday, etc.
     const minutesFromMidnight = timestamp.getHours() * 60 + timestamp.getMinutes();
     
-    console.log('Finding show for:', timestamp.toString(), 'Day:', dayOfWeek, 'Minutes:', minutesFromMidnight);
+    debugLog('Finding show for:', timestamp.toString(), 'Day:', dayOfWeek, 'Minutes:', minutesFromMidnight);
     
     // Find the currently playing show using the new alternating schedule logic
     const currentShow = this.getCurrentlyPlayingShow(timestamp);
     if (currentShow) {
-      console.log('Found currently playing show:', currentShow.name);
+      debugLog('Found currently playing show:', currentShow.name);
       return { name: currentShow.name, id: currentShow.id };
     }
     
@@ -359,17 +360,17 @@ export class RecentlyPlayedService {
     });
     
     if (archiveMatches.length > 0) {
-      console.log('Found archive match:', archiveMatches[0].name);
+      debugLog('Found archive match:', archiveMatches[0].name);
       return { name: archiveMatches[0].name, id: archiveMatches[0].id };
     }
     
-    console.log('No show found, using Unknown Show');
+    debugLog('No show found, using Unknown Show');
     return { name: 'Unknown Show', id: 'unknown' };
   }
 
   private getCurrentlyPlayingShow(targetTime: Date): Show | null {
     if (!this.seasonStart) {
-      console.log('No season start date available, using fallback logic');
+      debugLog('No season start date available, using fallback logic');
       return this.fallbackShowLogic(targetTime);
     }
 
@@ -435,7 +436,7 @@ export class RecentlyPlayedService {
     const weeksSince = Math.floor((targetTime.getTime() - firstSlotTime.getTime()) / (7 * 24 * 60 * 60 * 1000));
     const cycleIndex = weeksSince % 4; // 0=week1, 1=week2, 2=week3, 3=week4
     
-    console.log(`Time slot ${timeSlot}: weeksSince=${weeksSince}, cycleIndex=${cycleIndex}`);
+    debugLog(`Time slot ${timeSlot}: weeksSince=${weeksSince}, cycleIndex=${cycleIndex}`);
     
     // Find the show that matches this cycle
     for (const show of shows) {
@@ -467,7 +468,7 @@ export class RecentlyPlayedService {
       }
       
       if (shouldPlay) {
-        console.log(`Selected show: ${show.name} (alternates=${alternates})`);
+        debugLog(`Selected show: ${show.name} (alternates=${alternates})`);
         return show;
       }
     }
@@ -557,12 +558,12 @@ export class RecentlyPlayedService {
     );
     
     // Debug: log the first few songs from each group
-    console.log('Final sorted groups:');
+    debugLog('Final sorted groups:');
     sortedGroups.forEach((group, groupIndex) => {
       if (groupIndex < 2) { // First 2 groups
-        console.log(`Group ${groupIndex + 1}: ${group.showName}`);
+        debugLog(`Group ${groupIndex + 1}: ${group.showName}`);
         group.songs.slice(0, 5).forEach((song, songIndex) => {
-          console.log(`  Song ${songIndex + 1}: "${song.title}" at ${song.playedAt.toLocaleString()}`);
+          debugLog(`  Song ${songIndex + 1}: "${song.title}" at ${song.playedAt.toLocaleString()}`);
         });
       }
     });

@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
+import { debugLog, debugError } from '../utils/debug';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -153,7 +154,7 @@ export default function ArchivedShowView({ show, archive, isVisible, onClose }: 
       const playlistData = await playlistService.fetchPlaylist(show.name, archive.date);
       setPlaylist(playlistData);
     } catch (err) {
-      console.error('Error fetching playlist:', err);
+      debugError('Error fetching playlist:', err);
       setError('Failed to load playlist. Please try again.');
     } finally {
       setLoading(false);
@@ -219,7 +220,7 @@ export default function ArchivedShowView({ show, archive, isVisible, onClose }: 
       const clampedPosition = Math.max(0.1, Math.min(position, progress.duration - 0.1));
       await TrackPlayer.seekTo(clampedPosition);
     } catch (error) {
-      console.error('Error seeking:', error);
+      debugError('Error seeking:', error);
     }
   };
 
@@ -267,7 +268,7 @@ export default function ArchivedShowView({ show, archive, isVisible, onClose }: 
       }
       // Don't close the view - keep user on same screen
     } catch (error) {
-      console.error('Error with play/pause:', error);
+      debugError('Error with play/pause:', error);
       Alert.alert('Error', 'Failed to play archive. Please try again.');
     }
   };

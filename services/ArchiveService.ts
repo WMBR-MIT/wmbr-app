@@ -1,5 +1,6 @@
 import TrackPlayer, { Track, State } from 'react-native-track-player';
 import { Show, Archive } from '../types/RecentlyPlayed';
+import { debugLog, debugError } from '../utils/debug';
 
 export interface ArchivePlaybackState {
   isPlayingArchive: boolean;
@@ -44,7 +45,7 @@ export class ArchiveService {
 
   async playArchive(archive: Archive, show: Show): Promise<void> {
     try {
-      console.log('Playing archive:', archive.url);
+      debugLog('Playing archive:', archive.url);
       
       // Stop current playback
       await TrackPlayer.stop();
@@ -73,14 +74,14 @@ export class ArchiveService {
       
       this.notifyCallbacks();
     } catch (error) {
-      console.error('Error playing archive:', error);
+      debugError('Error playing archive:', error);
       throw error;
     }
   }
 
   async switchToLive(currentShowTitle?: string): Promise<void> {
     try {
-      console.log('Switching to live stream');
+      debugLog('Switching to live stream');
       
       // Stop current playback
       await TrackPlayer.stop();
@@ -109,7 +110,7 @@ export class ArchiveService {
       
       this.notifyCallbacks();
     } catch (error) {
-      console.error('Error switching to live:', error);
+      debugError('Error switching to live:', error);
       throw error;
     }
   }

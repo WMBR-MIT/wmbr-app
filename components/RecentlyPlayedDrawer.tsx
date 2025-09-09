@@ -14,6 +14,7 @@ import {
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
+import { debugLog, debugError } from '../utils/debug';
   withSpring,
   runOnJS,
   interpolate,
@@ -93,7 +94,7 @@ export default function RecentlyPlayedDrawer({ isVisible, onClose }: RecentlyPla
       setShowGroups(groups);
     } catch (err) {
       setError('Failed to load recently played songs');
-      console.error('Error fetching recently played:', err);
+      debugError('Error fetching recently played:', err);
     } finally {
       if (isRefresh) {
         setRefreshing(false);
@@ -143,7 +144,7 @@ export default function RecentlyPlayedDrawer({ isVisible, onClose }: RecentlyPla
         await audioPreviewService.playPreview(song.appleStreamLink);
       }
     } catch (error) {
-      console.error('Error handling preview playback:', error);
+      debugError('Error handling preview playbook:', error);
       Alert.alert('Error', 'Failed to play preview');
     }
   };

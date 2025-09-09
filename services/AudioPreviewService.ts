@@ -1,4 +1,5 @@
 import TrackPlayer, { Track, State, useProgress, Event } from 'react-native-track-player';
+import { debugLog, debugError } from '../utils/debug';
 
 export interface PreviewState {
   isPlaying: boolean;
@@ -108,7 +109,7 @@ export class AudioPreviewService {
           
           this.notifyCallbacks();
         } catch (error) {
-          console.error('Error getting progress:', error);
+          debugError('Error getting progress:', error);
         }
       }
     }, 100); // Update every 100ms
@@ -164,7 +165,7 @@ export class AudioPreviewService {
       this.startProgressTracking();
       
     } catch (error) {
-      console.error('Error playing preview:', error);
+      debugError('Error playing preview:', error);
       this.isPreviewMode = false;
       throw error;
     }

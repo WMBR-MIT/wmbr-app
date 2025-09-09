@@ -22,13 +22,12 @@ import Animated, {
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { SvgXml } from 'react-native-svg';
 import TrackPlayer, { useProgress, usePlaybackState, State } from 'react-native-track-player';
-import { Show, Archive } from '../types/RecentlyPlayed.ts';
-import { PlaylistResponse, PlaylistSong } from '../types/Playlist.ts';
-import { PlaylistService } from '../services/PlaylistService.ts';
-import { ArchiveService } from '../services/ArchiveService.ts';
-import { getWMBRLogoSVG } from '../utils/WMBRLogo.ts';
-import { formatDuration, formatDate, formatTime } from '../utils/formatting.ts';
-import { generateDarkGradientColors, generateGradientColors } from '../utils/colors.ts';
+import { Show, Archive } from '../types/RecentlyPlayed';
+import { PlaylistResponse, PlaylistSong } from '../types/Playlist';
+import { PlaylistService } from '../services/PlaylistService';
+import { ArchiveService } from '../services/ArchiveService';
+import { getWMBRLogoSVG } from '../utils/WMBRLogo';
+import { generateDarkGradientColors, generateGradientColors } from '../utils/Colors';
 
 const { width, height } = Dimensions.get('window');
 const ALBUM_SIZE = width * 0.6;

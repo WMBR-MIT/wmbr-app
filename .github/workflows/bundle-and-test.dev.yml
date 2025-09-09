@@ -50,3 +50,6 @@ jobs:
   
     - name: Build Android Bundle
       run: npm run bundle:android
+
+    - name: Typecheck
+      run: npm run typecheck

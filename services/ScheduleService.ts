@@ -1,5 +1,6 @@
 import { parseString } from 'react-native-xml2js';
 import { ScheduleShow, ScheduleResponse } from '../types/Schedule';
+import { debugLog, debugError } from '../utils/debug';
 
 export class ScheduleService {
   private static instance: ScheduleService;
@@ -30,27 +31,27 @@ export class ScheduleService {
           }
           
           try {
-            console.log('XML Parse Result:', JSON.stringify(result, null, 2));
+            debugLog('XML Parse Result:', JSON.stringify(result, null, 2));
             const shows = this.parseShows(result);
-            console.log('Parsed shows:', shows.length);
+            debugLog('Parsed shows:', shows.length);
             resolve({ shows });
           } catch (parseError) {
-            console.error('Parse error:', parseError);
+            debugError('Parse error:', parseError);
             reject(parseError);
           }
         });
       });
     } catch (error) {
-      console.error('Error fetching schedule:', error);
+      debugError('Error fetching schedule:', error);
       throw error;
     }
   }
 
   private parseShows(xmlResult: any): ScheduleShow[] {
-    console.log('parseShows input:', xmlResult);
+    debugLog('parseShows input:', xmlResult);
     
     if (!xmlResult?.wmbr_schedule?.show) {
-      console.log('No shows found in XML structure');
+      debugLog('No shows found in XML structure');
       return [];
     }
 
@@ -58,8 +59,8 @@ export class ScheduleService {
       ? xmlResult.wmbr_schedule.show 
       : [xmlResult.wmbr_schedule.show];
 
-    console.log('Shows array length:', showsArray.length);
-    console.log('First show sample:', showsArray[0]);
+    debugLog('Shows array length:', showsArray.length);
+    debugLog('First show sample:', showsArray[0]);
 
     return showsArray.map((show: any) => ({
       id: show.$.id || '',

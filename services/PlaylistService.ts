@@ -1,4 +1,5 @@
 import { PlaylistResponse } from '../types/Playlist';
+import { debugLog, debugError } from '../utils/debug';
 
 export class PlaylistService {
   private static instance: PlaylistService;
@@ -25,7 +26,7 @@ export class PlaylistService {
       const encodedShowName = encodeURIComponent(showName);
       
       const url = `https://wmbr.alexandersimoes.com/get_playlist?show_name=${encodedShowName}&date=${formattedDate}`;
-      console.log('Fetching playlist from:', url);
+      debugLog('Fetching playlist from:', url);
       
       const response = await fetch(url, {
         headers: { 'Cache-Control': 'no-cache' }
@@ -42,7 +43,7 @@ export class PlaylistService {
       
       return data;
     } catch (error) {
-      console.error('Error fetching playlist:', error);
+      debugError('Error fetching playlist:', error);
       throw error;
     }
   }
@@ -56,7 +57,7 @@ export class PlaylistService {
       const day = String(date.getDate()).padStart(2, '0');
       return `${year}-${month}-${day}`;
     } catch (error) {
-      console.error('Error formatting date:', dateString, error);
+      debugError('Error formatting date:', dateString, error);
       // Fallback: try to extract date parts if it's already in YYYY-MM-DD format
       const match = dateString.match(/(\d{4})-(\d{2})-(\d{2})/);
       if (match) {

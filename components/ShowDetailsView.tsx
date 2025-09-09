@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
+import { debugLog, debugError } from '../utils/debug';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -234,7 +235,7 @@ export default function ShowDetailsView({ show, isVisible, onClose }: ShowDetail
       await archiveService.playArchive(archive, show);
       // Don't close the view or show popup - keep user on same screen
     } catch (error) {
-      console.error('Error playing archive:', error);
+      debugError('Error playing archive:', error);
       Alert.alert('Error', 'Failed to play archive. Please try again.');
     }
   };
@@ -247,7 +248,7 @@ export default function ShowDetailsView({ show, isVisible, onClose }: ShowDetail
         await TrackPlayer.play();
       }
     } catch (error) {
-      console.error('Error toggling playback:', error);
+      debugError('Error toggling playback:', error);
     }
   };
 
@@ -282,16 +283,16 @@ export default function ShowDetailsView({ show, isVisible, onClose }: ShowDetail
     try {
       await TrackPlayer.seekTo(seekPosition);
     } catch (error) {
-      console.error('Error seeking:', error);
+      debugError('Error seeking:', error);
     }
   };
 
   const handleSeekTo = async (seekPosition: number) => {
     try {
       await TrackPlayer.seekTo(seekPosition);
-      console.log('Seeked to:', seekPosition);
+      debugLog('Seeked to:', seekPosition);
     } catch (error) {
-      console.error('Error seeking:', error);
+      debugError('Error seeking:', error);
     }
   };
 

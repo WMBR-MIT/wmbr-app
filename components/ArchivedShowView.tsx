@@ -28,6 +28,7 @@ import { PlaylistResponse, PlaylistSong } from '../types/Playlist';
 import { PlaylistService } from '../services/PlaylistService';
 import { ArchiveService } from '../services/ArchiveService';
 import { getWMBRLogoSVG } from '../utils/WMBRLogo';
+import { formatDate, formatDuration, formatTime } from '../utils/DateTime';
 import { generateDarkGradientColors, generateGradientColors } from '../utils/Colors';
 
 const { width, height } = Dimensions.get('window');
@@ -117,34 +118,6 @@ export default function ArchivedShowView({ show, archive, isVisible, onClose }: 
 
   const [gradientStart, gradientEnd] = generateGradientColors(show.name);
   const [darkGradientStart, darkGradientEnd] = generateDarkGradientColors(show.name);
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
-
-  const formatTime = (timeString: string) => {
-    try {
-      const date = new Date(timeString);
-      return date.toLocaleTimeString('en-US', {
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true
-      });
-    } catch (error) {
-      return timeString;
-    }
-  };
-
-  const formatDuration = (seconds: number) => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = Math.floor(seconds % 60);
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
-  };
 
   const updateScrubPosition = (position: number, percentage: number) => {
     setScrubPosition(position);

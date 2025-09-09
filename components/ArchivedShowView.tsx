@@ -178,7 +178,7 @@ export default function ArchivedShowView({ show, archive, isVisible, onClose }: 
       }
       // Don't close the view - keep user on same screen
     } catch (e) {
-      debugError('Error with play/pause:', error);
+      debugError('Error with play/pause:', e);
       Alert.alert('Error', 'Failed to play archive. Please try again.');
     }
   };

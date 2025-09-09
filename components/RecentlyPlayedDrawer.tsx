@@ -15,10 +15,10 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
-  runOnJS,
   interpolate,
   Extrapolate,
 } from 'react-native-reanimated';
+import { debugError } from '../utils/debug';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { RecentlyPlayedService } from '../services/RecentlyPlayedService';
 import { AudioPreviewService, PreviewState } from '../services/AudioPreviewService';
@@ -93,7 +93,7 @@ export default function RecentlyPlayedDrawer({ isVisible, onClose }: RecentlyPla
       setShowGroups(groups);
     } catch (err) {
       setError('Failed to load recently played songs');
-      console.error('Error fetching recently played:', err);
+      debugError('Error fetching recently played:', err);
     } finally {
       if (isRefresh) {
         setRefreshing(false);
@@ -143,7 +143,7 @@ export default function RecentlyPlayedDrawer({ isVisible, onClose }: RecentlyPla
         await audioPreviewService.playPreview(song.appleStreamLink);
       }
     } catch (error) {
-      console.error('Error handling preview playback:', error);
+      debugError('Error handling preview playback:', error);
       Alert.alert('Error', 'Failed to play preview');
     }
   };

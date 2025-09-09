@@ -4,6 +4,7 @@
  */
 
 import React, { useEffect, useState, useRef } from 'react';
+import { debugLog, debugError } from './utils/debug';
 import {
   View,
   Text,
@@ -122,7 +123,7 @@ export default function App() {
         artwork: require('./assets/cover.png'),
       });
     } catch (error) {
-      console.error('Error setting up player:', error);
+      debugError('Error setting up player:', error);
     }
   };
 
@@ -162,7 +163,7 @@ export default function App() {
         });
       }
     } catch (error) {
-      console.error('Error updating track metadata:', error);
+      debugError('Error updating track metadata:', error);
     }
   };
 
@@ -308,7 +309,7 @@ export default function App() {
         await TrackPlayer.play();
       }
     } catch (error) {
-      console.error('Error toggling playback:', error);
+      debugError('Error toggling playback:', error);
     }
   };
 
@@ -330,7 +331,7 @@ export default function App() {
     try {
       await ArchiveService.getInstance().switchToLive(currentShow);
     } catch (error) {
-      console.error('Error switching to live:', error);
+      debugError('Error switching to live:', error);
     }
   };
 

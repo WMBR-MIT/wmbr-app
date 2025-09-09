@@ -1,3 +1,5 @@
+import { debugLog, debugError } from '../utils/debug';
+
 interface ShowInfo {
   showTitle: string;
   hosts?: string;
@@ -45,73 +47,73 @@ class MetadataService {
       });
 
       if (!response.ok) {
-        console.warn('Metadata fetch failed:', response.status);
+        debugError('Metadata fetch failed:', response.status);
         return this.getFallbackData();
       }
 
       const xmlText = await response.text();
       return this.parseWMBRXML(xmlText);
     } catch (error) {
-      console.warn('Error fetching metadata:', error);
+      debugError('Error fetching metadata:', error);
       return this.getFallbackData();
     }
   }
 
   private parseWMBRXML(xmlText: string): ShowInfo {
     try {
-      console.log('=== Raw XML received ===');
-      console.log(xmlText.substring(0, 500) + '...');
+      debugLog('=== Raw XML received ===');
+      debugLog(xmlText.substring(0, 500) + '...');
       
       // Extract wmbr_show content
       const showMatch = xmlText.match(/<wmbr_show>(.*?)<\/wmbr_show>/s);
       if (!showMatch) {
-        console.log('No wmbr_show match found');
+        debugLog('No wmbr_show match found');
         return this.getFallbackData();
       }
 
       const showContent = showMatch[1];
-      console.log('=== Show content extracted ===');
-      console.log(showContent);
+      debugLog('=== Show content extracted ===');
+      debugLog(showContent);
       
       // First decode HTML entities to get actual HTML
       const decodedContent = this.decodeHTMLEntities(showContent);
-      console.log('=== Decoded content ===');
-      console.log(decodedContent);
+      debugLog('=== Decoded content ===');
+      debugLog(decodedContent);
       
       // Extract show title (first <b> tag)
       const titleMatch = decodedContent.match(/<b>(.*?)<\/b>/);
-      console.log('=== Title match ===', titleMatch);
+      debugLog('=== Title match ===', titleMatch);
       const rawTitle = titleMatch ? titleMatch[1] : 'WMBR 88.1 FM';
-      console.log('Raw title before stripping:', rawTitle);
+      debugLog('Raw title before stripping:', rawTitle);
       const showTitle = this.stripHTML(rawTitle);
-      console.log('Show title after stripping:', showTitle);
+      debugLog('Show title after stripping:', showTitle);
 
       // Extract hosts (content within div with margin-bottom: 4px)
       const hostsMatch = decodedContent.match(/<div[^>]*margin-bottom:\s*4px[^>]*>(.*?)<\/div>/s);
-      console.log('=== Hosts match ===', hostsMatch);
+      debugLog('=== Hosts match ===', hostsMatch);
       let hosts = '';
       if (hostsMatch) {
         const hostsContent = hostsMatch[1];
-        console.log('Raw hosts content:', hostsContent);
+        debugLog('Raw hosts content:', hostsContent);
         // Remove <br> and extract text after "with"
         const cleanHosts = this.stripHTML(hostsContent).replace(/^\s*with\s*/i, '').trim();
-        console.log('Clean hosts after processing:', cleanHosts);
+        debugLog('Clean hosts after processing:', cleanHosts);
         hosts = cleanHosts;
       }
 
       // Extract description (remaining text after removing title and hosts sections)
       let description = decodedContent;
-      console.log('=== Description processing ===');
-      console.log('Before removing title:', description);
+      debugLog('=== Description processing ===');
+      debugLog('Before removing title:', description);
       // Remove the title <b> tag
       description = description.replace(/<b>.*?<\/b>\s*/, '');
-      console.log('After removing title:', description);
+      debugLog('After removing title:', description);
       // Remove the hosts div
       description = description.replace(/<div[^>]*margin-bottom:\s*4px[^>]*>.*?<\/div>\s*/s, '');
-      console.log('After removing hosts div:', description);
+      debugLog('After removing hosts div:', description);
       // Clean up HTML and trim
       description = this.stripHTML(description).trim();
-      console.log('Final description:', description);
+      debugLog('Final description:', description);
 
       // Extract current song from wmbr_plays section (most recent entry)
       let currentSong = '';
@@ -136,7 +138,7 @@ class MetadataService {
           }
         }
       } catch (error) {
-        console.warn('Error parsing current song:', error);
+        debugError('Error parsing current song:', error);
       }
 
       const result = {
@@ -147,16 +149,16 @@ class MetadataService {
         currentArtist: currentArtist || undefined,
       };
       
-      console.log('=== Final parsed result ===', result);
+      debugLog('=== Final parsed result ===', result);
       return result;
     } catch (error) {
-      console.warn('Error parsing WMBR XML:', error);
+      debugError('Error parsing WMBR XML:', error);
       return this.getFallbackData();
     }
   }
 
   private decodeHTMLEntities(text: string): string {
-    console.log('decodeHTMLEntities input:', text);
+    debugLog('decodeHTMLEntities input:', text);
     
     const result = text
       .replace(/&lt;/g, '<')
@@ -166,12 +168,12 @@ class MetadataService {
       .replace(/&nbsp;/g, ' ')
       .replace(/&amp;/g, '&'); // Do this last since other entities contain &
     
-    console.log('decodeHTMLEntities output:', result);
+    debugLog('decodeHTMLEntities output:', result);
     return result;
   }
 
   private stripHTML(html: string): string {
-    console.log('stripHTML input:', html);
+    debugLog('stripHTML input:', html);
     
     const result = html
       .replace(/<[^>]*>/g, '') // Remove HTML tags
@@ -179,7 +181,7 @@ class MetadataService {
       .replace(/\s+/g, ' ') // Replace multiple spaces with single space
       .trim();
     
-    console.log('stripHTML output:', result);
+    debugLog('stripHTML output:', result);
     return result;
   }
 
@@ -193,38 +195,38 @@ class MetadataService {
 
   private parseSongHistory(xmlText: string): Song[] {
     try {
-      console.log('=== Parsing song history ===');
+      debugLog('=== Parsing song history ===');
       // Extract wmbr_plays content
       const playsMatch = xmlText.match(/<wmbr_plays>(.*?)<\/wmbr_plays>/s);
       if (!playsMatch) {
-        console.log('No wmbr_plays match found');
+        debugLog('No wmbr_plays match found');
         return this.generateMockSongHistory();
       }
 
       const playsContent = playsMatch[1];
-      console.log('Plays content:', playsContent);
+      debugLog('Plays content:', playsContent);
       
       // Decode HTML entities first
       const decodedPlaysContent = this.decodeHTMLEntities(playsContent);
-      console.log('Decoded plays content:', decodedPlaysContent);
+      debugLog('Decoded plays content:', decodedPlaysContent);
       
       // Extract individual song entries
       const songMatches = Array.from(decodedPlaysContent.matchAll(/<p class="recent">(.*?)<\/p>/g));
-      console.log('Found', songMatches.length, 'song matches');
+      debugLog('Found', songMatches.length, 'song matches');
       const songs: Song[] = [];
 
       for (const match of songMatches) {
         const songContent = match[1];
-        console.log('Raw song content:', songContent);
+        debugLog('Raw song content:', songContent);
         
         // Parse time, artist, and title
         // Format: "7:59p&nbsp;<b>Earl Grant</b>: Dreamy"
         const songMatch = songContent.match(/(\d+:\d+[ap]).*?<b>(.*?)<\/b>:\s*(.*)/);
-        console.log('Song regex match:', songMatch);
+        debugLog('Song regex match:', songMatch);
         
         if (songMatch) {
           const [, time, artist, title] = songMatch;
-          console.log('Parsed - Time:', time, 'Artist:', artist, 'Title:', title);
+          debugLog('Parsed - Time:', time, 'Artist:', artist, 'Title:', title);
           
           const processedSong = {
             id: `song-${Date.now()}-${songs.length}`,
@@ -233,16 +235,16 @@ class MetadataService {
             timestamp: this.stripHTML(time).trim(),
           };
           
-          console.log('Processed song:', processedSong);
+          debugLog('Processed song:', processedSong);
           songs.push(processedSong);
         }
       }
 
-      console.log('Final songs array:', songs);
-      console.log('Returning', songs.length, 'real songs vs fallback');
+      debugLog('Final songs array:', songs);
+      debugLog('Returning', songs.length, 'real songs vs fallback');
       return songs.length > 0 ? songs : [];
     } catch (error) {
-      console.warn('Error parsing song history:', error);
+      debugError('Error parsing song history:', error);
       return this.generateMockSongHistory();
     }
   }
@@ -292,9 +294,9 @@ class MetadataService {
           this.notifyListeners(metadata);
           
           // Parse song history
-          console.log('About to parse song history...');
+          debugLog('About to parse song history...');
           const songHistory = this.parseSongHistory(xmlText);
-          console.log('Song history parsing complete, got:', songHistory.length, 'songs');
+          debugLog('Song history parsing complete, got:', songHistory.length, 'songs');
           this.notifySongHistoryListeners(songHistory);
         } else {
           // Fallback to default data
@@ -307,7 +309,7 @@ class MetadataService {
           this.notifySongHistoryListeners(mockHistory);
         }
       } catch (error) {
-        console.warn('Error in polling:', error);
+        debugError('Error in polling:', error);
         const metadata = this.getFallbackData();
         this.notifyListeners(metadata);
         

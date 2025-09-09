@@ -20,7 +20,15 @@ A React Native app for streaming WMBR 88.1 FM and browsing show archives, song h
 ## Create your local environment file
 - Copy `ios/.xcode.env` to `ios/.xcode.env.local` and modify the node path.
 
-### Run the App
+## Build the app
+- Open the app in Xcode:
+  ```bash
+  open ios/WMBRRadioApp.xcworkspace
+  ```
+- Build the app (⇧⌘B).
+
+
+### Run the Simulator
 ```bash
 npm run ios -- --simulator="iPhone 16"
 ```

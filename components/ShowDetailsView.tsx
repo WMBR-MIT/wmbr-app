@@ -29,7 +29,7 @@ import TrackPlayer from 'react-native-track-player';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import ArchivedShowView from './ArchivedShowView';
 import { getWMBRLogoSVG } from '../utils/WMBRLogo';
-import { generateDarkGradientColors, generateGradientColors } from '../utils/colors';
+import { generateDarkGradientColors, generateGradientColors } from '../utils/Colors';
 
 const { width, height } = Dimensions.get('window');
 const ALBUM_SIZE = width * 0.6;

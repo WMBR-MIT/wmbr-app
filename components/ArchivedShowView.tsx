@@ -197,7 +197,7 @@ export default function ArchivedShowView({ show, archive, isVisible, onClose }: 
         minute: '2-digit',
         hour12: true
       });
-    } catch {
+    } catch (_error) {
       return timeString;
     }
   };

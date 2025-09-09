@@ -2,7 +2,7 @@ import { RecentlyPlayedSong, Show, Archive, ProcessedSong, ShowGroup } from '../
 import { ScheduleService } from './ScheduleService';
 import { ScheduleShow } from '../types/Schedule';
 import { parseString } from 'react-native-xml2js';
-import { debugLog, debugError } from '../utils/debug';
+import { debugLog, debugError } from '../utils/Debug';
 
 interface PlaylistSong {
   time: string; // Format: YYYY/MM/DD HH:MM:SS

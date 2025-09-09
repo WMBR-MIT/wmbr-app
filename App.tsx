@@ -4,7 +4,7 @@
  */
 
 import React, { useEffect, useState, useRef } from 'react';
-import { debugLog, debugError } from './utils/debug';
+import { debugError } from './utils/Debug';
 import {
   View,
   Text,

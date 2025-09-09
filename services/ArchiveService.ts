@@ -1,6 +1,6 @@
 import TrackPlayer, { Track, State } from 'react-native-track-player';
 import { Show, Archive } from '../types/RecentlyPlayed';
-import { debugLog, debugError } from '../utils/debug';
+import { debugLog, debugError } from '../utils/Debug';
 
 export interface ArchivePlaybackState {
   isPlayingArchive: boolean;

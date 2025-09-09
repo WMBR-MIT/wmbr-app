@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
-import { debugLog, debugError } from '../utils/debug';
+import { debugError } from '../utils/Debug';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,

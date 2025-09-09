@@ -18,7 +18,7 @@ import Animated, {
   interpolate,
   Extrapolate,
 } from 'react-native-reanimated';
-import { debugError } from '../utils/debug';
+import { debugError } from '../utils/Debug';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { RecentlyPlayedService } from '../services/RecentlyPlayedService';
 import { AudioPreviewService, PreviewState } from '../services/AudioPreviewService';

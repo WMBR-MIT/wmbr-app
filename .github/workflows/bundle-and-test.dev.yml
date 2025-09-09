@@ -7,12 +7,13 @@ on:
     branches: [ "*" ]
 
 jobs:
-  build:
-
+  bundle:
+    name: Bundle
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout Repository
+      uses: actions/checkout@v4
 
     - name: Use Node.js 18
       uses: actions/setup-node@v4
@@ -20,11 +21,11 @@ jobs:
         node-version: '18.20.8'
         cache: 'npm'
 
-    - name: Install dependencies
+    - name: Install Dependencies
       run: npm ci
 
     - name: Build iOS Bundle
-      run: npx react-native bundle --entry-file index.ts --platform ios --dev true --bundle-output tmp/main.jsbundle
+      run: npm run bundle:ios
 
     - name: Build Android Bundle
-      run: npx react-native bundle --entry-file index.ts --platform android --dev true --bundle-output android/main.jsbundle --assets-dest android
+      run: npm run bundle:android

@@ -197,7 +197,7 @@ export default function ArchivedShowView({ show, archive, isVisible, onClose }: 
         minute: '2-digit',
         hour12: true
       });
-    } catch (error) {
+    } catch {
       return timeString;
     }
   };
@@ -218,8 +218,8 @@ export default function ArchivedShowView({ show, archive, isVisible, onClose }: 
       // Clamp position to avoid seeking to exact beginning or end
       const clampedPosition = Math.max(0.1, Math.min(position, progress.duration - 0.1));
       await TrackPlayer.seekTo(clampedPosition);
-    } catch (error) {
-      console.error('Error seeking:', error);
+    } catch (e) {
+      console.error('Error seeking:', e);
     }
   };
 
@@ -266,8 +266,8 @@ export default function ArchivedShowView({ show, archive, isVisible, onClose }: 
         setIsArchivePlaying(true);
       }
       // Don't close the view - keep user on same screen
-    } catch (error) {
-      console.error('Error with play/pause:', error);
+    } catch (e) {
+      console.error('Error with play/pause:', e);
       Alert.alert('Error', 'Failed to play archive. Please try again.');
     }
   };

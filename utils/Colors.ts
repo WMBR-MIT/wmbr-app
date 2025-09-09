@@ -39,3 +39,24 @@ export const generateGradientColors = (showName: string): [string, string] => {
   const index = Math.abs(hash) % colors.length;
   return colors[index];
 };
+
+// Generate much darker versions of the colors for backgrounds
+export const generateDarkGradientColors = (showName: string): [string, string] => {
+  const [originalStart, originalEnd] = generateGradientColors(showName);
+  
+  // Function to convert hex to RGB and darken significantly
+  const darkenColor = (hex: string) => {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    
+    // Darken to about 15% of original brightness
+    const darkenedR = Math.floor(r * 0.15);
+    const darkenedG = Math.floor(g * 0.15);
+    const darkenedB = Math.floor(b * 0.15);
+    
+    return `rgb(${darkenedR}, ${darkenedG}, ${darkenedB})`;
+  };
+  
+  return [darkenColor(originalStart), darkenColor(originalEnd)];
+};

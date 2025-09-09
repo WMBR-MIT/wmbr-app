@@ -1,4 +1,4 @@
-export const colors = [
+export const colors: [string, string][] = [
   ['#FF6B6B', '#4ECDC4'], // Red to Teal
   ['#45B7D1', '#96CEB4'], // Blue to Green
   ['#FECA57', '#FF9FF3'], // Yellow to Pink  

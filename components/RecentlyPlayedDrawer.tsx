@@ -144,7 +144,7 @@ export default function RecentlyPlayedDrawer({ isVisible, onClose }: RecentlyPla
         await audioPreviewService.playPreview(song.appleStreamLink);
       }
     } catch (error) {
-      debugError('Error handling preview playbook:', error);
+      debugError('Error handling preview playback:', error);
       Alert.alert('Error', 'Failed to play preview');
     }
   };

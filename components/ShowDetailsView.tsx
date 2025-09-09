@@ -326,7 +326,7 @@ export default function ShowDetailsView({ show, isVisible, onClose }: ShowDetail
             {/* Show Info */}
             <View style={styles.infoSection}>
               <Text style={styles.showTitle}>{show.name}</Text>
-              <Text style={styles.showSchedule}>{formatShowTime()}</Text>
+              <Text style={styles.showSchedule}>{formatShowTime(show)}</Text>
               {show.hosts && (
                 <Text style={styles.showHosts}>Hosted by {show.hosts}</Text>
               )}

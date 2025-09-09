@@ -1,3 +1,5 @@
+import { Show } from '../types/RecentlyPlayed';
+
 export const formatDuration = (seconds: number) => {
   const minutes = Math.floor(seconds / 60);
   const remainingSeconds = Math.floor(seconds % 60);
@@ -59,11 +61,10 @@ export const getDurationFromSize = (
   return `${minutes}m`;
 };
 
-export const formatShowTime = () => {
+export const formatShowTime = (show: Show) => {
   const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   const dayName = show.day === 7 ? 'Weekdays' : dayNames[show.day];
   // Only add 's' if it's not already plural (weekdays)
   const plural = show.day === 7 ? dayName : `${dayName}s`;
   return `${plural} at ${show.time_str}`;
 };
-

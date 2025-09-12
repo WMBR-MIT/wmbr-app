@@ -1,6 +1,6 @@
 import { parseString } from 'react-native-xml2js';
 import { ScheduleShow, ScheduleResponse } from '../types/Schedule';
-import { debugLog, debugError } from '../utils/debug';
+import { debugLog, debugError } from '../utils/Debug';
 
 export class ScheduleService {
   private static instance: ScheduleService;

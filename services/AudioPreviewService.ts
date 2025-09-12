@@ -1,5 +1,5 @@
 import TrackPlayer, { Track, State, useProgress, Event } from 'react-native-track-player';
-import { debugLog, debugError } from '../utils/debug';
+import { debugError } from '../utils/Debug';
 
 export interface PreviewState {
   isPlaying: boolean;

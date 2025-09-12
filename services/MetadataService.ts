@@ -1,4 +1,4 @@
-import { debugLog, debugError } from '../utils/debug';
+import { debugLog, debugError } from '../utils/Debug';
 
 interface ShowInfo {
   showTitle: string;

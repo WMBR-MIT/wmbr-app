@@ -1,5 +1,5 @@
 import { PlaylistResponse } from '../types/Playlist';
-import { debugLog, debugError } from '../utils/debug';
+import { debugLog, debugError } from '../utils/Debug';
 
 export class PlaylistService {
   private static instance: PlaylistService;

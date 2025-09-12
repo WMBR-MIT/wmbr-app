@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useCallback, useEffect, useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -32,12 +32,12 @@ const HEADER_HEIGHT = 60;
 const HANDLE_HEIGHT = 20;
 const PEEK_HEIGHT = 100; // How much of the drawer shows when collapsed
 
-interface RecentlyPlayedDrawerProps {
-  isVisible: boolean;
-  onClose?: () => void;
-}
+// interface RecentlyPlayedDrawerProps {
+//   isVisible: boolean;
+//   onClose?: () => void;
+// }
 
-export default function RecentlyPlayedDrawer({ isVisible, onClose }: RecentlyPlayedDrawerProps) {
+export default function RecentlyPlayedDrawer() {
   const [showGroups, setShowGroups] = useState<ShowGroup[]>([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -54,33 +54,13 @@ export default function RecentlyPlayedDrawer({ isVisible, onClose }: RecentlyPla
   
   // Animation values - start in peeking position
   const translateY = useSharedValue(DRAWER_HEIGHT - PEEK_HEIGHT);
-  const opacity = useSharedValue(1);
+  // const opacity = useSharedValue(1);
   
   const scrollViewRef = useRef<ScrollView>(null);
   const recentlyPlayedService = RecentlyPlayedService.getInstance();
   const audioPreviewService = AudioPreviewService.getInstance();
 
-  useEffect(() => {
-    // Always load data since drawer is always visible
-    fetchRecentlyPlayed();
-    // Force light content for refresh control
-    Appearance.setColorScheme('light');
-    
-    return () => {
-      // Stop any playing preview when component unmounts
-      audioPreviewService.stop();
-      // Reset appearance
-      Appearance.setColorScheme(null);
-    };
-  }, []);
-
-  useEffect(() => {
-    // Subscribe to preview state changes
-    const unsubscribe = audioPreviewService.subscribe(setPreviewState);
-    return unsubscribe;
-  }, []);
-
-  const fetchRecentlyPlayed = async (isRefresh = false) => {
+  const fetchRecentlyPlayed = useCallback(async (isRefresh = false) => {
     if (isRefresh) {
       setRefreshing(true);
     } else {
@@ -101,13 +81,33 @@ export default function RecentlyPlayedDrawer({ isVisible, onClose }: RecentlyPla
         setLoading(false);
       }
     }
-  };
+  }, [recentlyPlayedService]);
+
+  useEffect(() => {
+    // Always load data since drawer is always visible
+    fetchRecentlyPlayed();
+    // Force light content for refresh control
+    Appearance.setColorScheme('light');
+    
+    return () => {
+      // Stop any playing preview when component unmounts
+      audioPreviewService.stop();
+      // Reset appearance
+      Appearance.setColorScheme(null);
+    };
+  }, [audioPreviewService, fetchRecentlyPlayed]);
+
+  useEffect(() => {
+    // Subscribe to preview state changes
+    const unsubscribe = audioPreviewService.subscribe(setPreviewState);
+    return unsubscribe;
+  }, [audioPreviewService]);
 
   const handleRefresh = () => {
     fetchRecentlyPlayed(true);
   };
 
-  const handleShowTitlePress = (showName: string, showId: string) => {
+  const handleShowTitlePress = (_showName: string, showId: string) => {
     // Find the show details from the service's cache
     const showsCache = recentlyPlayedService.getShowsCache();
     const show = showsCache.find(s => s.id === showId);
@@ -142,8 +142,8 @@ export default function RecentlyPlayedDrawer({ isVisible, onClose }: RecentlyPla
       else {
         await audioPreviewService.playPreview(song.appleStreamLink);
       }
-    } catch (error) {
-      debugError('Error handling preview playback:', error);
+    } catch (e) {
+      debugError('Error handling preview playback:', e);
       Alert.alert('Error', 'Failed to play preview');
     }
   };

@@ -10,6 +10,9 @@ ios/.xcode.env.local
 *.p8
 *.p12
 
+# Builds
+dist/
+
 # macOS
 .DS_Store
 

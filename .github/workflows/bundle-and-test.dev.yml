@@ -1,0 +1,55 @@
+name: Build and Test - Dev
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "*" ]
+
+jobs:
+  lint:
+    name: Lint (non-blocking)
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Use Node.js 18
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18.20.8'
+        cache: 'npm'
+
+    - name: Install Dependencies
+      run: npm ci
+    
+    - name: Lint Codebase
+      run: npm run lint
+      
+    
+  bundle:
+    name: Bundle
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+  
+    - name: Use Node.js 18
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18.20.8'
+        cache: 'npm'
+  
+    - name: Install Dependencies
+      run: npm ci
+  
+    - name: Build iOS Bundle
+      run: npm run bundle:ios
+  
+    - name: Build Android Bundle
+      run: npm run bundle:android
+
+    - name: Typecheck
+      run: npm run typecheck

@@ -3,15 +3,14 @@
  * @format
  */
 
-import React, { useEffect, useState, useRef } from 'react';
-import { debugLog, debugError } from './utils/debug';
+import React, { useCallback, useEffect, useState, useRef } from 'react';
+import { debugError } from './utils/debug';
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
   StatusBar,
-  Dimensions,
   Animated,
   SafeAreaView,
 } from 'react-native';
@@ -19,7 +18,6 @@ import TrackPlayer, {
   Capability, 
   State, 
   usePlaybackState,
-  useProgress 
 } from 'react-native-track-player';
 import LinearGradient from 'react-native-linear-gradient';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -29,22 +27,20 @@ import SplashScreen from './components/SplashScreen';
 import ShowDetailsView from './components/ShowDetailsView';
 import ArchivedShowView from './components/ArchivedShowView';
 import ShowScheduleView from './components/ShowScheduleView';
-import MetadataService, { ShowInfo, Song } from './services/MetadataService';
+import MetadataService, { ShowInfo } from './services/MetadataService';
 import { ArchiveService, ArchivePlaybackState } from './services/ArchiveService';
 import { AudioPreviewService } from './services/AudioPreviewService';
 import { getWMBRLogoSVG } from './utils/WMBRLogo';
 
-const { width, height } = Dimensions.get('window');
 const streamUrl = 'https://wmbr.org:8002/hi';
 const WMBR_GREEN = '#00843D';
 
 
 export default function App() {
   const playbackState = usePlaybackState();
-  const progress = useProgress();
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentShow, setCurrentShow] = useState('WMBR 88.1 FM');
-  const [songHistory, setSongHistory] = useState<Song[]>([]);
+  // const [songHistory, setSongHistory] = useState<Song[]>([]);
   const [hosts, setHosts] = useState<string | undefined>();
   const [showDescription, setShowDescription] = useState<string | undefined>();
   const [currentSong, setCurrentSong] = useState<string | undefined>();
@@ -67,67 +63,21 @@ export default function App() {
   const songChangeRotate = useRef(new Animated.Value(0)).current;
   const songChangeOpacity = useRef(new Animated.Value(1)).current;
 
-  useEffect(() => {
-    setupPlayer();
-    setupMetadata();
-    
-    // Subscribe to archive service
-    const unsubscribeArchive = ArchiveService.getInstance().subscribe(setArchiveState);
-    
-    return () => {
-      MetadataService.getInstance().stopPolling();
-      unsubscribeArchive();
-    };
-  }, []);
-
-  useEffect(() => {
-    setIsPlaying(playbackState?.state === State.Playing);
-    
-    if (playbackState?.state === State.Playing) {
-      startPulseAnimation();
-      startRotateAnimation();
-    } else {
-      stopAnimations();
-    }
-  }, [playbackState]);
-
-  // Trigger animation when song changes
-  useEffect(() => {
-    if (currentSong && currentArtist && !archiveState.isPlayingArchive) {
-      const newSongKey = `${currentArtist}-${currentSong}`;
-      if (previousSong && previousSong !== newSongKey) {
-        // Song changed! Trigger fun animation
-        startSongChangeAnimation();
-      }
-      setPreviousSong(newSongKey);
-    }
-  }, [currentSong, currentArtist, archiveState.isPlayingArchive]);
-
-  const setupPlayer = async () => {
+  const updateLiveTrackMetadata = useCallback(async (showTitle: string) => {
     try {
-      await TrackPlayer.setupPlayer();
-      await TrackPlayer.updateOptions({
-        capabilities: [
-          Capability.Play,
-          Capability.Pause,
-          Capability.Stop,
-        ],
-        compactCapabilities: [Capability.Play, Capability.Pause],
-      });
-
-      await TrackPlayer.add({
-        id: 'wmbr-stream',
-        url: streamUrl,
-        title: 'WMBR 88.1 FM',
-        artist: 'Live Radio',
-        artwork: require('./assets/cover.png'),
-      });
+      // Only update if we're not playing an archive
+      if (!archiveState.isPlayingArchive) {
+        await TrackPlayer.updateMetadataForTrack('wmbr-stream', {
+          title: 'WMBR 88.1 FM',
+          artist: showTitle || 'Live Radio',
+        });
+      }
     } catch (error) {
-      debugError('Error setting up player:', error);
+      debugError('Error updating track metadata:', error);
     }
-  };
+  }, [archiveState.isPlayingArchive]);
 
-  const setupMetadata = () => {
+  const setupMetadata = useCallback(() => {
     const metadataService = MetadataService.getInstance();
     
     const unsubscribeMetadata = metadataService.subscribe((data: ShowInfo) => {
@@ -141,33 +91,39 @@ export default function App() {
       updateLiveTrackMetadata(data.showTitle);
     });
 
-    const unsubscribeSongs = metadataService.subscribeSongHistory((songs: Song[]) => {
-      setSongHistory(songs);
-    });
+    // const unsubscribeSongs = metadataService.subscribeSongHistory((songs: Song[]) => {
+    //   setSongHistory(songs);
+    // });
 
     metadataService.startPolling(15000);
 
     return () => {
       unsubscribeMetadata();
-      unsubscribeSongs();
+      // unsubscribeSongs();
     };
-  };
+  }, [updateLiveTrackMetadata]);
 
-  const updateLiveTrackMetadata = async (showTitle: string) => {
-    try {
-      // Only update if we're not playing an archive
-      if (!archiveState.isPlayingArchive) {
-        await TrackPlayer.updateMetadataForTrack('wmbr-stream', {
-          title: 'WMBR 88.1 FM',
-          artist: showTitle || 'Live Radio',
-        });
-      }
-    } catch (error) {
-      debugError('Error updating track metadata:', error);
-    }
-  };
+  const stopAnimations = useCallback(() => {
+    pulseAnim.stopAnimation();
+    rotateAnim.stopAnimation();
+    Animated.timing(pulseAnim, {
+      toValue: 1,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  }, [pulseAnim, rotateAnim]);
 
-  const startPulseAnimation = () => {
+  const startRotateAnimation = useCallback(() => {
+    Animated.loop(
+      Animated.timing(rotateAnim, {
+        toValue: 1,
+        duration: 10000,
+        useNativeDriver: true,
+      })
+    ).start();
+  }, [rotateAnim]);
+
+  const startPulseAnimation = useCallback(() => {
     Animated.loop(
       Animated.sequence([
         Animated.timing(pulseAnim, {
@@ -182,29 +138,9 @@ export default function App() {
         }),
       ])
     ).start();
-  };
+  }, [pulseAnim]);
 
-  const startRotateAnimation = () => {
-    Animated.loop(
-      Animated.timing(rotateAnim, {
-        toValue: 1,
-        duration: 10000,
-        useNativeDriver: true,
-      })
-    ).start();
-  };
-
-  const stopAnimations = () => {
-    pulseAnim.stopAnimation();
-    rotateAnim.stopAnimation();
-    Animated.timing(pulseAnim, {
-      toValue: 1,
-      duration: 300,
-      useNativeDriver: true,
-    }).start();
-  };
-
-  const startSongChangeAnimation = () => {
+  const startSongChangeAnimation = useCallback(() => {
     // Reset animation values
     songChangeScale.setValue(1);
     songChangeRotate.setValue(0);
@@ -275,6 +211,66 @@ export default function App() {
         }),
       ]),
     ]).start();
+  }, [songChangeOpacity, songChangeRotate, songChangeScale]);
+
+  useEffect(() => {
+    setupPlayer();
+    setupMetadata();
+    
+    // Subscribe to archive service
+    const unsubscribeArchive = ArchiveService.getInstance().subscribe(setArchiveState);
+    
+    return () => {
+      MetadataService.getInstance().stopPolling();
+      unsubscribeArchive();
+    };
+  }, [setupMetadata]);
+
+  useEffect(() => {
+    setIsPlaying(playbackState?.state === State.Playing);
+    
+    if (playbackState?.state === State.Playing) {
+      startPulseAnimation();
+      startRotateAnimation();
+    } else {
+      stopAnimations();
+    }
+  }, [playbackState, startPulseAnimation, startRotateAnimation, stopAnimations]);
+
+  // Trigger animation when song changes
+  useEffect(() => {
+    if (currentSong && currentArtist && !archiveState.isPlayingArchive) {
+      const newSongKey = `${currentArtist}-${currentSong}`;
+      if (previousSong && previousSong !== newSongKey) {
+        // Song changed! Trigger fun animation
+        startSongChangeAnimation();
+      }
+      setPreviousSong(newSongKey);
+    }
+  }, [currentSong, currentArtist, archiveState.isPlayingArchive, previousSong, startSongChangeAnimation]);
+
+  const setupPlayer = async () => {
+    try {
+      await TrackPlayer.setupPlayer();
+      await TrackPlayer.updateOptions({
+        capabilities: [
+          Capability.Play,
+          Capability.Pause,
+          Capability.Stop,
+        ],
+        compactCapabilities: [Capability.Play, Capability.Pause],
+      });
+
+      await TrackPlayer.add({
+        id: 'wmbr-stream',
+        url: streamUrl,
+        title: 'WMBR 88.1 FM',
+        artist: 'Live Radio',
+        artwork: require('./assets/cover.png'),
+      });
+    } catch (error) {
+      debugError('Error setting up player:', error);
+    }
   };
 
   const togglePlayback = async () => {
@@ -313,10 +309,10 @@ export default function App() {
     }
   };
 
-  const spin = rotateAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0deg', '360deg'],
-  });
+  // const spin = rotateAnim.interpolate({
+  //   inputRange: [0, 1],
+  //   outputRange: ['0deg', '360deg'],
+  // });
 
   const songRotation = songChangeRotate.interpolate({
     inputRange: [0, 1],

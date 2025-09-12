@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useCallback, useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -27,7 +27,7 @@ import { getWMBRLogoSVG } from '../utils/WMBRLogo';
 import ShowDetailsView from './ShowDetailsView';
 import { RecentlyPlayedService } from '../services/RecentlyPlayedService';
 
-const { width, height } = Dimensions.get('window');
+const { height } = Dimensions.get('window');
 
 interface ShowScheduleViewProps {
   isVisible: boolean;
@@ -44,7 +44,7 @@ export default function ShowScheduleView({ isVisible, onClose, currentShow }: Sh
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedShow, setSelectedShow] = useState<ScheduleShow | null>(null);
+  // const [selectedShow, setSelectedShow] = useState<ScheduleShow | null>(null);
   const [showDetailsVisible, setShowDetailsVisible] = useState(false);
   const [showWithArchives, setShowWithArchives] = useState<any>(null);
   const scrollViewRef = useRef<ScrollView>(null);
@@ -52,19 +52,7 @@ export default function ShowScheduleView({ isVisible, onClose, currentShow }: Sh
   
   const scheduleService = ScheduleService.getInstance();
 
-
-  useEffect(() => {
-    if (isVisible) {
-      translateY.value = withSpring(0);
-      opacity.value = withSpring(1);
-      fetchSchedule();
-    } else {
-      translateY.value = withSpring(height);
-      opacity.value = withSpring(0);
-    }
-  }, [isVisible]);
-
-  const fetchSchedule = async () => {
+  const fetchSchedule = useCallback(async () => {
     setLoading(true);
     setError(null);
     
@@ -79,7 +67,18 @@ export default function ShowScheduleView({ isVisible, onClose, currentShow }: Sh
     } finally {
       setLoading(false);
     }
-  };
+  }, [scheduleService]);
+
+  useEffect(() => {
+    if (isVisible) {
+      translateY.value = withSpring(0);
+      opacity.value = withSpring(1);
+      fetchSchedule();
+    } else {
+      translateY.value = withSpring(height);
+      opacity.value = withSpring(0);
+    }
+  }, [fetchSchedule, isVisible, opacity, translateY]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: translateY.value }],
@@ -88,7 +87,7 @@ export default function ShowScheduleView({ isVisible, onClose, currentShow }: Sh
 
   const handleShowPress = async (show: ScheduleShow) => {
     try {
-      setSelectedShow(show);
+      // setSelectedShow(show);
       
       // Fetch archives for this show from the recently played service
       const recentlyPlayedService = RecentlyPlayedService.getInstance();
@@ -112,8 +111,8 @@ export default function ShowScheduleView({ isVisible, onClose, currentShow }: Sh
           [{ text: 'OK' }]
         );
       }
-    } catch (error) {
-      debugError('Error fetching show archives:', error);
+    } catch (e) {
+      debugError('Error fetching show archives:', e);
       Alert.alert(
         'Error', 
         'Unable to fetch archive data. Please try again later.',
@@ -124,39 +123,39 @@ export default function ShowScheduleView({ isVisible, onClose, currentShow }: Sh
 
   const handleCloseShowDetails = () => {
     setShowDetailsVisible(false);
-    setSelectedShow(null);
+    // setSelectedShow(null);
     setShowWithArchives(null);
   };
 
-  const isCurrentShow = (show: ScheduleShow): boolean => {
-    if (!currentShow) return false;
-    
-    // Match by name (case insensitive)
-    const isNameMatch = show.name.toLowerCase() === currentShow.toLowerCase();
-    if (!isNameMatch) return false;
-    
-    // Now check if this specific instance matches the current day
-    const now = new Date();
-    const currentDay = now.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
-    
-    // Convert schedule day to match JavaScript's getDay() format
-    // Schedule: 1=Monday, 2=Tuesday, ..., 6=Saturday, 0=Sunday, 7=Weekday (M-F)
-    if (show.day === 7) {
-      // Weekday show (Monday-Friday) - only highlight if today is a weekday
-      const isWeekday = currentDay >= 1 && currentDay <= 5;
-      if (!isWeekday) return false;
-      
-      // For weekday shows, we need to check which day section we're currently rendering
-      // This will be handled in the render logic
-      return true;
-    } else if (show.day === 0) {
-      // Sunday show
-      return currentDay === 0;
-    } else {
-      // Regular weekday show (1-6 = Monday-Saturday)
-      return show.day === currentDay;
-    }
-  };
+  // const isCurrentShow = (show: ScheduleShow): boolean => {
+  //   if (!currentShow) return false;
+  //   
+  //   // Match by name (case insensitive)
+  //   const isNameMatch = show.name.toLowerCase() === currentShow.toLowerCase();
+  //   if (!isNameMatch) return false;
+  //   
+  //   // Now check if this specific instance matches the current day
+  //   const now = new Date();
+  //   const currentDay = now.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+  //   
+  //   // Convert schedule day to match JavaScript's getDay() format
+  //   // Schedule: 1=Monday, 2=Tuesday, ..., 6=Saturday, 0=Sunday, 7=Weekday (M-F)
+  //   if (show.day === 7) {
+  //     // Weekday show (Monday-Friday) - only highlight if today is a weekday
+  //     const isWeekday = currentDay >= 1 && currentDay <= 5;
+  //     if (!isWeekday) return false;
+  //     
+  //     // For weekday shows, we need to check which day section we're currently rendering
+  //     // This will be handled in the render logic
+  //     return true;
+  //   } else if (show.day === 0) {
+  //     // Sunday show
+  //     return currentDay === 0;
+  //   } else {
+  //     // Regular weekday show (1-6 = Monday-Saturday)
+  //     return show.day === currentDay;
+  //   }
+  // };
 
   const isCurrentShowForDay = (show: ScheduleShow, dayName: string): boolean => {
     if (!currentShow) return false;
@@ -287,43 +286,43 @@ export default function ShowScheduleView({ isVisible, onClose, currentShow }: Sh
     });
   };
 
-  const scrollToCurrentShow = (shows: ScheduleShow[]) => {
-    if (!currentShow || !scrollViewRef.current) return;
-    
-    const filteredShows = filterShows(shows, searchQuery);
-    const groupedShows = scheduleService.groupShowsByDay(filteredShows);
-    const daysOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-    
-    let found = false;
-    let yOffset = 0;
-    const dayHeaderHeight = 70;
-    const showItemHeight = 100;
-    
-    for (const day of daysOrder) {
-      const dayShows = groupedShows[day];
-      if (!dayShows || dayShows.length === 0) continue;
-      
-      yOffset += dayHeaderHeight;
-      
-      for (let i = 0; i < dayShows.length; i++) {
-        const show = dayShows[i];
-        
-        const isMatch = show.name.toLowerCase() === currentShow.toLowerCase();
-        
-        if (isMatch) {
-          const scrollPosition = Math.max(0, yOffset + 800);
-          setTimeout(() => {
-            scrollViewRef.current?.scrollTo({ y: scrollPosition, animated: true });
-          }, 500);
-          found = true;
-          break;
-        }
-        yOffset += showItemHeight;
-      }
-      
-      if (found) break;
-    }
-  };
+  // const scrollToCurrentShow = (shows: ScheduleShow[]) => {
+  //   if (!currentShow || !scrollViewRef.current) return;
+  //   
+  //   const filteredShows = filterShows(shows, searchQuery);
+  //   const groupedShows = scheduleService.groupShowsByDay(filteredShows);
+  //   const daysOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  //   
+  //   let found = false;
+  //   let yOffset = 0;
+  //   const dayHeaderHeight = 70;
+  //   const showItemHeight = 100;
+  //   
+  //   for (const day of daysOrder) {
+  //     const dayShows = groupedShows[day];
+  //     if (!dayShows || dayShows.length === 0) continue;
+  //     
+  //     yOffset += dayHeaderHeight;
+  //     
+  //     for (let i = 0; i < dayShows.length; i++) {
+  //       const show = dayShows[i];
+  //       
+  //       const isMatch = show.name.toLowerCase() === currentShow.toLowerCase();
+  //       
+  //       if (isMatch) {
+  //         const scrollPosition = Math.max(0, yOffset + 800);
+  //         setTimeout(() => {
+  //           scrollViewRef.current?.scrollTo({ y: scrollPosition, animated: true });
+  //         }, 500);
+  //         found = true;
+  //         break;
+  //       }
+  //       yOffset += showItemHeight;
+  //     }
+  //     
+  //     if (found) break;
+  //   }
+  // };
 
 
   const filterShows = (shows: ScheduleShow[], query: string): ScheduleShow[] => {

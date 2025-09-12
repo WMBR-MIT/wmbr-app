@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
-import { debugLog, debugError } from '../utils/debug';
+import { debugError } from '../utils/debug';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -62,29 +62,7 @@ export default function ArchivedShowView({ show, archive, isVisible, onClose }: 
   const playlistService = PlaylistService.getInstance();
   const archiveService = ArchiveService.getInstance();
 
-  useEffect(() => {
-    if (isVisible) {
-      translateY.value = withSpring(0);
-      opacity.value = withSpring(1);
-      fetchPlaylist();
-    } else {
-      translateY.value = withSpring(height);
-      opacity.value = withSpring(0);
-    }
-  }, [isVisible]);
-
-  useEffect(() => {
-    // Subscribe to archive service state changes
-    const unsubscribe = archiveService.subscribe((state) => {
-      const isCurrentArchivePlaying = state.isPlayingArchive && 
-        state.currentArchive?.url === archive.url;
-      setIsArchivePlaying(isCurrentArchivePlaying);
-    });
-
-    return unsubscribe;
-  }, [archive.url, archiveService]);
-
-  const fetchPlaylist = async () => {
+  const fetchPlaylist = useCallback(async () => {
     setLoading(true);
     setError(null);
     
@@ -97,7 +75,29 @@ export default function ArchivedShowView({ show, archive, isVisible, onClose }: 
     } finally {
       setLoading(false);
     }
-  };
+  }, [archive.date, playlistService, show.name]);
+
+  useEffect(() => {
+    if (isVisible) {
+      translateY.value = withSpring(0);
+      opacity.value = withSpring(1);
+      fetchPlaylist();
+    } else {
+      translateY.value = withSpring(height);
+      opacity.value = withSpring(0);
+    }
+  }, [fetchPlaylist, isVisible, opacity, translateY]);
+
+  useEffect(() => {
+    // Subscribe to archive service state changes
+    const unsubscribe = archiveService.subscribe((state) => {
+      const isCurrentArchivePlaying = state.isPlayingArchive && 
+        state.currentArchive?.url === archive.url;
+      setIsArchivePlaying(isCurrentArchivePlaying);
+    });
+
+    return unsubscribe;
+  }, [archive.url, archiveService]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: translateY.value }],
@@ -129,8 +129,8 @@ export default function ArchivedShowView({ show, archive, isVisible, onClose }: 
       // Clamp position to avoid seeking to exact beginning or end
       const clampedPosition = Math.max(0.1, Math.min(position, progress.duration - 0.1));
       await TrackPlayer.seekTo(clampedPosition);
-    } catch (error) {
-      debugError('Error seeking:', error);
+    } catch (e) {
+      debugError('Error seeking:', e);
     }
   };
 
@@ -177,8 +177,8 @@ export default function ArchivedShowView({ show, archive, isVisible, onClose }: 
         setIsArchivePlaying(true);
       }
       // Don't close the view - keep user on same screen
-    } catch (error) {
-      debugError('Error with play/pause:', error);
+    } catch (e) {
+      debugError('Error with play/pause:', e);
       Alert.alert('Error', 'Failed to play archive. Please try again.');
     }
   };

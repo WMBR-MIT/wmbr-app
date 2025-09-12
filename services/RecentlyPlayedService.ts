@@ -1,4 +1,4 @@
-import { RecentlyPlayedSong, Show, Archive, ProcessedSong, ShowGroup } from '../types/RecentlyPlayed';
+import { Show, Archive, ProcessedSong, ShowGroup } from '../types/RecentlyPlayed';
 import { ScheduleService } from './ScheduleService';
 import { ScheduleShow } from '../types/Schedule';
 import { parseString } from 'react-native-xml2js';
@@ -35,6 +35,47 @@ export class RecentlyPlayedService {
 
   getShowsCache(): Show[] {
     return this.showsCache;
+  }
+
+  private groupSongsByShow(songs: ProcessedSong[]): ShowGroup[] {
+    const groups = new Map<string, ProcessedSong[]>();
+    
+    songs.forEach(song => {
+      // Use show ID as the unique key for grouping
+      if (!groups.has(song.showId)) {
+        groups.set(song.showId, []);
+      }
+      groups.get(song.showId)!.push(song);
+    });
+
+    // Convert to array and sort by most recent song in each group
+    const showGroups: ShowGroup[] = Array.from(groups.entries()).map(([_showId, showGroupSongs]) => ({
+      showName: showGroupSongs[0].showName, // All songs in group have same show name
+      songs: showGroupSongs.sort((a, b) => b.playedAt.getTime() - a.playedAt.getTime())
+    }));
+
+    // Sort groups by most recent song and ensure songs within each group are sorted
+    const sortedGroups = showGroups.map(group => ({
+      ...group,
+      // Double-check that songs are sorted newest first within each group
+      songs: group.songs.sort((a, b) => b.playedAt.getTime() - a.playedAt.getTime())
+    })).sort((a, b) => 
+      // Sort groups by most recent song
+      b.songs[0].playedAt.getTime() - a.songs[0].playedAt.getTime()
+    );
+    
+    // Debug: log the first few songs from each group
+    debugLog('Final sorted groups:');
+    sortedGroups.forEach((group, groupIndex) => {
+      if (groupIndex < 2) { // First 2 groups
+        debugLog(`Group ${groupIndex + 1}: ${group.showName}`);
+        group.songs.slice(0, 5).forEach((song, songIndex) => {
+          debugLog(`  Song ${songIndex + 1}: "${song.title}" at ${song.playedAt.toLocaleString()}`);
+        });
+      }
+    });
+    
+    return sortedGroups;
   }
 
   async fetchRecentlyPlayed(forceRefresh = false): Promise<ShowGroup[]> {
@@ -298,276 +339,234 @@ export class RecentlyPlayedService {
   }
 
   // Keep this method for backward compatibility with archive matching
-  private parseEDTTimestamp(timestamp: string): Date {
-    try {
-      // Handle "2025-08-03 19:47:31 EDT" format
-      const isEDT = timestamp.includes(' EDT');
-      const isEST = timestamp.includes(' EST');
-      const cleanTimestamp = timestamp.replace(' EDT', '').replace(' EST', '');
-      
-      // Split into date and time parts
-      const [datePart, timePart] = cleanTimestamp.split(' ');
-      
-      if (!datePart || !timePart) {
-        debugError('Invalid timestamp format:', timestamp);
-        return new Date();
-      }
-      
-      const [year, month, day] = datePart.split('-').map(Number);
-      const [hour, minute, second] = timePart.split(':').map(Number);
-      
-      // Validate parsed values
-      if (isNaN(year) || isNaN(month) || isNaN(day) || isNaN(hour) || isNaN(minute) || isNaN(second)) {
-        debugError('Invalid date components:', { year, month, day, hour, minute, second });
-        return new Date();
-      }
-      
-      // Create date object as if it's in EDT/EST timezone
-      // EDT is UTC-4, EST is UTC-5
-      const offsetHours = isEDT ? -4 : isEST ? -5 : -4; // Default to EDT
-      
-      // Create UTC date and adjust for timezone
-      const utcDate = new Date(Date.UTC(year, month - 1, day, hour, minute, second));
-      const localDate = new Date(utcDate.getTime() - (offsetHours * 60 * 60 * 1000));
-      
-      return localDate;
-    } catch (error) {
-      debugError('Error parsing timestamp:', timestamp, error);
-      return new Date(); // Return current date as fallback
-    }
-  }
+  // private parseEDTTimestamp(timestamp: string): Date {
+  //   try {
+  //     // Handle "2025-08-03 19:47:31 EDT" format
+  //     const isEDT = timestamp.includes(' EDT');
+  //     const isEST = timestamp.includes(' EST');
+  //     const cleanTimestamp = timestamp.replace(' EDT', '').replace(' EST', '');
+  //     
+  //     // Split into date and time parts
+  //     const [datePart, timePart] = cleanTimestamp.split(' ');
+  //     
+  //     if (!datePart || !timePart) {
+  //       debugError('Invalid timestamp format:', timestamp);
+  //       return new Date();
+  //     }
+  //     
+  //     const [year, month, day] = datePart.split('-').map(Number);
+  //     const [hour, minute, second] = timePart.split(':').map(Number);
+  //     
+  //     // Validate parsed values
+  //     if (isNaN(year) || isNaN(month) || isNaN(day) || isNaN(hour) || isNaN(minute) || isNaN(second)) {
+  //       debugError('Invalid date components:', { year, month, day, hour, minute, second });
+  //       return new Date();
+  //     }
+  //     
+  //     // Create date object as if it's in EDT/EST timezone
+  //     // EDT is UTC-4, EST is UTC-5
+  //     const offsetHours = isEDT ? -4 : isEST ? -5 : -4; // Default to EDT
+  //     
+  //     // Create UTC date and adjust for timezone
+  //     const utcDate = new Date(Date.UTC(year, month - 1, day, hour, minute, second));
+  //     const localDate = new Date(utcDate.getTime() - (offsetHours * 60 * 60 * 1000));
+  //     
+  //     return localDate;
+  //   } catch (error) {
+  //     debugError('Error parsing timestamp:', timestamp, error);
+  //     return new Date(); // Return current date as fallback
+  //   }
+  // }
 
-  private findShowForTimestamp(timestamp: Date): { name: string; id: string } {
-    const dayOfWeek = timestamp.getDay(); // 0 = Sunday, 1 = Monday, etc.
-    const minutesFromMidnight = timestamp.getHours() * 60 + timestamp.getMinutes();
-    
-    debugLog('Finding show for:', timestamp.toString(), 'Day:', dayOfWeek, 'Minutes:', minutesFromMidnight);
-    
-    // Find the currently playing show using the new alternating schedule logic
-    const currentShow = this.getCurrentlyPlayingShow(timestamp);
-    if (currentShow) {
-      debugLog('Found currently playing show:', currentShow.name);
-      return { name: currentShow.name, id: currentShow.id };
-    }
-    
-    // Fallback to archive matching for better accuracy
-    const archiveMatches = this.showsCache.filter(show => {
-      return show.archives.some(archive => {
-        const archiveDate = new Date(archive.date);
-        const timeDiff = Math.abs(archiveDate.getTime() - timestamp.getTime());
-        return timeDiff < 4 * 60 * 60 * 1000; // Within 4 hours
-      });
-    });
-    
-    if (archiveMatches.length > 0) {
-      debugLog('Found archive match:', archiveMatches[0].name);
-      return { name: archiveMatches[0].name, id: archiveMatches[0].id };
-    }
-    
-    debugLog('No show found, using Unknown Show');
-    return { name: 'Unknown Show', id: 'unknown' };
-  }
+  // private findFirstSlotTime(timeSlot: number, targetDayOfWeek: number): Date | null {
+  //   if (!this.seasonStart) return null;
+  //   
+  //   const seasonStartTime = new Date(this.seasonStart);
+  //   
+  //   // Find the first occurrence of this day/time on or after season start
+  //   let searchDate = new Date(seasonStartTime);
+  //   
+  //   // Move to the target day of week
+  //   while (searchDate.getDay() !== targetDayOfWeek) {
+  //     searchDate.setDate(searchDate.getDate() + 1);
+  //   }
+  //   
+  //   // Set the time to the show time
+  //   const hours = Math.floor(timeSlot / 60);
+  //   const minutes = timeSlot % 60;
+  //   searchDate.setHours(hours, minutes, 0, 0);
+  //   
+  //   // If this is before season start, move to next week
+  //   if (searchDate < seasonStartTime) {
+  //     searchDate.setDate(searchDate.getDate() + 7);
+  //   }
+  //   
+  //   return searchDate;
+  // }
 
-  private getCurrentlyPlayingShow(targetTime: Date): Show | null {
-    if (!this.seasonStart) {
-      debugLog('No season start date available, using fallback logic');
-      return this.fallbackShowLogic(targetTime);
-    }
+  // private getActiveShowForTimeSlot(shows: Show[], timeSlot: number, targetTime: Date): Show | null {
+  //   if (!this.seasonStart) return shows[0]; // Fallback to first show
+  //   
+  //   // Find the first matching weekday/time on or after the season start
+  //   const firstSlotTime = this.findFirstSlotTime(timeSlot, targetTime.getDay());
+  //   if (!firstSlotTime) return shows[0];
+  //   
+  //   // Calculate weeks since the first slot
+  //   const weeksSince = Math.floor((targetTime.getTime() - firstSlotTime.getTime()) / (7 * 24 * 60 * 60 * 1000));
+  //   const cycleIndex = weeksSince % 4; // 0=week1, 1=week2, 2=week3, 3=week4
+  //   
+  //   debugLog(`Time slot ${timeSlot}: weeksSince=${weeksSince}, cycleIndex=${cycleIndex}`);
+  //   
+  //   // Find the show that matches this cycle
+  //   for (const show of shows) {
+  //     const alternates = show.alternates;
+  //     let shouldPlay = false;
+  //     
+  //     switch (alternates) {
+  //       case 0: // Weekly show
+  //         shouldPlay = true;
+  //         break;
+  //       case 1: // Weeks 1 & 3 (first of every 2 weeks)
+  //         shouldPlay = (weeksSince % 2) === 0;
+  //         break;
+  //       case 2: // Weeks 2 & 4 (second of every 2 weeks)
+  //         shouldPlay = (weeksSince % 2) === 1;
+  //         break;
+  //       case 5: // Week 1 (first of every 4 weeks)
+  //         shouldPlay = cycleIndex === 0;
+  //         break;
+  //       case 6: // Week 2 (second of every 4 weeks)
+  //         shouldPlay = cycleIndex === 1;
+  //         break;
+  //       case 7: // Week 3 (third of every 4 weeks)
+  //         shouldPlay = cycleIndex === 2;
+  //         break;
+  //       case 8: // Week 4 (fourth of every 4 weeks)
+  //         shouldPlay = cycleIndex === 3;
+  //         break;
+  //     }
+  //     
+  //     if (shouldPlay) {
+  //       debugLog(`Selected show: ${show.name} (alternates=${alternates})`);
+  //       return show;
+  //     }
+  //   }
+  //   
+  //   // If no show matches, return the first one as fallback
+  //   return shows[0];
+  // }
 
-    const dayOfWeek = targetTime.getDay(); // 0 = Sunday, 1 = Monday, etc.
-    const minutesFromMidnight = targetTime.getHours() * 60 + targetTime.getMinutes();
-    
-    // Find shows for this day of the week (including weekday shows)
-    const candidateShows = this.showsCache.filter(show => {
-      if (show.day === 7) {
-        return dayOfWeek >= 1 && dayOfWeek <= 5; // Monday-Friday
-      }
-      return show.day === dayOfWeek;
-    });
-    
-    // Group shows by time slot
-    const showsByTime = new Map<number, Show[]>();
-    candidateShows.forEach(show => {
-      // Check if show is currently playing
-      const showStart = show.time;
-      const showEnd = showStart + show.length;
-      
-      let isCurrentlyPlaying = false;
-      if (showEnd > 1440) {
-        // Show crosses midnight
-        isCurrentlyPlaying = minutesFromMidnight >= showStart || minutesFromMidnight < (showEnd - 1440);
-      } else {
-        // Normal show within the day
-        isCurrentlyPlaying = minutesFromMidnight >= showStart && minutesFromMidnight < showEnd;
-      }
-      
-      if (isCurrentlyPlaying) {
-        if (!showsByTime.has(showStart)) {
-          showsByTime.set(showStart, []);
-        }
-        showsByTime.get(showStart)!.push(show);
-      }
-    });
-    
-    // For each time slot with multiple shows, determine which one should be playing
-    for (const [timeSlot, shows] of showsByTime) {
-      if (shows.length === 1) {
-        return shows[0]; // Only one show, must be it
-      }
-      
-      // Multiple shows at this time slot, use alternates logic
-      const activeShow = this.getActiveShowForTimeSlot(shows, timeSlot, targetTime);
-      if (activeShow) {
-        return activeShow;
-      }
-    }
-    
-    return null;
-  }
+  // private fallbackShowLogic(targetTime: Date): Show | null {
+  //   const dayOfWeek = targetTime.getDay();
+  //   const minutesFromMidnight = targetTime.getHours() * 60 + targetTime.getMinutes();
+  //   
+  //   // Simple fallback: find any show currently playing
+  //   const candidateShows = this.showsCache.filter(show => {
+  //     if (show.day === 7) {
+  //       return dayOfWeek >= 1 && dayOfWeek <= 5; // Monday-Friday
+  //     }
+  //     return show.day === dayOfWeek;
+  //   });
+  //   
+  //   const currentShows = candidateShows.filter(show => {
+  //     const showStart = show.time;
+  //     const showEnd = showStart + show.length;
+  //     
+  //     if (showEnd > 1440) {
+  //       return minutesFromMidnight >= showStart || minutesFromMidnight < (showEnd - 1440);
+  //     } else {
+  //       return minutesFromMidnight >= showStart && minutesFromMidnight < showEnd;
+  //     }
+  //   });
+  //   
+  //   return currentShows.length > 0 ? currentShows[0] : null;
+  // }
 
-  private getActiveShowForTimeSlot(shows: Show[], timeSlot: number, targetTime: Date): Show | null {
-    if (!this.seasonStart) return shows[0]; // Fallback to first show
-    
-    // Find the first matching weekday/time on or after the season start
-    const firstSlotTime = this.findFirstSlotTime(timeSlot, targetTime.getDay());
-    if (!firstSlotTime) return shows[0];
-    
-    // Calculate weeks since the first slot
-    const weeksSince = Math.floor((targetTime.getTime() - firstSlotTime.getTime()) / (7 * 24 * 60 * 60 * 1000));
-    const cycleIndex = weeksSince % 4; // 0=week1, 1=week2, 2=week3, 3=week4
-    
-    debugLog(`Time slot ${timeSlot}: weeksSince=${weeksSince}, cycleIndex=${cycleIndex}`);
-    
-    // Find the show that matches this cycle
-    for (const show of shows) {
-      const alternates = show.alternates;
-      let shouldPlay = false;
-      
-      switch (alternates) {
-        case 0: // Weekly show
-          shouldPlay = true;
-          break;
-        case 1: // Weeks 1 & 3 (first of every 2 weeks)
-          shouldPlay = (weeksSince % 2) === 0;
-          break;
-        case 2: // Weeks 2 & 4 (second of every 2 weeks)
-          shouldPlay = (weeksSince % 2) === 1;
-          break;
-        case 5: // Week 1 (first of every 4 weeks)
-          shouldPlay = cycleIndex === 0;
-          break;
-        case 6: // Week 2 (second of every 4 weeks)
-          shouldPlay = cycleIndex === 1;
-          break;
-        case 7: // Week 3 (third of every 4 weeks)
-          shouldPlay = cycleIndex === 2;
-          break;
-        case 8: // Week 4 (fourth of every 4 weeks)
-          shouldPlay = cycleIndex === 3;
-          break;
-      }
-      
-      if (shouldPlay) {
-        debugLog(`Selected show: ${show.name} (alternates=${alternates})`);
-        return show;
-      }
-    }
-    
-    // If no show matches, return the first one as fallback
-    return shows[0];
-  }
+  // private getCurrentlyPlayingShow(targetTime: Date): Show | null {
+  //   if (!this.seasonStart) {
+  //     debugLog('No season start date available, using fallback logic');
+  //     return this.fallbackShowLogic(targetTime);
+  //   }
+  //
+  //   const dayOfWeek = targetTime.getDay(); // 0 = Sunday, 1 = Monday, etc.
+  //   const minutesFromMidnight = targetTime.getHours() * 60 + targetTime.getMinutes();
+  //   
+  //   // Find shows for this day of the week (including weekday shows)
+  //   const candidateShows = this.showsCache.filter(show => {
+  //     if (show.day === 7) {
+  //       return dayOfWeek >= 1 && dayOfWeek <= 5; // Monday-Friday
+  //     }
+  //     return show.day === dayOfWeek;
+  //   });
+  //   
+  //   // Group shows by time slot
+  //   const showsByTime = new Map<number, Show[]>();
+  //   candidateShows.forEach(show => {
+  //     // Check if show is currently playing
+  //     const showStart = show.time;
+  //     const showEnd = showStart + show.length;
+  //     
+  //     let isCurrentlyPlaying = false;
+  //     if (showEnd > 1440) {
+  //       // Show crosses midnight
+  //       isCurrentlyPlaying = minutesFromMidnight >= showStart || minutesFromMidnight < (showEnd - 1440);
+  //     } else {
+  //       // Normal show within the day
+  //       isCurrentlyPlaying = minutesFromMidnight >= showStart && minutesFromMidnight < showEnd;
+  //     }
+  //     
+  //     if (isCurrentlyPlaying) {
+  //       if (!showsByTime.has(showStart)) {
+  //         showsByTime.set(showStart, []);
+  //       }
+  //       showsByTime.get(showStart)!.push(show);
+  //     }
+  //   });
+  //   
+  //   // For each time slot with multiple shows, determine which one should be playing
+  //   for (const [timeSlot, shows] of showsByTime) {
+  //     if (shows.length === 1) {
+  //       return shows[0]; // Only one show, must be it
+  //     }
+  //     
+  //     // Multiple shows at this time slot, use alternates logic
+  //     const activeShow = this.getActiveShowForTimeSlot(shows, timeSlot, targetTime);
+  //     if (activeShow) {
+  //       return activeShow;
+  //     }
+  //   }
+  //   
+  //   return null;
+  // }
 
-  private findFirstSlotTime(timeSlot: number, targetDayOfWeek: number): Date | null {
-    if (!this.seasonStart) return null;
-    
-    const seasonStartTime = new Date(this.seasonStart);
-    
-    // Find the first occurrence of this day/time on or after season start
-    let searchDate = new Date(seasonStartTime);
-    
-    // Move to the target day of week
-    while (searchDate.getDay() !== targetDayOfWeek) {
-      searchDate.setDate(searchDate.getDate() + 1);
-    }
-    
-    // Set the time to the show time
-    const hours = Math.floor(timeSlot / 60);
-    const minutes = timeSlot % 60;
-    searchDate.setHours(hours, minutes, 0, 0);
-    
-    // If this is before season start, move to next week
-    if (searchDate < seasonStartTime) {
-      searchDate.setDate(searchDate.getDate() + 7);
-    }
-    
-    return searchDate;
-  }
-
-  private fallbackShowLogic(targetTime: Date): Show | null {
-    const dayOfWeek = targetTime.getDay();
-    const minutesFromMidnight = targetTime.getHours() * 60 + targetTime.getMinutes();
-    
-    // Simple fallback: find any show currently playing
-    const candidateShows = this.showsCache.filter(show => {
-      if (show.day === 7) {
-        return dayOfWeek >= 1 && dayOfWeek <= 5; // Monday-Friday
-      }
-      return show.day === dayOfWeek;
-    });
-    
-    const currentShows = candidateShows.filter(show => {
-      const showStart = show.time;
-      const showEnd = showStart + show.length;
-      
-      if (showEnd > 1440) {
-        return minutesFromMidnight >= showStart || minutesFromMidnight < (showEnd - 1440);
-      } else {
-        return minutesFromMidnight >= showStart && minutesFromMidnight < showEnd;
-      }
-    });
-    
-    return currentShows.length > 0 ? currentShows[0] : null;
-  }
-
-
-  private groupSongsByShow(songs: ProcessedSong[]): ShowGroup[] {
-    const groups = new Map<string, ProcessedSong[]>();
-    
-    songs.forEach(song => {
-      // Use show ID as the unique key for grouping
-      if (!groups.has(song.showId)) {
-        groups.set(song.showId, []);
-      }
-      groups.get(song.showId)!.push(song);
-    });
-
-    // Convert to array and sort by most recent song in each group
-    const showGroups: ShowGroup[] = Array.from(groups.entries()).map(([showId, songs]) => ({
-      showName: songs[0].showName, // All songs in group have same show name
-      songs: songs.sort((a, b) => b.playedAt.getTime() - a.playedAt.getTime())
-    }));
-
-    // Sort groups by most recent song and ensure songs within each group are sorted
-    const sortedGroups = showGroups.map(group => ({
-      ...group,
-      // Double-check that songs are sorted newest first within each group
-      songs: group.songs.sort((a, b) => b.playedAt.getTime() - a.playedAt.getTime())
-    })).sort((a, b) => 
-      // Sort groups by most recent song
-      b.songs[0].playedAt.getTime() - a.songs[0].playedAt.getTime()
-    );
-    
-    // Debug: log the first few songs from each group
-    debugLog('Final sorted groups:');
-    sortedGroups.forEach((group, groupIndex) => {
-      if (groupIndex < 2) { // First 2 groups
-        debugLog(`Group ${groupIndex + 1}: ${group.showName}`);
-        group.songs.slice(0, 5).forEach((song, songIndex) => {
-          debugLog(`  Song ${songIndex + 1}: "${song.title}" at ${song.playedAt.toLocaleString()}`);
-        });
-      }
-    });
-    
-    return sortedGroups;
-  }
+  // private findShowForTimestamp(timestamp: Date): { name: string; id: string } {
+  //   const dayOfWeek = timestamp.getDay(); // 0 = Sunday, 1 = Monday, etc.
+  //   const minutesFromMidnight = timestamp.getHours() * 60 + timestamp.getMinutes();
+  //   
+  //   debugLog('Finding show for:', timestamp.toString(), 'Day:', dayOfWeek, 'Minutes:', minutesFromMidnight);
+  //   
+  //   // Find the currently playing show using the new alternating schedule logic
+  //   const currentShow = this.getCurrentlyPlayingShow(timestamp);
+  //   if (currentShow) {
+  //     debugLog('Found currently playing show:', currentShow.name);
+  //     return { name: currentShow.name, id: currentShow.id };
+  //   }
+  //   
+  //   // Fallback to archive matching for better accuracy
+  //   const archiveMatches = this.showsCache.filter(show => {
+  //     return show.archives.some(archive => {
+  //       const archiveDate = new Date(archive.date);
+  //       const timeDiff = Math.abs(archiveDate.getTime() - timestamp.getTime());
+  //       return timeDiff < 4 * 60 * 60 * 1000; // Within 4 hours
+  //     });
+  //   });
+  //   
+  //   if (archiveMatches.length > 0) {
+  //     debugLog('Found archive match:', archiveMatches[0].name);
+  //     return { name: archiveMatches[0].name, id: archiveMatches[0].id };
+  //   }
+  //   
+  //   debugLog('No show found, using Unknown Show');
+  //   return { name: 'Unknown Show', id: 'unknown' };
+  // }
 }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -8,18 +8,15 @@ import {
   ScrollView,
   SafeAreaView,
   StatusBar,
-  Alert,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
-import { debugLog, debugError } from '../utils/debug';
+import { debugLog, debugError } from '../utils/Debug';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
   runOnJS,
-  interpolate,
-  Extrapolate,
 } from 'react-native-reanimated';
 import { SvgXml } from 'react-native-svg';
 import { Show, Archive } from '../types/RecentlyPlayed';
@@ -62,7 +59,8 @@ export default function ShowDetailsView({ show, isVisible, onClose }: ShowDetail
   const progressBarRef = useRef<View>(null);
   
   // TrackPlayer hooks - must always be called unconditionally
-  const progress = useProgress() || { position: 0, duration: 0 };
+  const progressHook = useProgress();
+  const progress = useMemo(() => progressHook || { position: 0, duration: 0 }, [progressHook]);
   const playbackState = usePlaybackState();
   
   // Service instance
@@ -76,7 +74,7 @@ export default function ShowDetailsView({ show, isVisible, onClose }: ShowDetail
       translateY.value = withSpring(height);
       opacity.value = withSpring(0);
     }
-  }, [isVisible]);
+  }, [isVisible, translateY, opacity]);
 
   useEffect(() => {
     // Subscribe to archive service to track currently playing archive
@@ -89,7 +87,7 @@ export default function ShowDetailsView({ show, isVisible, onClose }: ShowDetail
     });
 
     return unsubscribe;
-  }, []);
+  }, [archiveService]);
 
   // Update drag position when progress changes
   useEffect(() => {
@@ -98,7 +96,7 @@ export default function ShowDetailsView({ show, isVisible, onClose }: ShowDetail
       const progressPercentage = progress.position / progress.duration;
       dragX.value = (progressPercentage * maxMovement) + 32;
     }
-  }, [progress.position, progress.duration, isScrubbing, progressBarWidth]);
+  }, [progress.position, progress.duration, isScrubbing, progressBarWidth, dragX, progress]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: translateY.value }],
@@ -117,16 +115,6 @@ export default function ShowDetailsView({ show, isVisible, onClose }: ShowDetail
   const [gradientStart, gradientEnd] = generateGradientColors(show.name);
   const [darkGradientStart, darkGradientEnd] = generateDarkGradientColors(show.name);
   const archives = show.archives || [];
-
-  const handlePlayArchive = async (archive: any, index: number) => {
-    try {
-      await archiveService.playArchive(archive, show);
-      // Don't close the view or show popup - keep user on same screen
-    } catch (error) {
-      debugError('Error playing archive:', error);
-      Alert.alert('Error', 'Failed to play archive. Please try again.');
-    }
-  };
 
   const handlePauseResume = async () => {
     try {

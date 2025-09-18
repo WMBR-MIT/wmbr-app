@@ -1,8 +1,7 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   StyleSheet,
-  Dimensions,
   StatusBar,
 } from 'react-native';
 import Animated, {
@@ -18,7 +17,6 @@ import LinearGradient from 'react-native-linear-gradient';
 import { SvgXml } from 'react-native-svg';
 import { getWMBRLogoSVG } from '../utils/WMBRLogo';
 
-const { width, height } = Dimensions.get('window');
 const WMBR_GREEN = '#00843D';
 
 
@@ -75,7 +73,7 @@ export default function SplashScreen({ onAnimationEnd }: SplashScreenProps) {
         runOnJS(onAnimationEnd)();
       })
     );
-  }, []);
+  }, [backgroundOpacity, circleScale, logoOpacity, logoScale, onAnimationEnd]);
 
   const logoAnimatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: logoScale.value }],

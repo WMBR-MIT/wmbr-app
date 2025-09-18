@@ -1,4 +1,4 @@
-import { RecentlyPlayedSong, Show, Archive, ProcessedSong, ShowGroup } from '../types/RecentlyPlayed';
+import { Show, Archive, ProcessedSong, ShowGroup } from '../types/RecentlyPlayed';
 import { ScheduleService } from './ScheduleService';
 import { ScheduleShow } from '../types/Schedule';
 import { parseString } from 'react-native-xml2js';
@@ -542,7 +542,7 @@ export class RecentlyPlayedService {
     });
 
     // Convert to array and sort by most recent song in each group
-    const showGroups: ShowGroup[] = Array.from(groups.entries()).map(([showId, songs]) => ({
+    const showGroups: ShowGroup[] = Array.from(groups.entries()).map(([, songs]) => ({
       showName: songs[0].showName, // All songs in group have same show name
       songs: songs.sort((a, b) => b.playedAt.getTime() - a.playedAt.getTime())
     }));

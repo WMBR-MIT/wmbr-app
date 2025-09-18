@@ -62,28 +62,6 @@ export default function ArchivedShowView({ show, archive, isVisible, onClose }: 
   const playlistService = PlaylistService.getInstance();
   const archiveService = ArchiveService.getInstance();
 
-  useEffect(() => {
-    if (isVisible) {
-      translateY.value = withSpring(0);
-      opacity.value = withSpring(1);
-      fetchPlaylist();
-    } else {
-      translateY.value = withSpring(height);
-      opacity.value = withSpring(0);
-    }
-  }, [isVisible]);
-
-  useEffect(() => {
-    // Subscribe to archive service state changes
-    const unsubscribe = archiveService.subscribe((state) => {
-      const isCurrentArchivePlaying = state.isPlayingArchive && 
-        state.currentArchive?.url === archive.url;
-      setIsArchivePlaying(isCurrentArchivePlaying);
-    });
-
-    return unsubscribe;
-  }, [archive.url, archiveService]);
-
   const fetchPlaylist = async () => {
     setLoading(true);
     setError(null);
@@ -98,6 +76,42 @@ export default function ArchivedShowView({ show, archive, isVisible, onClose }: 
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    const fp = async () => {
+      setLoading(true);
+      setError(null);
+      
+      try {
+        const playlistData = await playlistService.fetchPlaylist(show.name, archive.date);
+        setPlaylist(playlistData);
+      } catch (err) {
+        debugError('Error fetching playlist:', err);
+        setError('Failed to load playlist. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (isVisible) {
+      translateY.value = withSpring(0);
+      opacity.value = withSpring(1);
+      fp();
+    } else {
+      translateY.value = withSpring(height);
+      opacity.value = withSpring(0);
+    }
+  }, [isVisible, opacity, translateY, archive.date, playlistService, show.name]);
+
+  useEffect(() => {
+    // Subscribe to archive service state changes
+    const unsubscribe = archiveService.subscribe((state) => {
+      const isCurrentArchivePlaying = state.isPlayingArchive && 
+        state.currentArchive?.url === archive.url;
+      setIsArchivePlaying(isCurrentArchivePlaying);
+    });
+
+    return unsubscribe;
+  }, [archive.url, archiveService]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: translateY.value }],

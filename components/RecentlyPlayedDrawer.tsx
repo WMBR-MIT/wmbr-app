@@ -37,7 +37,7 @@ interface RecentlyPlayedDrawerProps {
   onClose?: () => void;
 }
 
-export default function RecentlyPlayedDrawer({ isVisible, onClose }: RecentlyPlayedDrawerProps) {
+export default function RecentlyPlayedDrawer({}: RecentlyPlayedDrawerProps) {
   const [showGroups, setShowGroups] = useState<ShowGroup[]>([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -54,15 +54,37 @@ export default function RecentlyPlayedDrawer({ isVisible, onClose }: RecentlyPla
   
   // Animation values - start in peeking position
   const translateY = useSharedValue(DRAWER_HEIGHT - PEEK_HEIGHT);
-  const opacity = useSharedValue(1);
   
   const scrollViewRef = useRef<ScrollView>(null);
   const recentlyPlayedService = RecentlyPlayedService.getInstance();
   const audioPreviewService = AudioPreviewService.getInstance();
 
   useEffect(() => {
+    const frp = async (isRefresh = false) => {
+      if (isRefresh) {
+        setRefreshing(true);
+      } else {
+        setLoading(true);
+      }
+      setError(null);
+      
+      try {
+        const groups = await recentlyPlayedService.fetchRecentlyPlayed(isRefresh);
+        setShowGroups(groups);
+      } catch (err) {
+        setError('Failed to load recently played songs');
+        debugError('Error fetching recently played:', err);
+      } finally {
+        if (isRefresh) {
+          setRefreshing(false);
+        } else {
+          setLoading(false);
+        }
+      }
+    }
+
     // Always load data since drawer is always visible
-    fetchRecentlyPlayed();
+    frp();
     // Force light content for refresh control
     Appearance.setColorScheme('light');
     
@@ -72,13 +94,13 @@ export default function RecentlyPlayedDrawer({ isVisible, onClose }: RecentlyPla
       // Reset appearance
       Appearance.setColorScheme(null);
     };
-  }, []);
+  }, [audioPreviewService, recentlyPlayedService]);
 
   useEffect(() => {
     // Subscribe to preview state changes
     const unsubscribe = audioPreviewService.subscribe(setPreviewState);
     return unsubscribe;
-  }, []);
+  }, [audioPreviewService]);
 
   const fetchRecentlyPlayed = async (isRefresh = false) => {
     if (isRefresh) {

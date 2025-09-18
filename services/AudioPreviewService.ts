@@ -1,4 +1,4 @@
-import TrackPlayer, { Track, State, useProgress, Event } from 'react-native-track-player';
+import TrackPlayer, { Track, State, Event } from 'react-native-track-player';
 import { debugError } from '../utils/Debug';
 
 export interface PreviewState {

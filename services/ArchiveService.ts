@@ -1,4 +1,4 @@
-import TrackPlayer, { Track, State } from 'react-native-track-player';
+import TrackPlayer, { Track } from 'react-native-track-player';
 import { Show, Archive } from '../types/RecentlyPlayed';
 import { debugLog, debugError } from '../utils/Debug';
 

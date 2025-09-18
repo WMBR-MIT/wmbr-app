@@ -157,7 +157,7 @@ export default function App() {
     try {
       // Only update if we're not playing an archive
       if (!archiveState.isPlayingArchive) {
-        await TrackPlayer.updateMetadataForTrack('wmbr-stream', {
+        await TrackPlayer.updateMetadataForTrack(0, {
           title: 'WMBR 88.1 FM',
           artist: showTitle || 'Live Radio',
         });

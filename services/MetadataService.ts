@@ -43,7 +43,6 @@ class MetadataService {
         headers: {
           'Accept': 'application/xml, text/xml',
         },
-        timeout: 10000,
       });
 
       if (!response.ok) {
@@ -283,7 +282,6 @@ class MetadataService {
           headers: {
             'Accept': 'application/xml, text/xml',
           },
-          timeout: 10000,
         });
 
         if (response.ok) {

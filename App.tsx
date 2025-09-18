@@ -1,5 +1,5 @@
 /**
- * WMBR Radio App - Shazam-inspired interface
+ * WMBR Radio App
  * @format
  */
 
@@ -11,7 +11,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   StatusBar,
-  Dimensions,
   Animated,
   SafeAreaView,
 } from 'react-native';
@@ -19,7 +18,6 @@ import TrackPlayer, {
   Capability, 
   State, 
   usePlaybackState,
-  useProgress 
 } from 'react-native-track-player';
 import LinearGradient from 'react-native-linear-gradient';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -34,17 +32,15 @@ import { ArchiveService, ArchivePlaybackState } from './services/ArchiveService'
 import { AudioPreviewService } from './services/AudioPreviewService';
 import { getWMBRLogoSVG } from './utils/WMBRLogo';
 
-const { width, height } = Dimensions.get('window');
 const streamUrl = 'https://wmbr.org:8002/hi';
 const WMBR_GREEN = '#00843D';
 
 
 export default function App() {
   const playbackState = usePlaybackState();
-  const progress = useProgress();
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentShow, setCurrentShow] = useState('WMBR 88.1 FM');
-  const [songHistory, setSongHistory] = useState<Song[]>([]);
+  const [, setSongHistory] = useState<Song[]>([]);
   const [hosts, setHosts] = useState<string | undefined>();
   const [showDescription, setShowDescription] = useState<string | undefined>();
   const [currentSong, setCurrentSong] = useState<string | undefined>();
@@ -68,6 +64,46 @@ export default function App() {
   const songChangeOpacity = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
+    const updateLiveTrackMetadata = async (showTitle: string) => {
+      try {
+        // Only update if we're not playing an archive
+        if (!archiveState.isPlayingArchive) {
+          await TrackPlayer.updateMetadataForTrack(0, {
+            title: 'WMBR 88.1 FM',
+            artist: showTitle || 'Live Radio',
+          });
+        }
+      } catch (error) {
+        debugError('Error updating track metadata:', error);
+      }
+    };
+
+    const setupMetadata = () => {
+      const metadataService = MetadataService.getInstance();
+      
+      const unsubscribeMetadata = metadataService.subscribe((data: ShowInfo) => {
+        setCurrentShow(data.showTitle);
+        setHosts(data.hosts);
+        setShowDescription(data.description);
+        setCurrentSong(data.currentSong);
+        setCurrentArtist(data.currentArtist);
+        
+        // Update track metadata with current show name for lock screen
+        updateLiveTrackMetadata(data.showTitle);
+      });
+  
+      const unsubscribeSongs = metadataService.subscribeSongHistory((songs: Song[]) => {
+        setSongHistory(songs);
+      });
+  
+      metadataService.startPolling(15000);
+  
+      return () => {
+        unsubscribeMetadata();
+        unsubscribeSongs();
+      };
+    };
+
     setupPlayer();
     setupMetadata();
     
@@ -78,10 +114,47 @@ export default function App() {
       MetadataService.getInstance().stopPolling();
       unsubscribeArchive();
     };
-  }, []);
+  }, [archiveState]);
 
   useEffect(() => {
     setIsPlaying(playbackState?.state === State.Playing);
+
+    const startPulseAnimation = () => {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, {
+            toValue: 1.1,
+            duration: 1000,
+            useNativeDriver: true,
+          }),
+          Animated.timing(pulseAnim, {
+            toValue: 1,
+            duration: 1000,
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
+    };
+  
+    const startRotateAnimation = () => {
+      Animated.loop(
+        Animated.timing(rotateAnim, {
+          toValue: 1,
+          duration: 10000,
+          useNativeDriver: true,
+        })
+      ).start();
+    };
+  
+    const stopAnimations = () => {
+      pulseAnim.stopAnimation();
+      rotateAnim.stopAnimation();
+      Animated.timing(pulseAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    };
     
     if (playbackState?.state === State.Playing) {
       startPulseAnimation();
@@ -89,10 +162,83 @@ export default function App() {
     } else {
       stopAnimations();
     }
-  }, [playbackState]);
+  }, [playbackState, rotateAnim, pulseAnim]);
 
   // Trigger animation when song changes
   useEffect(() => {
+    const startSongChangeAnimation = () => {
+      // Reset animation values
+      songChangeScale.setValue(1);
+      songChangeRotate.setValue(0);
+      songChangeOpacity.setValue(1);
+  
+      // Create a fun bouncy scale + rotate + opacity animation
+      Animated.sequence([
+        // Phase 1: Bounce up with rotation and opacity flash
+        Animated.parallel([
+          Animated.timing(songChangeScale, {
+            toValue: 1.3,
+            duration: 200,
+            useNativeDriver: true,
+          }),
+          Animated.timing(songChangeRotate, {
+            toValue: 0.25, // 90 degrees
+            duration: 200,
+            useNativeDriver: true,
+          }),
+          Animated.timing(songChangeOpacity, {
+            toValue: 0.3,
+            duration: 100,
+            useNativeDriver: true,
+          }),
+        ]),
+        // Phase 2: Bounce down slightly with opacity return
+        Animated.parallel([
+          Animated.timing(songChangeScale, {
+            toValue: 0.9,
+            duration: 150,
+            useNativeDriver: true,
+          }),
+          Animated.timing(songChangeRotate, {
+            toValue: -0.1, // -36 degrees
+            duration: 150,
+            useNativeDriver: true,
+          }),
+          Animated.timing(songChangeOpacity, {
+            toValue: 1,
+            duration: 150,
+            useNativeDriver: true,
+          }),
+        ]),
+        // Phase 3: Settle to normal with slight overshoot
+        Animated.parallel([
+          Animated.timing(songChangeScale, {
+            toValue: 1.05,
+            duration: 100,
+            useNativeDriver: true,
+          }),
+          Animated.timing(songChangeRotate, {
+            toValue: 0.05, // 18 degrees
+            duration: 100,
+            useNativeDriver: true,
+          }),
+        ]),
+        // Phase 4: Return to normal
+        Animated.parallel([
+          Animated.timing(songChangeScale, {
+            toValue: 1,
+            duration: 150,
+            useNativeDriver: true,
+          }),
+          Animated.timing(songChangeRotate, {
+            toValue: 0,
+            duration: 150,
+            useNativeDriver: true,
+          }),
+        ]),
+      ]).start();
+    };
+
     if (currentSong && currentArtist && !archiveState.isPlayingArchive) {
       const newSongKey = `${currentArtist}-${currentSong}`;
       if (previousSong && previousSong !== newSongKey) {
@@ -101,7 +247,7 @@ export default function App() {
       }
       setPreviousSong(newSongKey);
     }
-  }, [currentSong, currentArtist, archiveState.isPlayingArchive]);
+  }, [currentSong, currentArtist, archiveState.isPlayingArchive, previousSong, songChangeOpacity, songChangeRotate, songChangeScale]);
 
   const setupPlayer = async () => {
     try {
@@ -125,156 +271,6 @@ export default function App() {
     } catch (error) {
       debugError('Error setting up player:', error);
     }
-  };
-
-  const setupMetadata = () => {
-    const metadataService = MetadataService.getInstance();
-    
-    const unsubscribeMetadata = metadataService.subscribe((data: ShowInfo) => {
-      setCurrentShow(data.showTitle);
-      setHosts(data.hosts);
-      setShowDescription(data.description);
-      setCurrentSong(data.currentSong);
-      setCurrentArtist(data.currentArtist);
-      
-      // Update track metadata with current show name for lock screen
-      updateLiveTrackMetadata(data.showTitle);
-    });
-
-    const unsubscribeSongs = metadataService.subscribeSongHistory((songs: Song[]) => {
-      setSongHistory(songs);
-    });
-
-    metadataService.startPolling(15000);
-
-    return () => {
-      unsubscribeMetadata();
-      unsubscribeSongs();
-    };
-  };
-
-  const updateLiveTrackMetadata = async (showTitle: string) => {
-    try {
-      // Only update if we're not playing an archive
-      if (!archiveState.isPlayingArchive) {
-        await TrackPlayer.updateMetadataForTrack(0, {
-          title: 'WMBR 88.1 FM',
-          artist: showTitle || 'Live Radio',
-        });
-      }
-    } catch (error) {
-      debugError('Error updating track metadata:', error);
-    }
-  };
-
-  const startPulseAnimation = () => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulseAnim, {
-          toValue: 1.1,
-          duration: 1000,
-          useNativeDriver: true,
-        }),
-        Animated.timing(pulseAnim, {
-          toValue: 1,
-          duration: 1000,
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
-  };
-
-  const startRotateAnimation = () => {
-    Animated.loop(
-      Animated.timing(rotateAnim, {
-        toValue: 1,
-        duration: 10000,
-        useNativeDriver: true,
-      })
-    ).start();
-  };
-
-  const stopAnimations = () => {
-    pulseAnim.stopAnimation();
-    rotateAnim.stopAnimation();
-    Animated.timing(pulseAnim, {
-      toValue: 1,
-      duration: 300,
-      useNativeDriver: true,
-    }).start();
-  };
-
-  const startSongChangeAnimation = () => {
-    // Reset animation values
-    songChangeScale.setValue(1);
-    songChangeRotate.setValue(0);
-    songChangeOpacity.setValue(1);
-
-    // Create a fun bouncy scale + rotate + opacity animation
-    Animated.sequence([
-      // Phase 1: Bounce up with rotation and opacity flash
-      Animated.parallel([
-        Animated.timing(songChangeScale, {
-          toValue: 1.3,
-          duration: 200,
-          useNativeDriver: true,
-        }),
-        Animated.timing(songChangeRotate, {
-          toValue: 0.25, // 90 degrees
-          duration: 200,
-          useNativeDriver: true,
-        }),
-        Animated.timing(songChangeOpacity, {
-          toValue: 0.3,
-          duration: 100,
-          useNativeDriver: true,
-        }),
-      ]),
-      // Phase 2: Bounce down slightly with opacity return
-      Animated.parallel([
-        Animated.timing(songChangeScale, {
-          toValue: 0.9,
-          duration: 150,
-          useNativeDriver: true,
-        }),
-        Animated.timing(songChangeRotate, {
-          toValue: -0.1, // -36 degrees
-          duration: 150,
-          useNativeDriver: true,
-        }),
-        Animated.timing(songChangeOpacity, {
-          toValue: 1,
-          duration: 150,
-          useNativeDriver: true,
-        }),
-      ]),
-      // Phase 3: Settle to normal with slight overshoot
-      Animated.parallel([
-        Animated.timing(songChangeScale, {
-          toValue: 1.05,
-          duration: 100,
-          useNativeDriver: true,
-        }),
-        Animated.timing(songChangeRotate, {
-          toValue: 0.05, // 18 degrees
-          duration: 100,
-          useNativeDriver: true,
-        }),
-      ]),
-      // Phase 4: Return to normal
-      Animated.parallel([
-        Animated.timing(songChangeScale, {
-          toValue: 1,
-          duration: 150,
-          useNativeDriver: true,
-        }),
-        Animated.timing(songChangeRotate, {
-          toValue: 0,
-          duration: 150,
-          useNativeDriver: true,
-        }),
-      ]),
-    ]).start();
   };
 
   const togglePlayback = async () => {
@@ -312,11 +308,6 @@ export default function App() {
       debugError('Error toggling playback:', error);
     }
   };
-
-  const spin = rotateAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0deg', '360deg'],
-  });
 
   const songRotation = songChangeRotate.interpolate({
     inputRange: [0, 1],

@@ -506,6 +506,7 @@ export default function App() {
         <RecentlyPlayedDrawer 
           isVisible={true} 
           onClose={() => {}} 
+          currentShow={currentShow}
         />
 
         {/* Show Details View for archive shows */}

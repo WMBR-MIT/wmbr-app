@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -17,14 +17,13 @@ import Animated, {
   withSpring,
   interpolate,
   Extrapolate,
+  runOnJS,
 } from 'react-native-reanimated';
 import { debugError } from '../utils/Debug';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import { RecentlyPlayedService } from '../services/RecentlyPlayedService';
 import { AudioPreviewService, PreviewState } from '../services/AudioPreviewService';
-import { ShowGroup, ProcessedSong, Show } from '../types/RecentlyPlayed';
+import { ProcessedSong } from '../types/RecentlyPlayed';
 import CircularProgress from './CircularProgress';
-import ShowDetailsView from './ShowDetailsView';
 
 const { height: screenHeight } = Dimensions.get('window');
 const DRAWER_HEIGHT = screenHeight * 0.8;
@@ -35,15 +34,15 @@ const PEEK_HEIGHT = 100; // How much of the drawer shows when collapsed
 interface RecentlyPlayedDrawerProps {
   isVisible: boolean;
   onClose?: () => void;
+  currentShow?: string;
 }
 
-export default function RecentlyPlayedDrawer({}: RecentlyPlayedDrawerProps) {
-  const [showGroups, setShowGroups] = useState<ShowGroup[]>([]);
+export default function RecentlyPlayedDrawer({ currentShow }: RecentlyPlayedDrawerProps) {
+  const [playlist, setPlaylist] = useState<ProcessedSong[]>([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [selectedShow, setSelectedShow] = useState<Show | null>(null);
-  const [showDetailsVisible, setShowDetailsVisible] = useState(false);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [previewState, setPreviewState] = useState<PreviewState>({
     isPlaying: false,
     duration: 0,
@@ -56,35 +55,9 @@ export default function RecentlyPlayedDrawer({}: RecentlyPlayedDrawerProps) {
   const translateY = useSharedValue(DRAWER_HEIGHT - PEEK_HEIGHT);
   
   const scrollViewRef = useRef<ScrollView>(null);
-  const recentlyPlayedService = RecentlyPlayedService.getInstance();
   const audioPreviewService = AudioPreviewService.getInstance();
 
   useEffect(() => {
-    const frp = async (isRefresh = false) => {
-      if (isRefresh) {
-        setRefreshing(true);
-      } else {
-        setLoading(true);
-      }
-      setError(null);
-      
-      try {
-        const groups = await recentlyPlayedService.fetchRecentlyPlayed(isRefresh);
-        setShowGroups(groups);
-      } catch (err) {
-        setError('Failed to load recently played songs');
-        debugError('Error fetching recently played:', err);
-      } finally {
-        if (isRefresh) {
-          setRefreshing(false);
-        } else {
-          setLoading(false);
-        }
-      }
-    }
-
-    // Always load data since drawer is always visible
-    frp();
     // Force light content for refresh control
     Appearance.setColorScheme('light');
     
@@ -94,7 +67,7 @@ export default function RecentlyPlayedDrawer({}: RecentlyPlayedDrawerProps) {
       // Reset appearance
       Appearance.setColorScheme(null);
     };
-  }, [audioPreviewService, recentlyPlayedService]);
+  }, [audioPreviewService]);
 
   useEffect(() => {
     // Subscribe to preview state changes
@@ -102,7 +75,29 @@ export default function RecentlyPlayedDrawer({}: RecentlyPlayedDrawerProps) {
     return unsubscribe;
   }, [audioPreviewService]);
 
-  const fetchRecentlyPlayed = async (isRefresh = false) => {
+  const parsePlaylistTimestamp = (timeStr: string): Date => {
+    try {
+      // Format: YYYY/MM/DD HH:MM:SS
+      const [datePart, timePart] = timeStr.split(' ');
+      
+      if (!datePart || !timePart) {
+        return new Date();
+      }
+      
+      const [year, month, day] = datePart.split('/').map(Number);
+      const [hour, minute, second] = timePart.split(':').map(Number);
+      
+      return new Date(year, month - 1, day, hour, minute, second);
+    } catch (parseError) {
+      return new Date();
+    }
+  };
+
+  const fetchCurrentShowPlaylist = useCallback(async (isRefresh = false) => {
+    if (!currentShow || currentShow === 'WMBR 88.1 FM') {
+      return;
+    }
+
     if (isRefresh) {
       setRefreshing(true);
     } else {
@@ -111,11 +106,47 @@ export default function RecentlyPlayedDrawer({}: RecentlyPlayedDrawerProps) {
     setError(null);
     
     try {
-      const groups = await recentlyPlayedService.fetchRecentlyPlayed(isRefresh);
-      setShowGroups(groups);
+      // Get today's date in YYYY-MM-DD format
+      const today = new Date();
+      const dateStr = today.toISOString().split('T')[0];
+      
+      // Fetch playlist using the new API endpoint
+      const encodedShowName = encodeURIComponent(currentShow);
+      const url = `https://wmbr.alexandersimoes.com/get_playlist?show_name=${encodedShowName}&date=${dateStr}`;
+      
+      const response = await fetch(url, {
+        headers: { 'Cache-Control': 'no-cache' }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch playlist: ${response.status}`);
+      }
+      
+      const playlistData = await response.json();
+      
+      if (playlistData.songs && playlistData.songs.length > 0) {
+        // Convert playlist songs to ProcessedSong format
+        const processedSongs: ProcessedSong[] = playlistData.songs.map((song: any) => ({
+          title: song.song.trim(),
+          artist: song.artist.trim(),
+          album: song.album?.trim() || undefined,
+          released: undefined,
+          appleStreamLink: '', // Not provided in new API
+          playedAt: parsePlaylistTimestamp(song.time),
+          showName: currentShow,
+          showId: 'current-show'
+        }));
+        
+        // Sort by most recent first
+        processedSongs.sort((a, b) => b.playedAt.getTime() - a.playedAt.getTime());
+        setPlaylist(processedSongs);
+      } else {
+        setPlaylist([]);
+      }
     } catch (err) {
-      setError('Failed to load recently played songs');
-      debugError('Error fetching recently played:', err);
+      setError(`Failed to load playlist for ${currentShow}`);
+      debugError('Error fetching current show playlist:', err);
+      setPlaylist([]);
     } finally {
       if (isRefresh) {
         setRefreshing(false);
@@ -123,26 +154,23 @@ export default function RecentlyPlayedDrawer({}: RecentlyPlayedDrawerProps) {
         setLoading(false);
       }
     }
-  };
+  }, [currentShow]);
+
+  // Load playlist data when drawer becomes visible and we have a current show
+  useEffect(() => {
+    if (isDrawerOpen && currentShow && currentShow !== 'WMBR 88.1 FM') {
+      fetchCurrentShowPlaylist();
+    }
+  }, [isDrawerOpen, currentShow, fetchCurrentShowPlaylist]);
+
 
   const handleRefresh = () => {
-    fetchRecentlyPlayed(true);
+    fetchCurrentShowPlaylist(true);
   };
 
-  const handleShowTitlePress = (showName: string, showId: string) => {
-    // Find the show details from the service's cache
-    const showsCache = recentlyPlayedService.getShowsCache();
-    const show = showsCache.find(s => s.id === showId);
-    
-    if (show) {
-      setSelectedShow(show);
-      setShowDetailsVisible(true);
-    }
-  };
-
-  const handleCloseShowDetails = () => {
-    setShowDetailsVisible(false);
-    setSelectedShow(null);
+  // Handle drawer opening/closing
+  const handleDrawerInteraction = (isOpening: boolean) => {
+    setIsDrawerOpen(isOpening);
   };
 
   const handlePlayPreview = async (song: ProcessedSong) => {
@@ -164,8 +192,8 @@ export default function RecentlyPlayedDrawer({}: RecentlyPlayedDrawerProps) {
       else {
         await audioPreviewService.playPreview(song.appleStreamLink);
       }
-    } catch (error) {
-      debugError('Error handling preview playback:', error);
+    } catch (previewError) {
+      debugError('Error handling preview playback:', previewError);
       Alert.alert('Error', 'Failed to play preview');
     }
   };
@@ -189,15 +217,19 @@ export default function RecentlyPlayedDrawer({}: RecentlyPlayedDrawerProps) {
       if (event.translationY > 0 && event.velocityY > 300) {
         // Swiping down fast - collapse
         translateY.value = withSpring(DRAWER_HEIGHT - PEEK_HEIGHT);
+        runOnJS(handleDrawerInteraction)(false);
       } else if (event.translationY < 0 && event.velocityY < -300) {
         // Swiping up fast - expand
         translateY.value = withSpring(0);
+        runOnJS(handleDrawerInteraction)(true);
       } else {
         // Snap to nearest position based on current position
         if (isExpanded) {
           translateY.value = withSpring(0); // Fully expanded
+          runOnJS(handleDrawerInteraction)(true);
         } else {
           translateY.value = withSpring(DRAWER_HEIGHT - PEEK_HEIGHT); // Peeking
+          runOnJS(handleDrawerInteraction)(false);
         }
       }
     });
@@ -285,46 +317,22 @@ export default function RecentlyPlayedDrawer({}: RecentlyPlayedDrawerProps) {
     );
   };
 
-  const renderStickyContent = () => {
-    const content: React.ReactNode[] = [];
-    const stickyIndices: number[] = [];
-    
-    showGroups.forEach((group, groupIndex) => {
-      const validSongs = group.songs.filter(song => song.title && song.artist);
-      
-      if (validSongs.length === 0) return;
-      
-      // Add sticky header
-      stickyIndices.push(content.length);
-      content.push(
-        <TouchableOpacity 
-          key={`header-${groupIndex}`} 
-          style={styles.stickyHeader}
-          onPress={() => handleShowTitlePress(group.showName, validSongs[0].showId)}
-          activeOpacity={0.7}
-        >
-          <Text style={styles.showTitle}>{group.showName}</Text>
-          <View style={styles.headerRight}>
-            <Text style={styles.songCount}>{validSongs.length} songs</Text>
-            <Text style={styles.chevron}>›</Text>
+  const renderPlaylistContent = () => {
+    if (!playlist || playlist.length === 0) {
+      return [];
+    }
+
+    return playlist.map((song, index) => {
+      const renderedSong = renderSong(song, index);
+      if (renderedSong) {
+        return (
+          <View key={`song-${index}`}>
+            {renderedSong}
           </View>
-        </TouchableOpacity>
-      );
-      
-      // Add songs
-      validSongs.forEach((song, songIndex) => {
-        const renderedSong = renderSong(song, songIndex);
-        if (renderedSong) {
-          content.push(
-            <View key={`song-${groupIndex}-${songIndex}`}>
-              {renderedSong}
-            </View>
-          );
-        }
-      });
-    });
-    
-    return { content, stickyIndices };
+        );
+      }
+      return null;
+    }).filter(Boolean);
   };
 
   // Drawer is always visible, just in different positions
@@ -360,7 +368,6 @@ export default function RecentlyPlayedDrawer({}: RecentlyPlayedDrawerProps) {
             style={[styles.scrollView, { backgroundColor: '#1a1a1a' }]}
             showsVerticalScrollIndicator={false}
             bounces={true}
-            stickyHeaderIndices={showGroups.length > 0 ? renderStickyContent().stickyIndices : []}
             refreshControl={
               <RefreshControl
                 refreshing={refreshing}
@@ -373,10 +380,18 @@ export default function RecentlyPlayedDrawer({}: RecentlyPlayedDrawerProps) {
               />
             }
           >
+            {/* Current Show Header */}
+            {currentShow && currentShow !== 'WMBR 88.1 FM' && (
+              <View style={styles.currentShowHeader}>
+                <Text style={styles.currentShowTitle}>{currentShow}</Text>
+                <Text style={styles.currentShowSubtitle}>Now Playing</Text>
+              </View>
+            )}
+
             {loading ? (
               <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color="#FFFFFF" />
-                <Text style={styles.loadingText}>Loading recently played...</Text>
+                <Text style={styles.loadingText}>Loading playlist...</Text>
               </View>
             ) : error ? (
               <View style={styles.errorContainer}>
@@ -385,11 +400,21 @@ export default function RecentlyPlayedDrawer({}: RecentlyPlayedDrawerProps) {
                   <Text style={styles.retryButtonText}>Retry</Text>
                 </TouchableOpacity>
               </View>
-            ) : showGroups.length > 0 ? (
-              renderStickyContent().content
+            ) : !currentShow || currentShow === 'WMBR 88.1 FM' ? (
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyText}>Pull up when a show is playing to see the playlist</Text>
+              </View>
+            ) : playlist.length > 0 ? (
+              <>
+                {renderPlaylistContent()}
+              </>
+            ) : isDrawerOpen ? (
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyText}>No playlist found for {currentShow}</Text>
+              </View>
             ) : (
               <View style={styles.emptyContainer}>
-                <Text style={styles.emptyText}>No recently played songs found</Text>
+                <Text style={styles.emptyText}>Pull up to load playlist</Text>
               </View>
             )}
             
@@ -399,14 +424,6 @@ export default function RecentlyPlayedDrawer({}: RecentlyPlayedDrawerProps) {
         </Animated.View>
       </GestureDetector>
 
-      {/* Show Details View - only render when visible */}
-      {showDetailsVisible && selectedShow && (
-        <ShowDetailsView
-          show={selectedShow}
-          isVisible={showDetailsVisible}
-          onClose={handleCloseShowDetails}
-        />
-      )}
     </>
   );
 }
@@ -653,5 +670,22 @@ const styles = StyleSheet.create({
   },
   bottomPadding: {
     height: 100,
+  },
+  currentShowHeader: {
+    backgroundColor: '#2a2a2a',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#333',
+  },
+  currentShowTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#00843D',
+    marginBottom: 4,
+  },
+  currentShowSubtitle: {
+    fontSize: 14,
+    color: '#888',
   },
 });

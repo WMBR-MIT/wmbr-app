@@ -56,6 +56,7 @@ export default function App() {
   const [showDetailsVisible, setShowDetailsVisible] = useState(false);
   const [archivedShowViewVisible, setArchivedShowViewVisible] = useState(false);
   const [scheduleViewVisible, setScheduleViewVisible] = useState(false);
+  const [isPlayerInitialized, setIsPlayerInitialized] = useState(false);
   
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const rotateAnim = useRef(new Animated.Value(0)).current;
@@ -64,13 +65,48 @@ export default function App() {
   const songChangeOpacity = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
-    const updateLiveTrackMetadata = async (showTitle: string) => {
+    setupPlayer();
+    
+    const metadataService = MetadataService.getInstance();
+    
+    const unsubscribeMetadata = metadataService.subscribe((data: ShowInfo) => {
+      setCurrentShow(data.showTitle);
+      setHosts(data.hosts);
+      setShowDescription(data.description);
+      setCurrentSong(data.currentSong);
+      setCurrentArtist(data.currentArtist);
+    });
+
+    const unsubscribeSongs = metadataService.subscribeSongHistory((songs: Song[]) => {
+      setSongHistory(songs);
+    });
+
+    metadataService.startPolling(15000);
+    
+    // Subscribe to archive service
+    const unsubscribeArchive = ArchiveService.getInstance().subscribe(setArchiveState);
+    
+    return () => {
+      MetadataService.getInstance().stopPolling();
+      unsubscribeMetadata();
+      unsubscribeSongs();
+      unsubscribeArchive();
+    };
+  }, []); // Empty dependency array - only run once on mount
+
+  // Separate useEffect for updating track metadata when show changes
+  useEffect(() => {
+    const updateLiveTrackMetadata = async () => {
+      if (!isPlayerInitialized) {
+        return; // Don't try to update metadata if player isn't initialized yet
+      }
+
       try {
         // Only update if we're not playing an archive
         if (!archiveState.isPlayingArchive) {
           await TrackPlayer.updateMetadataForTrack(0, {
             title: 'WMBR 88.1 FM',
-            artist: showTitle || 'Live Radio',
+            artist: currentShow || 'Live Radio',
           });
         }
       } catch (error) {
@@ -78,43 +114,8 @@ export default function App() {
       }
     };
 
-    const setupMetadata = () => {
-      const metadataService = MetadataService.getInstance();
-      
-      const unsubscribeMetadata = metadataService.subscribe((data: ShowInfo) => {
-        setCurrentShow(data.showTitle);
-        setHosts(data.hosts);
-        setShowDescription(data.description);
-        setCurrentSong(data.currentSong);
-        setCurrentArtist(data.currentArtist);
-        
-        // Update track metadata with current show name for lock screen
-        updateLiveTrackMetadata(data.showTitle);
-      });
-  
-      const unsubscribeSongs = metadataService.subscribeSongHistory((songs: Song[]) => {
-        setSongHistory(songs);
-      });
-  
-      metadataService.startPolling(15000);
-  
-      return () => {
-        unsubscribeMetadata();
-        unsubscribeSongs();
-      };
-    };
-
-    setupPlayer();
-    setupMetadata();
-    
-    // Subscribe to archive service
-    const unsubscribeArchive = ArchiveService.getInstance().subscribe(setArchiveState);
-    
-    return () => {
-      MetadataService.getInstance().stopPolling();
-      unsubscribeArchive();
-    };
-  }, [archiveState]);
+    updateLiveTrackMetadata();
+  }, [currentShow, archiveState.isPlayingArchive, isPlayerInitialized]);
 
   useEffect(() => {
     setIsPlaying(playbackState?.state === State.Playing);
@@ -251,6 +252,16 @@ export default function App() {
 
   const setupPlayer = async () => {
     try {
+      // Check if player is already setup
+      try {
+        const state = await TrackPlayer.getPlaybackState();
+        // If we can get the state, player is already setup
+        setIsPlayerInitialized(true);
+        return;
+      } catch {
+        // Player not setup yet, continue with setup
+      }
+
       await TrackPlayer.setupPlayer();
       await TrackPlayer.updateOptions({
         capabilities: [
@@ -268,12 +279,19 @@ export default function App() {
         artist: 'Live Radio',
         artwork: require('./assets/cover.png'),
       });
+
+      setIsPlayerInitialized(true);
     } catch (error) {
       debugError('Error setting up player:', error);
     }
   };
 
   const togglePlayback = async () => {
+    if (!isPlayerInitialized) {
+      debugError('Player not initialized yet, cannot toggle playback');
+      return;
+    }
+
     try {
       const audioPreviewService = AudioPreviewService.getInstance();
       const previewState = audioPreviewService.getCurrentState();

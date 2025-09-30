@@ -88,18 +88,22 @@ export default function ShowScheduleView({ isVisible, onClose, currentShow }: Sh
   const handleShowPress = async (show: ScheduleShow) => {
     try {
       setSelectedShow(show);
-      
+
       // Fetch archives for this show from the recently played service
       const recentlyPlayedService = RecentlyPlayedService.getInstance();
-      
+
+      // Ensure the shows cache is populated by fetching recently played data
+      // This will populate the showsCache with archive data from the XML
+      await recentlyPlayedService.fetchRecentlyPlayed();
+
       // Get the shows cache which contains the archive data
       const showsWithArchives = recentlyPlayedService.getShowsCache();
-      
+
       // Find the show in the cache (which includes archives)
       const showWithArchiveData = showsWithArchives.find(
         recentShow => recentShow.name.toLowerCase() === show.name.toLowerCase()
       );
-      
+
       if (showWithArchiveData && showWithArchiveData.archives.length > 0) {
         setShowWithArchives(showWithArchiveData);
         setShowDetailsVisible(true);
@@ -111,10 +115,10 @@ export default function ShowScheduleView({ isVisible, onClose, currentShow }: Sh
           [{ text: 'OK' }]
         );
       }
-    } catch (error) {
-      debugError('Error fetching show archives:', error);
+    } catch (err) {
+      debugError('Error fetching show archives:', err);
       Alert.alert(
-        'Error', 
+        'Error',
         'Unable to fetch archive data. Please try again later.',
         [{ text: 'OK' }]
       );

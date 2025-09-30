@@ -254,7 +254,7 @@ export default function App() {
     try {
       // Check if player is already setup
       try {
-        const state = await TrackPlayer.getPlaybackState();
+        await TrackPlayer.getPlaybackState();
         // If we can get the state, player is already setup
         setIsPlayerInitialized(true);
         return;
@@ -525,6 +525,7 @@ export default function App() {
           isVisible={true} 
           onClose={() => {}} 
           currentShow={currentShow}
+          onShowSchedule={handleShowSchedule}
         />
 
         {/* Show Details View for archive shows */}

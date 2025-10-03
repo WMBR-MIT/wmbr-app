@@ -11,6 +11,9 @@ ios/.xcode.env.local
 *.p8
 *.p12
 
+# Local gradle properties with secrets
+android/gradle-local.properties
+
 # Builds
 dist/
 

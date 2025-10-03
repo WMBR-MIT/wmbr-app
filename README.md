@@ -15,25 +15,55 @@ A React Native app for streaming WMBR 88.1 FM and browsing show archives, song h
 ### Prerequisites
 - Complete the [React Native environment setup](https://reactnative.dev/docs/set-up-your-environment)
 - Install dependencies: `npm install`
+
+## Build and Run
+
+### iOS
 - Install iOS pods: `cd ios && bundle exec pod install`
-
-## Create your local environment file
-- Copy `ios/.xcode.env` to `ios/.xcode.env.local` and modify the node path.
-
-## Build the app
+- Copy `ios/.xcode.env` to `ios/.xcode.env.local` and modify the node path
 - Open the app in Xcode:
   ```bash
   open ios/WMBRRadioApp.xcworkspace
   ```
-- Build the app (⇧⌘B).
+- Build the app (⇧⌘B)
+- Run iOS simulator:
+  ```bash
+  npm run ios -- --simulator="iPhone 16"
+  ```
 
+### Android
+- Start Android emulator via Android Studio or connect physical device
+- Enable USB debugging on physical devices
+- Run debug build:
+  ```bash
+  npm run android
+  ```
 
-### Run the Simulator
+## Building for Release
+
+### Android Release Setup
+
+- Get `wmbr-upload-key.keystore` file and place in `android/` directory
+- Set up signing configuration:
+  ```bash
+  cd android
+  cp gradle-local.properties.default gradle-local.properties
+  ```
+- Edit `gradle-local.properties` with keystore credentials (passwords and alias)
+
+### Build Release AAB
+
+**Windows:**
 ```bash
-npm run ios -- --simulator="iPhone 16"
+cd android && gradlew bundleRelease
 ```
 
-That's it! The app will launch in the iPhone 16 simulator.
+**macOS/Linux:**
+```bash
+cd android && ./gradlew bundleRelease
+```
+
+Output: `android/app/build/outputs/bundle/release/app-release.aab`
 
 ## Development
 

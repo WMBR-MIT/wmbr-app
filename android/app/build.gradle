@@ -37,7 +37,7 @@ react {
     // bundleAssetName = "MyApplication.android.bundle"
     //
     //   The entry file for bundle generation. Default is 'index.android.js' or 'index.js'
-    // entryFile = file("../js/MyApplication.android.js")
+    entryFile = file("../../index.ts")
     //
     //   A list of extra flags to pass to the 'bundle' commands.
     //   See https://github.com/react-native-community/cli/blob/main/docs/commands.md#bundle
@@ -57,7 +57,7 @@ react {
 /**
  * Set this to true to Run Proguard on Release builds to minify the Java bytecode.
  */
-def enableProguardInReleaseBuilds = false
+def enableProguardInReleaseBuilds = true
 
 /**
  * The preferred build flavor of JavaScriptCore (JSC)
@@ -73,7 +73,7 @@ def enableProguardInReleaseBuilds = false
 def jscFlavor = 'io.github.react-native-community:jsc-android:2026004.+'
 
 android {
-    ndkVersion rootProject.ext.ndkVersion
+    // ndkVersion rootProject.ext.ndkVersion  // Commented out - NDK version not defined in root build.gradle
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
@@ -92,6 +92,20 @@ android {
             keyAlias 'androiddebugkey'
             keyPassword 'android'
         }
+        release {
+            def localPropertiesFile = rootProject.file("gradle-local.properties")
+            def localProperties = new Properties()
+            if (localPropertiesFile.exists()) {
+                localProperties.load(new FileInputStream(localPropertiesFile))
+            }
+            
+            if (localProperties.getProperty('WMBR_UPLOAD_STORE_FILE')) {
+                storeFile file(localProperties.getProperty('WMBR_UPLOAD_STORE_FILE'))
+                storePassword localProperties.getProperty('WMBR_UPLOAD_STORE_PASSWORD')
+                keyAlias localProperties.getProperty('WMBR_UPLOAD_KEY_ALIAS')
+                keyPassword localProperties.getProperty('WMBR_UPLOAD_KEY_PASSWORD')
+            }
+        }
     }
     buildTypes {
         debug {
@@ -101,6 +115,7 @@ android {
             // Caution! In production, you need to generate your own keystore file.
             // see https://reactnative.dev/docs/signed-apk-android.
             signingConfig signingConfigs.debug
+            signingConfig signingConfigs.release
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }

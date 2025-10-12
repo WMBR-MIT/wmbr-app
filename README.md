@@ -33,12 +33,12 @@ A React Native app for streaming WMBR 88.1 FM and browsing show archives, song h
 
 In one terminal window, start the server with:
 ```bash
-$ npm start
+npm start
 ```
 
 In another, start the simulator with:
 ```bash
-$ npm run ios -- --simulator="iPhone 16" # "iPhone 17" if you're on macOS / Xcode 26
+npm run ios -- --simulator="iPhone 16" # "iPhone 17" if you're on macOS / Xcode 26
 ```
 
 That's it! The app will launch in the iPhone 16 simulator.

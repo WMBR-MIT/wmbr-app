@@ -16,7 +16,7 @@ import Animated, {
   useAnimatedStyle,
   withSpring,
   interpolate,
-  Extrapolate,
+  Extrapolation,
   runOnJS,
 } from 'react-native-reanimated';
 import { debugError } from '../utils/Debug';
@@ -375,7 +375,7 @@ export default function RecentlyPlayedDrawer({ currentShow, onShowSchedule }: Re
       translateY.value,
       [0, DRAWER_HEIGHT - PEEK_HEIGHT],
       [0.5, 0],
-      Extrapolate.CLAMP
+      Extrapolation.CLAMP
     ),
   }));
 

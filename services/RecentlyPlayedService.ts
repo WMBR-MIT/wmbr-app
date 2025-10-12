@@ -155,13 +155,13 @@ export class RecentlyPlayedService {
               shows.push({
                 id: showData.$.id,
                 name: showData.name,
-                day: parseInt(showData.day) || 0,
+                day: parseInt(showData.day, 10) || 0,
                 day_str: showData.day_str || '',
-                time: parseInt(showData.time) || 0,
+                time: parseInt(showData.time, 10) || 0,
                 time_str: showData.time_str || '',
-                length: parseInt(showData.length) || 0,
+                length: parseInt(showData.length, 10) || 0,
                 hosts: showData.hosts || '',
-                alternates: parseInt(showData.alternates) || 0,
+                alternates: parseInt(showData.alternates, 10) || 0,
                 archives
               });
             }
@@ -555,9 +555,9 @@ export class RecentlyPlayedService {
     });
 
     // Convert to array and sort by most recent song in each group
-    const showGroups: ShowGroup[] = Array.from(groups.entries()).map(([, songs]) => ({
-      showName: songs[0].showName, // All songs in group have same show name
-      songs: songs.sort((a, b) => b.playedAt.getTime() - a.playedAt.getTime())
+    const showGroups: ShowGroup[] = Array.from(groups.entries()).map(([, groupSongs]) => ({
+      showName: groupSongs[0].showName, // All songs in group have same show name
+      songs: groupSongs.sort((a, b) => b.playedAt.getTime() - a.playedAt.getTime())
     }));
 
     // Sort groups by most recent song and ensure songs within each group are sorted

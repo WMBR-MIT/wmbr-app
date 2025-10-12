@@ -36,7 +36,7 @@ In one terminal window, start the server with:
 $ npm start
 ```
 
-In another, start the simulatow with:
+In another, start the simulator with:
 ```bash
 $ npm run ios -- --simulator="iPhone 16" # "iPhone 17" if you're on macOS / Xcode 26
 ```

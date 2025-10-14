@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
-import { useIsFocused } from '@react-navigation/native';
+import { useIsFocused, useNavigation } from '@react-navigation/native';
 import {
   View,
   Text,
@@ -52,7 +52,7 @@ export default function RecentlyPlayedDrawer({ currentShow, onShowSchedule }: Re
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [hasReachedEndOfDay, setHasReachedEndOfDay] = useState(false); // Track if we've reached end of shows
+  const [hasReachedEndOfDay, setHasReachedEndOfDay] = useState(false);
   const [previewState, setPreviewState] = useState<PreviewState>({
     isPlaying: false,
     duration: 0,

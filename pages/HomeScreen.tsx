@@ -317,10 +317,7 @@ export default function HomeScreen() {
             </View>
             <View style={styles.showInfo}>
               {archiveState.isPlayingArchive ? (
-                <TouchableOpacity onPress={handleShowNamePress} activeOpacity={0.7}>
-                  <Text style={[styles.showTitle, styles.clickableTitle]}>{archiveState.currentShow?.name || 'Archive'}</Text>
-                  <Text style={[styles.archiveInfo, isPlaying && styles.archiveInfoActive]}>Archive from {archiveState.currentArchive?.date ? formatArchiveDate(archiveState.currentArchive.date) : ''}</Text>
-                </TouchableOpacity>
+                <div></div>
               ) : (
                 <>
                   <Text style={styles.showTitle}>{currentShow}</Text>

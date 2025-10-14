@@ -5,44 +5,26 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  Dimensions,
   ScrollView,
   ActivityIndicator,
   Alert,
   RefreshControl,
   Appearance,
 } from 'react-native';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  interpolate,
-  Extrapolate,
-} from 'react-native-reanimated';
-import { debugError } from '../utils/Debug';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { debugError, debugLog } from '../utils/Debug';
 import { RecentlyPlayedService } from '../services/RecentlyPlayedService';
 import { AudioPreviewService, PreviewState } from '../services/AudioPreviewService';
 import { ShowGroup, ProcessedSong, Show } from '../types/RecentlyPlayed';
 import CircularProgress from './CircularProgress';
 
-const { height: screenHeight } = Dimensions.get('window');
-const DRAWER_HEIGHT = screenHeight * 0.8;
-const HEADER_HEIGHT = 60;
-const HANDLE_HEIGHT = 20;
-const PEEK_HEIGHT = 100; // How much of the drawer shows when collapsed
-
-interface RecentlyPlayedDrawerProps {
-  isVisible: boolean;
-  onClose?: () => void;
-}
-
-export default function RecentlyPlayedDrawer({}: RecentlyPlayedDrawerProps) {
+export default function RecentlyPlayed() {
   const navigation = useNavigation<any>();
   const [showGroups, setShowGroups] = useState<ShowGroup[]>([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedShow, setSelectedShow] = useState<Show | null>(null);
+  const [showDetailsVisible, setShowDetailsVisible] = useState(false);
   const [previewState, setPreviewState] = useState<PreviewState>({
     isPlaying: false,
     duration: 0,
@@ -50,9 +32,6 @@ export default function RecentlyPlayedDrawer({}: RecentlyPlayedDrawerProps) {
     progress: 0,
     url: null,
   });
-  
-  // Animation values - start in peeking position
-  const translateY = useSharedValue(DRAWER_HEIGHT - PEEK_HEIGHT);
   
   const scrollViewRef = useRef<ScrollView>(null);
   const recentlyPlayedService = RecentlyPlayedService.getInstance();
@@ -68,8 +47,9 @@ export default function RecentlyPlayedDrawer({}: RecentlyPlayedDrawerProps) {
       setError(null);
       
       try {
-        const groups = await recentlyPlayedService.fetchRecentlyPlayed(isRefresh);
-        setShowGroups(groups);
+  const groups = await recentlyPlayedService.fetchRecentlyPlayed(isRefresh);
+  debugLog('RecentlyPlayed.fetchRecentlyPlayed -> groups length:', groups.length);
+  setShowGroups(groups);
       } catch (err) {
         setError('Failed to load recently played songs');
         debugError('Error fetching recently played:', err);
@@ -95,15 +75,6 @@ export default function RecentlyPlayedDrawer({}: RecentlyPlayedDrawerProps) {
     };
   }, [audioPreviewService, recentlyPlayedService]);
 
-  // When the screen regains focus, ensure the drawer snaps to the peek position
-  const isFocused = useIsFocused();
-  useEffect(() => {
-    if (isFocused) {
-      // animate to peek position when returning to the screen
-      translateY.value = withSpring(DRAWER_HEIGHT - PEEK_HEIGHT);
-    }
-  }, [isFocused, translateY]);
-
   useEffect(() => {
     // Subscribe to preview state changes
     const unsubscribe = audioPreviewService.subscribe(setPreviewState);
@@ -119,8 +90,9 @@ export default function RecentlyPlayedDrawer({}: RecentlyPlayedDrawerProps) {
     setError(null);
     
     try {
-      const groups = await recentlyPlayedService.fetchRecentlyPlayed(isRefresh);
-      setShowGroups(groups);
+  const groups = await recentlyPlayedService.fetchRecentlyPlayed(isRefresh);
+  debugLog('RecentlyPlayed.fetchRecentlyPlayed -> groups length:', groups.length);
+  setShowGroups(groups);
     } catch (err) {
       setError('Failed to load recently played songs');
       debugError('Error fetching recently played:', err);
@@ -143,8 +115,13 @@ export default function RecentlyPlayedDrawer({}: RecentlyPlayedDrawerProps) {
     const show = showsCache.find(s => s.id === showId);
     
     if (show) {
-      navigation.push('ShowDetails', { show: show } );
+      navigation.push('ShowDetails', { show: show });
     }
+  };
+
+  const handleCloseShowDetails = () => {
+    setShowDetailsVisible(false);
+    setSelectedShow(null);
   };
 
   const handlePlayPreview = async (song: ProcessedSong) => {
@@ -171,51 +148,6 @@ export default function RecentlyPlayedDrawer({}: RecentlyPlayedDrawerProps) {
       Alert.alert('Error', 'Failed to play preview');
     }
   };
-
-  const startPosition = useSharedValue(0);
-
-  const panGesture = Gesture.Pan()
-    .onBegin(() => {
-      // Store the initial position when gesture starts
-      startPosition.value = translateY.value;
-    })
-    .onUpdate((event) => {
-      // Calculate new position based on initial position + translation
-      const newY = startPosition.value + event.translationY;
-      translateY.value = Math.max(0, Math.min(DRAWER_HEIGHT - PEEK_HEIGHT, newY));
-    })
-    .onEnd((event) => {
-      const currentPosition = translateY.value;
-      const isExpanded = currentPosition < (DRAWER_HEIGHT - PEEK_HEIGHT) / 2;
-      
-      if (event.translationY > 0 && event.velocityY > 300) {
-        // Swiping down fast - collapse
-        translateY.value = withSpring(DRAWER_HEIGHT - PEEK_HEIGHT);
-      } else if (event.translationY < 0 && event.velocityY < -300) {
-        // Swiping up fast - expand
-        translateY.value = withSpring(0);
-      } else {
-        // Snap to nearest position based on current position
-        if (isExpanded) {
-          translateY.value = withSpring(0); // Fully expanded
-        } else {
-          translateY.value = withSpring(DRAWER_HEIGHT - PEEK_HEIGHT); // Peeking
-        }
-      }
-    });
-
-  const drawerAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: translateY.value }],
-  }));
-
-  const backgroundAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(
-      translateY.value,
-      [0, DRAWER_HEIGHT - PEEK_HEIGHT],
-      [0.5, 0],
-      Extrapolate.CLAMP
-    ),
-  }));
 
   const renderSong = (song: ProcessedSong, index: number) => {
     // Validate song data
@@ -329,33 +261,8 @@ export default function RecentlyPlayedDrawer({}: RecentlyPlayedDrawerProps) {
     return { content, stickyIndices };
   };
 
-  // Drawer is always visible, just in different positions
-
   return (
     <>
-      {/* Background overlay - only show when expanded */}
-      <Animated.View 
-        style={[styles.overlay, backgroundAnimatedStyle]}
-        pointerEvents="none"
-      />
-      
-      {/* Drawer */}
-      <GestureDetector gesture={panGesture}>
-        <Animated.View style={[styles.drawer, drawerAnimatedStyle]}>
-          {/* Handle */}
-          <View style={styles.handle} />
-          
-          {/* Header */}
-          <View style={styles.peekHeader}>
-            <Text style={styles.peekHeaderTitle}>Recently Played</Text>
-            <View style={styles.headerActions}>
-              <TouchableOpacity onPress={handleRefresh} style={styles.refreshButton}>
-                <Text style={styles.refreshButtonText}>↻</Text>
-              </TouchableOpacity>
-              <Text style={styles.dragHint}>▲</Text>
-            </View>
-          </View>
-          
           {/* Content */}
           <ScrollView
             ref={scrollViewRef}
@@ -398,8 +305,6 @@ export default function RecentlyPlayedDrawer({}: RecentlyPlayedDrawerProps) {
             {/* Bottom padding for gesture area */}
             <View style={styles.bottomPadding} />
           </ScrollView>
-        </Animated.View>
-      </GestureDetector>
     </>
   );
 }
@@ -413,59 +318,6 @@ const styles = StyleSheet.create({
     bottom: 0,
     backgroundColor: '#000000',
     zIndex: 998,
-  },
-  drawer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: DRAWER_HEIGHT,
-    backgroundColor: '#1a1a1a',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    zIndex: 999,
-  },
-  handle: {
-    width: 40,
-    height: 4,
-    backgroundColor: '#666',
-    borderRadius: 2,
-    alignSelf: 'center',
-    marginTop: 8,
-    marginBottom: 8,
-  },
-  header: {
-    height: HEADER_HEIGHT,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#333',
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#FFFFFF',
-  },
-  peekHeader: {
-    height: PEEK_HEIGHT - HANDLE_HEIGHT,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#333',
-  },
-  peekHeaderTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
-  },
-  headerActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
   },
   refreshButton: {
     padding: 8,

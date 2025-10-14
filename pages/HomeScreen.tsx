@@ -15,7 +15,6 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SvgXml } from 'react-native-svg';
 import RecentlyPlayedDrawer from '../components/RecentlyPlayedDrawer';
 import SplashScreen from '../components/SplashScreen';
-import ShowDetailsView from '../components/ShowDetailsView';
 import ArchivedShowView from '../components/ArchivedShowView';
 import MetadataService, { ShowInfo, Song } from '../services/MetadataService';
 import { ArchiveService, ArchivePlaybackState } from '../services/ArchiveService';
@@ -41,10 +40,7 @@ export default function HomeScreen() {
     currentArchive: null,
     currentShow: null,
     liveStreamUrl: streamUrl,
-  });
-  const [showDetailsVisible, setShowDetailsVisible] = useState(false);
-  const [archivedShowViewVisible, setArchivedShowViewVisible] = useState(false);
-  
+  });  
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const rotateAnim = useRef(new Animated.Value(0)).current;
   const songChangeScale = useRef(new Animated.Value(1)).current;
@@ -220,17 +216,6 @@ export default function HomeScreen() {
 
   const handleSplashEnd = () => setShowSplash(false);
   const handleSwitchToLive = async () => { try { await ArchiveService.getInstance().switchToLive(currentShow); } catch (e) { debugError('Error switching to live:', e); } };
-  const handleShowNamePress = () => {
-    if (archiveState.currentShow) {
-      if (showDetailsVisible) setShowDetailsVisible(false);
-      else if (archivedShowViewVisible) { setArchivedShowViewVisible(false); setShowDetailsVisible(true); }
-      else if (archiveState.isPlayingArchive && archiveState.currentArchive) setArchivedShowViewVisible(true);
-      else setShowDetailsVisible(true);
-    }
-  };
-
-  const handleCloseShowDetails = () => setShowDetailsVisible(false);
-  const handleCloseArchivedShowView = () => setArchivedShowViewVisible(false);
 
   const formatArchiveDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -250,10 +235,7 @@ export default function HomeScreen() {
             </View>
             <View style={styles.showInfo}>
               {archiveState.isPlayingArchive ? (
-                <TouchableOpacity onPress={handleShowNamePress} activeOpacity={0.7}>
-                  <Text style={[styles.showTitle, styles.clickableTitle]}>{archiveState.currentShow?.name || 'Archive'}</Text>
-                  <Text style={[styles.archiveInfo, isPlaying && styles.archiveInfoActive]}>Archive from {archiveState.currentArchive?.date ? formatArchiveDate(archiveState.currentArchive.date) : ''}</Text>
-                </TouchableOpacity>
+                <div></div>
               ) : (
                 <>
                   <Text style={styles.showTitle}>{currentShow}</Text>
@@ -309,13 +291,9 @@ export default function HomeScreen() {
 
         <RecentlyPlayedDrawer isVisible={true} onClose={() => {}} />
 
-        {showDetailsVisible && archiveState.currentShow && (
-          <ShowDetailsView show={archiveState.currentShow} isVisible={showDetailsVisible} onClose={handleCloseShowDetails} />
-        )}
-
-        {archivedShowViewVisible && archiveState.currentShow && archiveState.currentArchive && (
+        {/* {archivedShowViewVisible && archiveState.currentShow && archiveState.currentArchive && (
           <ArchivedShowView show={archiveState.currentShow} archive={archiveState.currentArchive} isVisible={archivedShowViewVisible} onClose={handleCloseArchivedShowView} />
-        )}
+        )} */}
       </LinearGradient>
     </GestureHandlerRootView>
   );

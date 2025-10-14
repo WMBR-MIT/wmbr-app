@@ -4,15 +4,9 @@ import { Text, View } from 'react-native';
 import HomeScreen from '../pages/HomeScreen';
 import BottomMenuBar from '../components/BottomMenuBar';
 import SchedulePage from './SchedulePage';
+import RecentlyPlayedPage from '../pages/RecentlyPlayedPage';
 
-type RootTabParamList = {
-  Home: undefined;
-  Schedule: undefined;
-  Archive: undefined;
-  Messages: undefined;
-};
-
-const Tab = createBottomTabNavigator<RootTabParamList>();
+const Tab = createBottomTabNavigator<any>();
 
 function PlaceholderScreen({ title }: { title: string }) {
   return (
@@ -27,7 +21,7 @@ export default function MainTabs() {
     <Tab.Navigator screenOptions={{ headerShown: false }} tabBar={(props) => <BottomMenuBar {...props} />}>
       <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="Schedule" component={SchedulePage} />
-      <Tab.Screen name="Archive" children={() => <PlaceholderScreen title="Archive" />} />
+      <Tab.Screen name="Recently Played" component={RecentlyPlayedPage} />
       <Tab.Screen name="Messages" children={() => <PlaceholderScreen title="Messages" />} />
     </Tab.Navigator>
   );

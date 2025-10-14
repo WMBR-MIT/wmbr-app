@@ -5,6 +5,7 @@ import HomeScreen from './HomeScreen';
 import BottomMenuBar from '../components/BottomMenuBar';
 import SchedulePage from '../pages/SchedulePage';
 import RecentlyPlayedPage from './RecentlyPlayedPage';
+import AboutPage from './AboutPage';
 
 const Tab = createBottomTabNavigator<any>();
 
@@ -22,7 +23,7 @@ export default function MainTabs() {
       <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="Schedule" component={SchedulePage} />
       <Tab.Screen name="Recently Played" component={RecentlyPlayedPage} />
-      <Tab.Screen name="Messages" children={() => <PlaceholderScreen title="Messages" />} />
+      <Tab.Screen name="About" component={AboutPage} />
     </Tab.Navigator>
   );
 }

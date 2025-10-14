@@ -8,14 +8,12 @@ function getIconName(routeName: string) {
   switch (routeName) {
     case 'Schedule':
       return 'calendar-outline';
-    case 'Archive':
+    case 'Recently Played':
       return 'albums-outline';
-    case 'Messages':
-      return 'chatbubbles-outline';
     case 'Home':
       return 'home-outline';
-    case 'Recently Played':
-      return 'musical-notes-outline';
+    case 'About':
+      return 'information-circle-outline';
     default:
       return 'ellipse-outline';
   }

@@ -101,39 +101,14 @@ export default function ShowDetailsPage() {
 
   // Animate in on mount (slide from right → left) and animate out on unmount
   useEffect(() => {
-    // bring into view using timing (no bounce)
     translateX.value = withTiming(0, { duration: 300, easing: Easing.out(Easing.cubic) });
     opacity.value = withTiming(1, { duration: 200, easing: Easing.out(Easing.cubic) });
 
     return () => {
-      // move off to the right when unmounting (best-effort) using timing
-      translateX.value = withTiming(width, { duration: 300, easing: Easing.in(Easing.cubic) });
-      opacity.value = withTiming(0, { duration: 200, easing: Easing.in(Easing.cubic) });
+      translateX.value = withTiming(width, { duration: 300, easing: Easing.out(Easing.cubic) });
+      opacity.value = withTiming(0, { duration: 200, easing: Easing.out(Easing.cubic) });
     };
   }, [translateX, opacity]);
-
-  // Close with exit animation (slide left->right) then pop navigation
-  const handleClose = React.useCallback(() => {
-    // animate out
-    opacity.value = withTiming(0, { duration: 200, easing: Easing.in(Easing.cubic) });
-    translateX.value = withTiming(width, { duration: 300, easing: Easing.in(Easing.cubic) }, (isFinished?: boolean) => {
-      if (isFinished) {
-        // run goBack on the JS thread after animation completes
-        try {
-          runOnJS(() => {
-            // guard: if navigation is available, go back
-            try {
-              (navigation as any).goBack();
-            } catch (e) {
-              console.log('Error calling navigation.goBack after animation', e);
-            }
-          })();
-        } catch (e) {
-          console.log('runOnJS failed', e);
-        }
-      }
-    });
-  }, [navigation, opacity, translateX]);
 
   const circleAnimatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: circleScale.value }],
@@ -247,7 +222,7 @@ export default function ShowDetailsPage() {
         <SafeAreaView style={styles.safeArea}>
           {/* Header */}
           <View style={styles.header}>
-            <TouchableOpacity onPress={handleClose} style={styles.backButton}>
+            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
               <Text style={styles.backButtonText}>←</Text>
               <Text style={styles.headerTitle}>Show Details</Text>
               <View style={styles.headerSpacer} />
@@ -445,7 +420,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     paddingHorizontal: 16,
-    paddingTop: 10,
+    paddingTop: 30,
     paddingBottom: 10,
   },
   backButton: {

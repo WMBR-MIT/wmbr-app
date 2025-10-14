@@ -9,20 +9,12 @@ import AboutPage from './AboutPage';
 
 const Tab = createBottomTabNavigator<any>();
 
-function PlaceholderScreen({ title }: { title: string }) {
-  return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-      <Text>{title}</Text>
-    </View>
-  );
-}
-
 export default function MainTabs() {
   return (
     <Tab.Navigator screenOptions={{ headerShown: false }} tabBar={(props) => <BottomMenuBar {...props} />}>
       <Tab.Screen name="Home" component={HomeScreen} />
-      <Tab.Screen name="Schedule" component={SchedulePage} />
       <Tab.Screen name="Recently Played" component={RecentlyPlayedPage} />
+      <Tab.Screen name="Schedule" component={SchedulePage} />
       <Tab.Screen name="About" component={AboutPage} />
     </Tab.Navigator>
   );

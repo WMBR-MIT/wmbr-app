@@ -64,7 +64,7 @@ export default function AboutPage() {
   const openLink = (url: string) => Linking.openURL(url).catch(() => {});
 
   return (
-    <LinearGradient colors={["#0B0F1A", "#111216"]} style={styles.gradient}>
+    <LinearGradient colors={["#0B0F1A", "#1a1a1a"]} style={styles.gradient}>
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.container}>
           <View style={styles.logoRow}>

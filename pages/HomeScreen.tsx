@@ -19,6 +19,7 @@ import MetadataService, { ShowInfo, Song } from '../services/MetadataService';
 import { ArchiveService, ArchivePlaybackState } from '../services/ArchiveService';
 import { AudioPreviewService } from '../services/AudioPreviewService';
 import { getWMBRLogoSVG } from '../utils/WMBRLogo';
+import { useNavigation } from '@react-navigation/native';
 
 const streamUrl = 'https://wmbr.org:8002/hi';
 const WMBR_GREEN = '#00843D';
@@ -47,6 +48,8 @@ export default function HomeScreen() {
   const songChangeScale = useRef(new Animated.Value(1)).current;
   const songChangeRotate = useRef(new Animated.Value(0)).current;
   const songChangeOpacity = useRef(new Animated.Value(1)).current;
+
+  const navigation = useNavigation<any>();
 
   useEffect(() => {
     setupPlayer();
@@ -288,6 +291,11 @@ export default function HomeScreen() {
   const handleSplashEnd = () => setShowSplash(false);
   const handleSwitchToLive = async () => { try { await ArchiveService.getInstance().switchToLive(currentShow); } catch (e) { debugError('Error switching to live:', e); } };
 
+  const formatArchiveDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+  };
+
   if (showSplash) return <SplashScreen onAnimationEnd={handleSplashEnd} />;
 
   return (
@@ -301,7 +309,14 @@ export default function HomeScreen() {
             </View>
             <View style={styles.showInfo}>
               {archiveState.isPlayingArchive ? (
-                <div></div>
+                <TouchableOpacity onPress={() => navigation.push('ShowDetails', { show: archiveState.currentShow })} activeOpacity={0.7}>
+                  <Text style={[styles.showTitle, styles.clickableTitle]}>
+                    {archiveState.currentShow?.name || 'Archive'}
+                  </Text>
+                  <Text style={[styles.archiveInfo, isPlaying && styles.archiveInfoActive]}>
+                    Archive from {archiveState.currentArchive?.date ? formatArchiveDate(archiveState.currentArchive.date) : ''}
+                  </Text>
+                </TouchableOpacity>
               ) : (
                 <>
                   <Text style={styles.showTitle}>{currentShow}</Text>

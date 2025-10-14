@@ -34,8 +34,6 @@ export default function SchedulePage({ currentShow }: SchedulePageProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedShow, setSelectedShow] = useState<ScheduleShow | null>(null);
-  const [showWithArchives, setShowWithArchives] = useState<any>(null);
   const scrollViewRef = useRef<ScrollView>(null);
   const currentShowRef = useRef<View>(null);
 
@@ -66,9 +64,7 @@ export default function SchedulePage({ currentShow }: SchedulePageProps) {
   }, [isFocused, fetchSchedule]);
 
   const handleShowPress = async (show: ScheduleShow) => {
-    try {
-      setSelectedShow(show);
-      
+    try {      
       // Fetch archives for this show from the recently played service
       const recentlyPlayedService = RecentlyPlayedService.getInstance();
       
@@ -100,12 +96,6 @@ export default function SchedulePage({ currentShow }: SchedulePageProps) {
         [{ text: 'OK' }]
       );
     }
-  };
-
-  const handleCloseShowDetails = () => {
-    // No-op for compatibility; ShowDetails is a separate screen now
-    setSelectedShow(null);
-    setShowWithArchives(null);
   };
 
   const isCurrentShowForDay = (show: ScheduleShow, dayName: string): boolean => {

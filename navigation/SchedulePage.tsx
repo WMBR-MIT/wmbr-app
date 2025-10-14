@@ -20,7 +20,6 @@ import { SvgXml } from 'react-native-svg';
 import { ScheduleShow, ScheduleResponse } from '../types/Schedule';
 import { ScheduleService } from '../services/ScheduleService';
 import { getWMBRLogoSVG } from '../utils/WMBRLogo';
-import ShowDetailsView from '../components/ShowDetailsView';
 import { RecentlyPlayedService } from '../services/RecentlyPlayedService';
 import { useNavigation } from '@react-navigation/native';
 
@@ -29,14 +28,13 @@ interface SchedulePageProps {
 }
 
 export default function SchedulePage({ currentShow }: SchedulePageProps) { 
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
 
   const [schedule, setSchedule] = useState<ScheduleResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [, setSelectedShow] = useState<ScheduleShow | null>(null);
-  const [showDetailsVisible, setShowDetailsVisible] = useState(false);
+  const [selectedShow, setSelectedShow] = useState<ScheduleShow | null>(null);
   const [showWithArchives, setShowWithArchives] = useState<any>(null);
   const scrollViewRef = useRef<ScrollView>(null);
   const currentShowRef = useRef<View>(null);
@@ -83,8 +81,9 @@ export default function SchedulePage({ currentShow }: SchedulePageProps) {
       );
       
       if (showWithArchiveData && showWithArchiveData.archives.length > 0) {
-        setShowWithArchives(showWithArchiveData);
-        setShowDetailsVisible(true);
+        // Navigate to the ShowDetails screen inside the Schedule stack and pass the show data
+        // Since SchedulePage is rendered inside ScheduleStack this will resolve to the nested screen.
+        navigation.push('ShowDetails', { show: showWithArchiveData });
       } else {
         // If no archives found, show info message
         Alert.alert(
@@ -104,7 +103,7 @@ export default function SchedulePage({ currentShow }: SchedulePageProps) {
   };
 
   const handleCloseShowDetails = () => {
-    setShowDetailsVisible(false);
+    // No-op for compatibility; ShowDetails is a separate screen now
     setSelectedShow(null);
     setShowWithArchives(null);
   };
@@ -323,15 +322,6 @@ export default function SchedulePage({ currentShow }: SchedulePageProps) {
           </ScrollView>
         </SafeAreaView>
       </LinearGradient>
-
-      {/* Show Details View for archive shows */}
-      {showDetailsVisible && showWithArchives && (
-        <ShowDetailsView
-          show={showWithArchives}
-          isVisible={showDetailsVisible}
-          onClose={handleCloseShowDetails}
-        />
-      )}
     </View>
   );
 }

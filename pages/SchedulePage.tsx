@@ -14,12 +14,11 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
 import { debugLog, debugError } from '../utils/Debug';
-import { useIsFocused } from '@react-navigation/native';
+import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { SvgXml } from 'react-native-svg';
 import { ScheduleShow, ScheduleResponse } from '../types/Schedule';
 import { ScheduleService } from '../services/ScheduleService';
 import { getWMBRLogoSVG } from '../utils/WMBRLogo';
-import ShowDetailsView from '../components/ShowDetailsView';
 import { RecentlyPlayedService } from '../services/RecentlyPlayedService';
 
 interface SchedulePageProps {
@@ -28,13 +27,12 @@ interface SchedulePageProps {
 
 export default function SchedulePage({ currentShow }: SchedulePageProps) { 
 
+  const navigation = useNavigation<any>();
+
   const [schedule, setSchedule] = useState<ScheduleResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [, setSelectedShow] = useState<ScheduleShow | null>(null);
-  const [showDetailsVisible, setShowDetailsVisible] = useState(false);
-  const [showWithArchives, setShowWithArchives] = useState<any>(null);
   const scrollViewRef = useRef<ScrollView>(null);
   const currentShowRef = useRef<View>(null);
 
@@ -66,8 +64,6 @@ export default function SchedulePage({ currentShow }: SchedulePageProps) {
 
   const handleShowPress = async (show: ScheduleShow) => {
     try {
-      setSelectedShow(show);
-
       // Fetch archives for this show from the recently played service
       const recentlyPlayedService = RecentlyPlayedService.getInstance();
 
@@ -84,8 +80,7 @@ export default function SchedulePage({ currentShow }: SchedulePageProps) {
       );
 
       if (showWithArchiveData && showWithArchiveData.archives.length > 0) {
-        setShowWithArchives(showWithArchiveData);
-        setShowDetailsVisible(true);
+        navigation.push('ShowDetails', { show: showWithArchiveData });
       } else {
         // If no archives found, show info message
         Alert.alert(
@@ -102,12 +97,6 @@ export default function SchedulePage({ currentShow }: SchedulePageProps) {
         [{ text: 'OK' }]
       );
     }
-  };
-
-  const handleCloseShowDetails = () => {
-    setShowDetailsVisible(false);
-    setSelectedShow(null);
-    setShowWithArchives(null);
   };
 
   const isCurrentShowForDay = (show: ScheduleShow, dayName: string): boolean => {
@@ -324,15 +313,6 @@ export default function SchedulePage({ currentShow }: SchedulePageProps) {
           </ScrollView>
         </SafeAreaView>
       </LinearGradient>
-
-      {/* Show Details View for archive shows */}
-      {showDetailsVisible && showWithArchives && (
-        <ShowDetailsView
-          show={showWithArchives}
-          isVisible={showDetailsVisible}
-          onClose={handleCloseShowDetails}
-        />
-      )}
     </View>
   );
 }

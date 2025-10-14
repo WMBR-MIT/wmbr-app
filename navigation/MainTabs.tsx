@@ -3,7 +3,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Text, View } from 'react-native';
 import HomeScreen from '../pages/HomeScreen';
 import BottomMenuBar from '../components/BottomMenuBar';
-import ShowScheduleScreen from './ShowScheduleScreen';
+import SchedulePage from './SchedulePage';
 
 type RootTabParamList = {
   Home: undefined;
@@ -26,7 +26,7 @@ export default function MainTabs() {
   return (
     <Tab.Navigator screenOptions={{ headerShown: false }} tabBar={(props) => <BottomMenuBar {...props} />}>
       <Tab.Screen name="Home" component={HomeScreen} />
-      <Tab.Screen name="Schedule" component={ShowScheduleScreen} />
+      <Tab.Screen name="Schedule" component={SchedulePage} />
       <Tab.Screen name="Archive" children={() => <PlaceholderScreen title="Archive" />} />
       <Tab.Screen name="Messages" children={() => <PlaceholderScreen title="Messages" />} />
     </Tab.Navigator>

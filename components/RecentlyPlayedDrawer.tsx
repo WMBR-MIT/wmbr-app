@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { useIsFocused } from '@react-navigation/native';
 import {
   View,
   Text,
@@ -95,6 +96,15 @@ export default function RecentlyPlayedDrawer({}: RecentlyPlayedDrawerProps) {
       Appearance.setColorScheme(null);
     };
   }, [audioPreviewService, recentlyPlayedService]);
+
+  // When the screen regains focus, ensure the drawer snaps to the peek position
+  const isFocused = useIsFocused();
+  useEffect(() => {
+    if (isFocused) {
+      // animate to peek position when returning to the screen
+      translateY.value = withSpring(DRAWER_HEIGHT - PEEK_HEIGHT);
+    }
+  }, [isFocused, translateY]);
 
   useEffect(() => {
     // Subscribe to preview state changes

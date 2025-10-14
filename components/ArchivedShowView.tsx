@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
   StatusBar,
   ActivityIndicator,
   Alert,
+  BackHandler,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
@@ -101,6 +102,24 @@ export default function ArchivedShowView({ show, archive, isVisible, onClose }: 
       opacity.value = withSpring(0);
     }
   }, [isVisible, opacity, translateY, archive.date, playlistService, show.name]);
+
+  useEffect(() => {
+    if (!isVisible) return;
+
+    const onBackPress = () => {
+      try {
+        onClose();
+      } catch (e) {
+        debugError('Error during back handler onClose:', e);
+      }
+      return true;
+    };
+
+    const sub = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    return () => {
+      sub.remove();
+    };
+  }, [isVisible, onClose]);
 
   useEffect(() => {
     // Subscribe to archive service state changes
@@ -375,6 +394,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
+    paddingTop:20,
   },
   backButtonText: {
     color: '#FFFFFF',

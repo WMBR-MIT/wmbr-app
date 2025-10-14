@@ -1,10 +1,10 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Text, View } from 'react-native';
-import HomeScreen from '../pages/HomeScreen';
+import HomeScreen from './HomeScreen';
 import BottomMenuBar from '../components/BottomMenuBar';
-import SchedulePage from './SchedulePage';
-import RecentlyPlayedPage from '../pages/RecentlyPlayedPage';
+import SchedulePage from '../pages/SchedulePage';
+import RecentlyPlayedPage from './RecentlyPlayedPage';
 
 const Tab = createBottomTabNavigator<any>();
 

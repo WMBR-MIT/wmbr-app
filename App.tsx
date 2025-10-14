@@ -2,9 +2,9 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import MainTabs from './navigation/MainTabs';
-import SchedulePage from './navigation/SchedulePage';
-import ShowDetailsPage from './navigation/ShowDetailsPage';
+import MainTabs from './pages/MainTabs';
+import SchedulePage from './pages/SchedulePage';
+import ShowDetailsPage from './pages/ShowDetailsPage';
 
 const Stack = createNativeStackNavigator();
 

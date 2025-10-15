@@ -24,7 +24,7 @@ export default function BottomMenuBar({ state, navigation }: BottomTabBarProps) 
   const insets = useSafeAreaInsets();
 
   return (
-    <View style={[styles.container, { paddingBottom: Math.max(insets.bottom, 8) }]}> 
+    <View style={[styles.container, { paddingBottom: Math.max(insets.bottom, 8), height: 72 + Math.max(insets.bottom, 8) }]}> 
       {state.routes.map((route, idx) => {
         const focused = idx === activeIndex;
         const iconName = getIconName(route.name);
@@ -48,7 +48,6 @@ export default function BottomMenuBar({ state, navigation }: BottomTabBarProps) 
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    height: 80,
     borderTopWidth: 1,
     borderTopColor: '#222',
     backgroundColor: '#000',

@@ -7,15 +7,14 @@ import {
   StyleSheet,
   StatusBar,
   Animated,
-  SafeAreaView,
 } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import TrackPlayer, { Capability, State, usePlaybackState } from 'react-native-track-player';
 import LinearGradient from 'react-native-linear-gradient';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SvgXml } from 'react-native-svg';
 import RecentlyPlayedDrawer from '../components/RecentlyPlayedDrawer';
 import SplashScreen from '../components/SplashScreen';
-import ArchivedShowView from '../components/ArchivedShowView';
 import MetadataService, { ShowInfo, Song } from '../services/MetadataService';
 import { ArchiveService, ArchivePlaybackState } from '../services/ArchiveService';
 import { AudioPreviewService } from '../services/AudioPreviewService';
@@ -27,6 +26,7 @@ const WMBR_GREEN = '#00843D';
 
 export default function HomeScreen() {
   const playbackState = usePlaybackState();
+  const insets = useSafeAreaInsets();
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentShow, setCurrentShow] = useState('WMBR 88.1 FM');
   const [, setSongHistory] = useState<Song[]>([]);
@@ -295,15 +295,11 @@ export default function HomeScreen() {
                 </>
               )}
             </View>
-            <View style={styles.bottomSpace} />
+            <View style={{ height: Math.max(insets.bottom + 56, 56) }} />
           </View>
         </SafeAreaView>
 
         <RecentlyPlayedDrawer isVisible={true} onClose={() => {}} />
-
-        {/* {archivedShowViewVisible && archiveState.currentShow && archiveState.currentArchive && (
-          <ArchivedShowView show={archiveState.currentShow} archive={archiveState.currentArchive} isVisible={archivedShowViewVisible} onClose={handleCloseArchivedShowView} />
-        )} */}
       </LinearGradient>
     </GestureHandlerRootView>
   );

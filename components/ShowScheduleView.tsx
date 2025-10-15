@@ -4,7 +4,6 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  Dimensions,
   ScrollView,
   SafeAreaView,
   StatusBar,
@@ -98,12 +97,6 @@ export default function ShowScheduleView({ currentShow }: ShowScheduleViewProps)
         [{ text: 'OK' }]
       );
     }
-  };
-
-  const handleCloseShowDetails = () => {
-    setShowDetailsVisible(false);
-    setSelectedShow(null);
-    setShowWithArchives(null);
   };
 
   const isCurrentShowForDay = (show: ScheduleShow, dayName: string): boolean => {

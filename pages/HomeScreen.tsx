@@ -298,7 +298,6 @@ export default function HomeScreen() {
             <View style={{ height: Math.max(insets.bottom + 56, 56) }} />
           </View>
         </SafeAreaView>
-
         <RecentlyPlayedDrawer isVisible={true} onClose={() => {}} />
       </LinearGradient>
     </GestureHandlerRootView>

@@ -1,6 +1,5 @@
 import React from 'react';
-import { View, SafeAreaView, TouchableOpacity, Text, StyleSheet } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { View, SafeAreaView, Text, StyleSheet } from 'react-native';
 import RecentlyPlayed from '../components/RecentlyPlayed';
 
 export default function RecentlyPlayedPage() {

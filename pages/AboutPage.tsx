@@ -5,32 +5,8 @@ import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { getWMBRLogoSVG } from '../utils/WMBRLogo';
 import { SvgXml } from 'react-native-svg';
-// Prefer not to require expo; read version from package.json as fallback
-import pkg from '../package.json';
 
 export default function AboutPage() {
-  const appVersion = pkg?.version || '1.0.0';
-
-  const openEmail = () => {
-    const email = 'info@wmbr.org';
-    const subject = encodeURIComponent('WMBR');
-    const body = encodeURIComponent('\n\n---\nApp version: ' + appVersion);
-    const mailto = `mailto:${email}?subject=${subject}&body=${body}`;
-    Linking.openURL(mailto).catch(() => {});
-  };
-
-  const phoneNumber = '+16172538810';
-  const openPhone = () => {
-    const tel = `tel:${phoneNumber}`;
-    Linking.openURL(tel).catch(() => {});
-  };
-
-  const openSMS = () => {
-    // sms: URL scheme opens the user's messaging app
-    const sms = `sms:${phoneNumber}`;
-    Linking.openURL(sms).catch(() => {});
-  };
-
   const openWebsite = () => {
     const url = 'https://wmbr.org';
     Linking.openURL(url).catch(() => {});
@@ -114,11 +90,12 @@ export default function AboutPage() {
 
           <View style={styles.actionsRow}>
             <TouchableOpacity style={styles.button} onPress={openProgramGuide} activeOpacity={0.8}>
-              <Icon name="mail" size={18} color="#000" />
+              <Icon name="musical-notes-outline" size={18} color="#000" />
               <Text style={styles.buttonText}>Program Guide</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.buttonOutline} onPress={openWebsite} activeOpacity={0.8}>
+              <Icon name="globe-outline" size={18} color="#FFFFFF" />
               <Text style={styles.buttonOutlineText}>Visit Our Website</Text>
             </TouchableOpacity>
           </View>
@@ -159,7 +136,7 @@ const styles = StyleSheet.create({
   actionsRow: { flexDirection: 'row', marginTop: 16, gap: 12 },
   button: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#00D17A', paddingHorizontal: 12, paddingVertical: 10, borderRadius: 8, marginRight: 8 },
   buttonText: { marginLeft: 8, color: '#000', fontWeight: '700' },
-  buttonOutline: { paddingHorizontal: 12, paddingVertical: 10, borderRadius: 8, borderWidth: 1, borderColor: '#555' },
+  buttonOutline: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 12, paddingVertical: 10, borderRadius: 8, borderWidth: 1, borderColor: '#555' },
   buttonOutlineText: { color: '#FFFFFF' },
   socialRow: { flexDirection: 'row', marginTop: 18 },
   socialButton: { marginRight: 12 },

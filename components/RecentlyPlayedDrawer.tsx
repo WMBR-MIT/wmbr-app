@@ -23,7 +23,7 @@ import { debugError } from '../utils/Debug';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { RecentlyPlayedService } from '../services/RecentlyPlayedService';
 import { AudioPreviewService, PreviewState } from '../services/AudioPreviewService';
-import { ShowGroup, ProcessedSong, Show } from '../types/RecentlyPlayed';
+import { ShowGroup, ProcessedSong } from '../types/RecentlyPlayed';
 import CircularProgress from './CircularProgress';
 
 const { height: screenHeight } = Dimensions.get('window');

@@ -31,7 +31,7 @@ import { getWMBRLogoSVG } from '../utils/WMBRLogo';
 import { formatDate, getDurationFromSize, formatShowTime, secondsToTime } from '../utils/DateTime';
 import { generateDarkGradientColors, generateGradientColors } from '../utils/Colors';
 
-const { width, height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 const ALBUM_SIZE = width * 0.6;
 const CIRCLE_DIAMETER = 16;
 

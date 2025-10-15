@@ -23,8 +23,6 @@ export default function RecentlyPlayed() {
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [selectedShow, setSelectedShow] = useState<Show | null>(null);
-  const [showDetailsVisible, setShowDetailsVisible] = useState(false);
   const [previewState, setPreviewState] = useState<PreviewState>({
     isPlaying: false,
     duration: 0,
@@ -117,11 +115,6 @@ export default function RecentlyPlayed() {
     if (show) {
       navigation.push('ShowDetails', { show: show });
     }
-  };
-
-  const handleCloseShowDetails = () => {
-    setShowDetailsVisible(false);
-    setSelectedShow(null);
   };
 
   const handlePlayPreview = async (song: ProcessedSong) => {

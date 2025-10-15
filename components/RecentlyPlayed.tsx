@@ -14,7 +14,7 @@ import {
 import { debugError, debugLog } from '../utils/Debug';
 import { RecentlyPlayedService } from '../services/RecentlyPlayedService';
 import { AudioPreviewService, PreviewState } from '../services/AudioPreviewService';
-import { ShowGroup, ProcessedSong, Show } from '../types/RecentlyPlayed';
+import { ShowGroup, ProcessedSong } from '../types/RecentlyPlayed';
 import CircularProgress from './CircularProgress';
 
 export default function RecentlyPlayed() {

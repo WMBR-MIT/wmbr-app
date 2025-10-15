@@ -7,10 +7,11 @@ import RecentlyPlayedPage from './RecentlyPlayedPage';
 import AboutPage from './AboutPage';
 
 const Tab = createBottomTabNavigator<any>();
+const renderTabBar = (props: any) => <BottomMenuBar {...props} />;
 
 export default function MainTabs() {
   return (
-    <Tab.Navigator screenOptions={{ headerShown: false }} tabBar={(props) => <BottomMenuBar {...props} />}>
+    <Tab.Navigator screenOptions={{ headerShown: false }} tabBar={renderTabBar}>
       <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="Recently Played" component={RecentlyPlayedPage} />
       <Tab.Screen name="Schedule" component={SchedulePage} />

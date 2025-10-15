@@ -82,8 +82,8 @@ android {
         applicationId "com.wmbrapp"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode 2
+        versionName "2.0"
     }
     signingConfigs {
         debug {
@@ -125,6 +125,10 @@ android {
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
+
+    // Copy icon fonts from react-native-vector-icons into the APK assets
+    // This ensures Icon fonts (Ionicons, FontAwesome, etc.) are bundled for Android.
+    apply from: file("../../node_modules/react-native-vector-icons/fonts.gradle")
 
     if (hermesEnabled.toBoolean()) {
         implementation("com.facebook.react:hermes-android")

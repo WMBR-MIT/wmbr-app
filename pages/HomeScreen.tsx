@@ -15,8 +15,6 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SvgXml } from 'react-native-svg';
 import RecentlyPlayedDrawer from '../components/RecentlyPlayedDrawer';
 import SplashScreen from '../components/SplashScreen';
-import ShowDetailsView from '../components/ShowDetailsView';
-import ArchivedShowView from '../components/ArchivedShowView';
 import MetadataService, { ShowInfo, Song } from '../services/MetadataService';
 import { ArchiveService, ArchivePlaybackState } from '../services/ArchiveService';
 import { AudioPreviewService } from '../services/AudioPreviewService';
@@ -36,14 +34,16 @@ export default function HomeScreen() {
   const [currentArtist, setCurrentArtist] = useState<string | undefined>();
   const [showSplash, setShowSplash] = useState(true);
   const [previousSong, setPreviousSong] = useState<string>('');
+  const [showDetailsVisible, setShowDetailsVisible] = useState(false);
+  const [archivedShowViewVisible, setArchivedShowViewVisible] = useState(false);
+  const [, setScheduleViewVisible] = useState(false);
+  const [isPlayerInitialized, setIsPlayerInitialized] = useState(false);
   const [archiveState, setArchiveState] = useState<ArchivePlaybackState>({
     isPlayingArchive: false,
     currentArchive: null,
     currentShow: null,
     liveStreamUrl: streamUrl,
   });
-  const [showDetailsVisible, setShowDetailsVisible] = useState(false);
-  const [archivedShowViewVisible, setArchivedShowViewVisible] = useState(false);
   
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const rotateAnim = useRef(new Animated.Value(0)).current;
@@ -52,12 +52,48 @@ export default function HomeScreen() {
   const songChangeOpacity = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
-    const updateLiveTrackMetadata = async (showTitle: string) => {
+    setupPlayer();
+
+    const metadataService = MetadataService.getInstance();
+    
+    const unsubscribeMetadata = metadataService.subscribe((data: ShowInfo) => {
+      setCurrentShow(data.showTitle);
+      setHosts(data.hosts);
+      setShowDescription(data.description);
+      setCurrentSong(data.currentSong);
+      setCurrentArtist(data.currentArtist);
+    });
+
+    const unsubscribeSongs = metadataService.subscribeSongHistory((songs: Song[]) => {
+      setSongHistory(songs);
+    });
+
+    metadataService.startPolling(15000);
+    
+    // Subscribe to archive service
+    const unsubscribeArchive = ArchiveService.getInstance().subscribe(setArchiveState);
+    
+    return () => {
+      MetadataService.getInstance().stopPolling();
+      unsubscribeMetadata();
+      unsubscribeSongs();
+      unsubscribeArchive();
+    };
+  }, []); // Empty dependency array - only run once on mount
+
+  // Separate useEffect for updating track metadata when show changes
+  useEffect(() => {
+    const updateLiveTrackMetadata = async () => {
+      if (!isPlayerInitialized) {
+        return; // Don't try to update metadata if player isn't initialized yet
+      }
+
       try {
+        // Only update if we're not playing an archive
         if (!archiveState.isPlayingArchive) {
           await TrackPlayer.updateMetadataForTrack(0, {
             title: 'WMBR 88.1 FM',
-            artist: showTitle || 'Live Radio',
+            artist: currentShow || 'Live Radio',
           });
         }
       } catch (error) {
@@ -65,38 +101,8 @@ export default function HomeScreen() {
       }
     };
 
-    const setupMetadata = () => {
-      const metadataService = MetadataService.getInstance();
-      
-      const unsubscribeMetadata = metadataService.subscribe((data: ShowInfo) => {
-        setCurrentShow(data.showTitle);
-        setHosts(data.hosts);
-        setShowDescription(data.description);
-        setCurrentSong(data.currentSong);
-        setCurrentArtist(data.currentArtist);
-        updateLiveTrackMetadata(data.showTitle);
-      });
-
-      const unsubscribeSongs = metadataService.subscribeSongHistory((songs: Song[]) => {
-        setSongHistory(songs);
-      });
-
-      metadataService.startPolling(15000);
-
-      return () => {
-        unsubscribeMetadata();
-        unsubscribeSongs();
-      };
-    };
-
-    setupPlayer();
-    setupMetadata();
-    const unsubscribeArchive = ArchiveService.getInstance().subscribe(setArchiveState);
-    return () => {
-      MetadataService.getInstance().stopPolling();
-      unsubscribeArchive();
-    };
-  }, [archiveState]);
+    updateLiveTrackMetadata();
+  }, [currentShow, archiveState.isPlayingArchive, isPlayerInitialized]);
 
   useEffect(() => {
     setIsPlaying(playbackState?.state === State.Playing);
@@ -130,30 +136,77 @@ export default function HomeScreen() {
     }
   }, [playbackState, rotateAnim, pulseAnim]);
 
+// Trigger animation when song changes
   useEffect(() => {
     const startSongChangeAnimation = () => {
+      // Reset animation values
       songChangeScale.setValue(1);
       songChangeRotate.setValue(0);
       songChangeOpacity.setValue(1);
   
+      // Create a fun bouncy scale + rotate + opacity animation
       Animated.sequence([
+        // Phase 1: Bounce up with rotation and opacity flash
         Animated.parallel([
-          Animated.timing(songChangeScale, { toValue: 1.3, duration: 200, useNativeDriver: true }),
-          Animated.timing(songChangeRotate, { toValue: 0.25, duration: 200, useNativeDriver: true }),
-          Animated.timing(songChangeOpacity, { toValue: 0.3, duration: 100, useNativeDriver: true }),
+          Animated.timing(songChangeScale, {
+            toValue: 1.3,
+            duration: 200,
+            useNativeDriver: true,
+          }),
+          Animated.timing(songChangeRotate, {
+            toValue: 0.25, // 90 degrees
+            duration: 200,
+            useNativeDriver: true,
+          }),
+          Animated.timing(songChangeOpacity, {
+            toValue: 0.3,
+            duration: 100,
+            useNativeDriver: true,
+          }),
         ]),
+        // Phase 2: Bounce down slightly with opacity return
         Animated.parallel([
-          Animated.timing(songChangeScale, { toValue: 0.9, duration: 150, useNativeDriver: true }),
-          Animated.timing(songChangeRotate, { toValue: -0.1, duration: 150, useNativeDriver: true }),
-          Animated.timing(songChangeOpacity, { toValue: 1, duration: 150, useNativeDriver: true }),
+          Animated.timing(songChangeScale, {
+            toValue: 0.9,
+            duration: 150,
+            useNativeDriver: true,
+          }),
+          Animated.timing(songChangeRotate, {
+            toValue: -0.1, // -36 degrees
+            duration: 150,
+            useNativeDriver: true,
+          }),
+          Animated.timing(songChangeOpacity, {
+            toValue: 1,
+            duration: 150,
+            useNativeDriver: true,
+          }),
         ]),
+        // Phase 3: Settle to normal with slight overshoot
         Animated.parallel([
-          Animated.timing(songChangeScale, { toValue: 1.05, duration: 100, useNativeDriver: true }),
-          Animated.timing(songChangeRotate, { toValue: 0.05, duration: 100, useNativeDriver: true }),
+          Animated.timing(songChangeScale, {
+            toValue: 1.05,
+            duration: 100,
+            useNativeDriver: true,
+          }),
+          Animated.timing(songChangeRotate, {
+            toValue: 0.05, // 18 degrees
+            duration: 100,
+            useNativeDriver: true,
+          }),
         ]),
+        // Phase 4: Return to normal
         Animated.parallel([
-          Animated.timing(songChangeScale, { toValue: 1, duration: 150, useNativeDriver: true }),
-          Animated.timing(songChangeRotate, { toValue: 0, duration: 150, useNativeDriver: true }),
+          Animated.timing(songChangeScale, {
+            toValue: 1,
+            duration: 150,
+            useNativeDriver: true,
+          }),
+          Animated.timing(songChangeRotate, {
+            toValue: 0,
+            duration: 150,
+            useNativeDriver: true,
+          }),
         ]),
       ]).start();
     };
@@ -161,6 +214,7 @@ export default function HomeScreen() {
     if (currentSong && currentArtist && !archiveState.isPlayingArchive) {
       const newSongKey = `${currentArtist}-${currentSong}`;
       if (previousSong && previousSong !== newSongKey) {
+        // Song changed! Trigger fun animation
         startSongChangeAnimation();
       }
       setPreviousSong(newSongKey);
@@ -169,6 +223,15 @@ export default function HomeScreen() {
 
   const setupPlayer = async () => {
     try {
+      // If the player already exists, mark it initialized and skip setup
+      try {
+        await TrackPlayer.getPlaybackState();
+        setIsPlayerInitialized(true);
+        return;
+      } catch (e) {
+        // not initialized yet, proceed
+      }
+
       await TrackPlayer.setupPlayer();
       await TrackPlayer.updateOptions({
         capabilities: [Capability.Play, Capability.Pause, Capability.Stop],
@@ -182,12 +245,19 @@ export default function HomeScreen() {
         artist: 'Live Radio',
         artwork: require('../assets/cover.png'),
       });
+
+      setIsPlayerInitialized(true);
     } catch (error) {
       debugError('Error setting up player:', error);
     }
   };
 
   const togglePlayback = async () => {
+    if (!isPlayerInitialized) {
+      debugError('Player not initialized yet, cannot toggle playback');
+      return;
+    }
+
     try {
       const audioPreviewService = AudioPreviewService.getInstance();
       const previewState = audioPreviewService.getCurrentState();
@@ -228,9 +298,6 @@ export default function HomeScreen() {
       else setShowDetailsVisible(true);
     }
   };
-
-  const handleCloseShowDetails = () => setShowDetailsVisible(false);
-  const handleCloseArchivedShowView = () => setArchivedShowViewVisible(false);
 
   const formatArchiveDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -306,16 +373,7 @@ export default function HomeScreen() {
             <View style={styles.bottomSpace} />
           </View>
         </SafeAreaView>
-
-        <RecentlyPlayedDrawer isVisible={true} onClose={() => {}} />
-
-        {showDetailsVisible && archiveState.currentShow && (
-          <ShowDetailsView show={archiveState.currentShow} isVisible={showDetailsVisible} onClose={handleCloseShowDetails} />
-        )}
-
-        {archivedShowViewVisible && archiveState.currentShow && archiveState.currentArchive && (
-          <ArchivedShowView show={archiveState.currentShow} archive={archiveState.currentArchive} isVisible={archivedShowViewVisible} onClose={handleCloseArchivedShowView} />
-        )}
+      <RecentlyPlayedDrawer isVisible={true} onClose={() => {}} currentShow={currentShow} onShowSchedule={() => setScheduleViewVisible(true)} />
       </LinearGradient>
     </GestureHandlerRootView>
   );

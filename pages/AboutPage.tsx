@@ -44,7 +44,7 @@ export default function AboutPage() {
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.container}>
           <View style={styles.logoRow}>
-            <SvgXml xml={getWMBRLogoSVG('#FFFFFF')} width={120} height={26} />
+            <SvgXml xml={getWMBRLogoSVG('#FFFFFF')} width={60} height={16} />
           </View>
 
           <Text style={styles.body}>

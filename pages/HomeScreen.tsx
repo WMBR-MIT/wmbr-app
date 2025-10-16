@@ -374,7 +374,7 @@ export default function HomeScreen() {
             <View style={styles.bottomSpace} />
           </View>
         </SafeAreaView>
-      <RecentlyPlayedDrawer isVisible={true} onClose={() => {}} currentShow={currentShow} onShowSchedule={() => setScheduleViewVisible(true)} />
+        <RecentlyPlayedDrawer currentShow={currentShow} />
       </LinearGradient>
     </GestureHandlerRootView>
   );

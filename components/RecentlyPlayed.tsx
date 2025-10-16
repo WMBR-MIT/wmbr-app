@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { useIsFocused, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import {
   View,
   Text,
@@ -11,20 +11,32 @@ import {
   RefreshControl,
   Appearance,
 } from 'react-native';
-import { debugError, debugLog } from '../utils/Debug';
+import { debugError } from '../utils/Debug';
 import { RecentlyPlayedService } from '../services/RecentlyPlayedService';
 import { AudioPreviewService, PreviewState } from '../services/AudioPreviewService';
-import { ShowGroup, ProcessedSong, Show } from '../types/RecentlyPlayed';
+import { ProcessedSong } from '../types/RecentlyPlayed';
 import CircularProgress from './CircularProgress';
+import { useShowPlaylists } from './hooks/useShowPlaylists';
 
-export default function RecentlyPlayed() {
+interface RecentlyPlayedProps {
+  currentShow?: string;
+  refreshKey?: number;
+}
+export default function RecentlyPlayed({ currentShow, refreshKey }: RecentlyPlayedProps = {}) {
   const navigation = useNavigation<any>();
-  const [showGroups, setShowGroups] = useState<ShowGroup[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [selectedShow, setSelectedShow] = useState<Show | null>(null);
-  const [showDetailsVisible, setShowDetailsVisible] = useState(false);
+  // use shared hook for playlist logic
+  const {
+    showGroups,
+    showPlaylists,
+    loading,
+    refreshing,
+    error,
+    fetchRecentlyPlayed,
+    fetchCurrentShowPlaylist,
+    setHasReachedEndOfDay,
+    setShouldAutoLoadPrevious,
+  } = useShowPlaylists(currentShow);
+
   const [previewState, setPreviewState] = useState<PreviewState>({
     isPlaying: false,
     duration: 0,
@@ -38,42 +50,31 @@ export default function RecentlyPlayed() {
   const audioPreviewService = AudioPreviewService.getInstance();
 
   useEffect(() => {
-    const frp = async (isRefresh = false) => {
-      if (isRefresh) {
-        setRefreshing(true);
-      } else {
-        setLoading(true);
-      }
-      setError(null);
-      
-      try {
-  const groups = await recentlyPlayedService.fetchRecentlyPlayed(isRefresh);
-  debugLog('RecentlyPlayed.fetchRecentlyPlayed -> groups length:', groups.length);
-  setShowGroups(groups);
-      } catch (err) {
-        setError('Failed to load recently played songs');
-        debugError('Error fetching recently played:', err);
-      } finally {
-        if (isRefresh) {
-          setRefreshing(false);
-        } else {
-          setLoading(false);
-        }
-      }
-    }
-
-    // Always load data since drawer is always visible
-    frp();
-    // Force light content for refresh control
+    // On mount, load recently played and set appearance
+    fetchRecentlyPlayed();
     Appearance.setColorScheme('light');
-    
+
     return () => {
-      // Stop any playing preview when component unmounts
       audioPreviewService.stop();
-      // Reset appearance
       Appearance.setColorScheme(null);
     };
-  }, [audioPreviewService, recentlyPlayedService]);
+  }, [audioPreviewService, fetchRecentlyPlayed]);
+
+  // When currentShow changes, try to load its playlist
+  useEffect(() => {
+    if (currentShow) {
+      fetchCurrentShowPlaylist();
+    }
+  }, [currentShow, fetchCurrentShowPlaylist]);
+
+  // Parent-requested refresh (drawer refresh button increments refreshKey)
+  useEffect(() => {
+    if (typeof refreshKey === 'number') {
+      fetchRecentlyPlayed(true);
+      if (currentShow) fetchCurrentShowPlaylist(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [refreshKey]);
 
   useEffect(() => {
     // Subscribe to preview state changes
@@ -81,47 +82,22 @@ export default function RecentlyPlayed() {
     return unsubscribe;
   }, [audioPreviewService]);
 
-  const fetchRecentlyPlayed = async (isRefresh = false) => {
-    if (isRefresh) {
-      setRefreshing(true);
-    } else {
-      setLoading(true);
-    }
-    setError(null);
-    
-    try {
-  const groups = await recentlyPlayedService.fetchRecentlyPlayed(isRefresh);
-  debugLog('RecentlyPlayed.fetchRecentlyPlayed -> groups length:', groups.length);
-  setShowGroups(groups);
-    } catch (err) {
-      setError('Failed to load recently played songs');
-      debugError('Error fetching recently played:', err);
-    } finally {
-      if (isRefresh) {
-        setRefreshing(false);
-      } else {
-        setLoading(false);
-      }
-    }
-  };
+  // The component still uses fetchRecentlyPlayed & fetchCurrentShowPlaylist from hook below in UI actions
 
   const handleRefresh = () => {
     fetchRecentlyPlayed(true);
+    setHasReachedEndOfDay(false);
+    setShouldAutoLoadPrevious(false);
+    fetchCurrentShowPlaylist(true);
   };
 
-  const handleShowTitlePress = (showName: string, showId: string) => {
+  const handleShowTitlePress = (showId: string) => {
     // Find the show details from the service's cache
     const showsCache = recentlyPlayedService.getShowsCache();
     const show = showsCache.find(s => s.id === showId);
-    
     if (show) {
       navigation.push('ShowDetails', { show: show });
     }
-  };
-
-  const handleCloseShowDetails = () => {
-    setShowDetailsVisible(false);
-    setSelectedShow(null);
   };
 
   const handlePlayPreview = async (song: ProcessedSong) => {
@@ -223,6 +199,44 @@ export default function RecentlyPlayed() {
     const content: React.ReactNode[] = [];
     const stickyIndices: number[] = [];
     
+    // If we have a currentShow and playlist data, render that instead
+    if (currentShow && showPlaylists.length > 0) {
+      // Single-show view
+      if (showPlaylists.length === 1) {
+        const curr = showPlaylists[0];
+        if (curr.songs.length === 0) {
+          return { content: [
+            <View key="no-playlist" style={styles.emptyShowContainer}><Text style={styles.emptyShowText}>No playlist found for this show</Text></View>
+          ], stickyIndices: [] };
+        }
+
+        const nodes: React.ReactNode[] = [];
+        nodes.push(
+          <View key="current-show">
+            {curr.songs.map((song, i) => renderSong(song, i)).filter(Boolean)}
+          </View>
+        );
+
+        return { content: nodes, stickyIndices: [] };
+      }
+      // Multiple playlists
+      showPlaylists.forEach((showPlaylist, index) => {
+        content.push(
+          <View key={`show-${index}`}>
+            <View style={styles.showHeader}>
+              <Text style={styles.showHeaderTitle}>{showPlaylist.showName}</Text>
+              <Text style={styles.showHeaderSubtitle}>{showPlaylist.songs.length > 0 ? `${showPlaylist.songs.length} song${showPlaylist.songs.length !== 1 ? 's' : ''}` : 'No playlist available'}</Text>
+            </View>
+            {showPlaylist.songs.map((song, si) => (
+              <View key={`song-${index}-${si}`}>{renderSong(song, si)}</View>
+            ))}
+          </View>
+        );
+      });
+
+      return { content, stickyIndices };
+    }
+
     showGroups.forEach((group, groupIndex) => {
       const validSongs = group.songs.filter(song => song.title && song.artist);
       
@@ -234,7 +248,7 @@ export default function RecentlyPlayed() {
         <TouchableOpacity 
           key={`header-${groupIndex}`} 
           style={styles.stickyHeader}
-          onPress={() => handleShowTitlePress(group.showName, validSongs[0].showId)}
+          onPress={() => handleShowTitlePress(validSongs[0].showId)}
           activeOpacity={0.7}
         >
           <Text style={styles.showTitle}>{group.showName}</Text>
@@ -269,7 +283,7 @@ export default function RecentlyPlayed() {
             style={[styles.scrollView, { backgroundColor: '#1a1a1a' }]}
             showsVerticalScrollIndicator={false}
             bounces={true}
-            stickyHeaderIndices={showGroups.length > 0 ? renderStickyContent().stickyIndices : []}
+            stickyHeaderIndices={((currentShow && showPlaylists.length > 0) || showGroups.length > 0) ? renderStickyContent().stickyIndices : []}
             refreshControl={
               <RefreshControl
                 refreshing={refreshing}
@@ -282,7 +296,7 @@ export default function RecentlyPlayed() {
               />
             }
           >
-            {loading ? (
+            {(loading && !refreshing) ? (
               <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color="#FFFFFF" />
                 <Text style={styles.loadingText}>Loading recently played...</Text>
@@ -294,7 +308,7 @@ export default function RecentlyPlayed() {
                   <Text style={styles.retryButtonText}>Retry</Text>
                 </TouchableOpacity>
               </View>
-            ) : showGroups.length > 0 ? (
+            ) : ((currentShow && showPlaylists.length > 0) || showGroups.length > 0) ? (
               renderStickyContent().content
             ) : (
               <View style={styles.emptyContainer}>
@@ -495,6 +509,36 @@ const styles = StyleSheet.create({
     color: '#888',
     fontSize: 16,
     textAlign: 'center',
+  },
+  emptyShowContainer: {
+    paddingVertical: 30,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyShowText: {
+    color: '#666',
+    fontSize: 14,
+    textAlign: 'center',
+    fontStyle: 'italic',
+  },
+  showHeader: {
+    backgroundColor: '#2a2a2a',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#333',
+    marginBottom: 0,
+  },
+  showHeaderTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#00843D',
+    marginBottom: 2,
+  },
+  showHeaderSubtitle: {
+    fontSize: 12,
+    color: '#888',
   },
   bottomPadding: {
     height: 100,

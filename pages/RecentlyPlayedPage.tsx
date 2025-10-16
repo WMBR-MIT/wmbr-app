@@ -1,17 +1,19 @@
-import React from 'react';
-import { View, SafeAreaView, TouchableOpacity, Text, StyleSheet } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import React, { useState } from 'react';
+import { View, SafeAreaView, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import RecentlyPlayed from '../components/RecentlyPlayed';
 
 export default function RecentlyPlayedPage() {
+  const [refreshKey, setRefreshKey] = useState(0);
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Recently Played</Text>
-        <View style={styles.spacer} />
+        <TouchableOpacity onPress={() => setRefreshKey(k => k + 1)} style={styles.refreshButton}>
+          <Text style={styles.refreshText}>↻</Text>
+        </TouchableOpacity>
       </View>
-      <RecentlyPlayed />
+      <RecentlyPlayed refreshKey={refreshKey} />
     </SafeAreaView>
   );
 }
@@ -29,4 +31,6 @@ const styles = StyleSheet.create({
   },
   title: { flex: 1, textAlign: 'center', color: '#fff', fontSize: 18, fontWeight: '700' },
   spacer: { width: 40 },
+  refreshButton: { width: 40, alignItems: 'center', justifyContent: 'center' },
+  refreshText: { color: '#fff', fontSize: 18 },
 });

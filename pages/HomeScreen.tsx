@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { debugError } from '../utils/Debug';
 import {
   View,
@@ -20,8 +20,6 @@ import { ArchiveService, ArchivePlaybackState } from '../services/ArchiveService
 import { AudioPreviewService } from '../services/AudioPreviewService';
 import { getWMBRLogoSVG } from '../utils/WMBRLogo';
 import { useNavigation } from '@react-navigation/native';
-import ShowScheduleView from '../components/ShowScheduleView';
-import ArchivedShowView from '../components/ArchivedShowView';
 
 const streamUrl = 'https://wmbr.org:8002/hi';
 const WMBR_GREEN = '#00843D';
@@ -38,9 +36,6 @@ export default function HomeScreen() {
   const [currentArtist, setCurrentArtist] = useState<string | undefined>();
   const [showSplash, setShowSplash] = useState(true);
   const [previousSong, setPreviousSong] = useState<string>('');
-  const [showDetailsVisible, setShowDetailsVisible] = useState(false);
-  const [archivedShowViewVisible, setArchivedShowViewVisible] = useState(false);
-  const [scheduleViewVisible, setScheduleViewVisible] = useState(false);
   const [isPlayerInitialized, setIsPlayerInitialized] = useState(false);
   const [archiveState, setArchiveState] = useState<ArchivePlaybackState>({
     isPlayingArchive: false,
@@ -61,7 +56,7 @@ export default function HomeScreen() {
   }, []);
 
   // Shared helper to update metadata for the live track. Uses the currentShow when available.
-  const updateLiveTrackMetadata = async (showTitle?: string) => {
+  const updateLiveTrackMetadata = useCallback(async (showTitle?: string) => {
     if (!isPlayerInitialized) return;
 
     try {
@@ -75,7 +70,7 @@ export default function HomeScreen() {
     } catch (error) {
       debugError('Error updating track metadata:', error);
     }
-  };
+  }, [isPlayerInitialized, archiveState.isPlayingArchive, currentShow]);
 
   // Move metadata subscription and player setup to mount-only effect
   useEffect(() => {
@@ -88,7 +83,6 @@ export default function HomeScreen() {
         setShowDescription(data.description);
         setCurrentSong(data.currentSong);
         setCurrentArtist(data.currentArtist);
-        // attempt to update metadata (will no-op if player not initialized yet)
         updateLiveTrackMetadata(data.showTitle);
       });
 
@@ -113,7 +107,7 @@ export default function HomeScreen() {
       cleanupMetadata && cleanupMetadata();
       unsubscribeArchive();
     };
-  }, []); // run once on mount
+  }, [updateLiveTrackMetadata]); 
 
   useEffect(() => {
     setIsPlaying(playbackState?.state === State.Playing);
@@ -332,7 +326,7 @@ export default function HomeScreen() {
             <View style={{ height: Math.max(insets.bottom + 56, 56) }} />
           </View>
         </SafeAreaView>
-      <RecentlyPlayedDrawer currentShow={currentShow} onShowSchedule={() => setScheduleViewVisible(true)} />
+      <RecentlyPlayedDrawer currentShow={currentShow} />
       </LinearGradient>
     </GestureHandlerRootView>
   );

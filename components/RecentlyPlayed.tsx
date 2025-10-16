@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import {
   View,
@@ -11,33 +11,28 @@ import {
   RefreshControl,
   Appearance,
 } from 'react-native';
-import { debugError, debugLog } from '../utils/Debug';
+import { debugError } from '../utils/Debug';
 import { RecentlyPlayedService } from '../services/RecentlyPlayedService';
 import { AudioPreviewService, PreviewState } from '../services/AudioPreviewService';
-import { ShowGroup, ProcessedSong, Show } from '../types/RecentlyPlayed';
-import { ScheduleService } from '../services/ScheduleService';
+import { ProcessedSong } from '../types/RecentlyPlayed';
 import CircularProgress from './CircularProgress';
 import { useShowPlaylists } from './hooks/useShowPlaylists';
 
 interface RecentlyPlayedProps {
   currentShow?: string;
-  onShowSchedule?: () => void;
-  /** Optional key to trigger a programmatic refresh from parents (increment to refresh) */
   refreshKey?: number;
 }
-export default function RecentlyPlayed({ currentShow, onShowSchedule, refreshKey }: RecentlyPlayedProps = {}) {
+export default function RecentlyPlayed({ currentShow, refreshKey }: RecentlyPlayedProps = {}) {
   const navigation = useNavigation<any>();
   // use shared hook for playlist logic
   const {
     showGroups,
     showPlaylists,
     loading,
-    loadingMore,
     refreshing,
     error,
     fetchRecentlyPlayed,
     fetchCurrentShowPlaylist,
-    loadPreviousShow,
     setHasReachedEndOfDay,
     setShouldAutoLoadPrevious,
   } = useShowPlaylists(currentShow);
@@ -301,7 +296,7 @@ export default function RecentlyPlayed({ currentShow, onShowSchedule, refreshKey
               />
             }
           >
-            {loading ? (
+            {(loading && !refreshing) ? (
               <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color="#FFFFFF" />
                 <Text style={styles.loadingText}>Loading recently played...</Text>

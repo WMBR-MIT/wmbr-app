@@ -1,5 +1,5 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
-import { useIsFocused, useNavigation } from '@react-navigation/native';
+import React, { useEffect, useState } from 'react';
+import { useIsFocused } from '@react-navigation/native';
 import {
   View,
   Text,
@@ -26,10 +26,9 @@ const PEEK_HEIGHT = 100; // How much of the drawer shows when collapsed
 
 interface RecentlyPlayedDrawerProps {
   currentShow?: string;
-  onShowSchedule?: () => void;
 }
 
-export default function RecentlyPlayedDrawer({ currentShow, onShowSchedule }: RecentlyPlayedDrawerProps) {  
+export default function RecentlyPlayedDrawer({ currentShow }: RecentlyPlayedDrawerProps) {  
   // Animation values - start in peeking position
   const translateY = useSharedValue(DRAWER_HEIGHT - PEEK_HEIGHT);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -132,7 +131,6 @@ export default function RecentlyPlayedDrawer({ currentShow, onShowSchedule }: Re
           <View style={{ flex: 1 }}>
             <RecentlyPlayed
               currentShow={currentShow}
-              onShowSchedule={onShowSchedule}
               refreshKey={refreshKey}
             />
           </View>

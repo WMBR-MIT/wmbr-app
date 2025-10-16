@@ -115,10 +115,11 @@ export function useShowPlaylists(currentShow?: string) {
   const controllerRefGlobal = useRef<AbortController | null>(null);
 
   useEffect(() => {
-    return () => {
-      if (controllerRefGlobal.current) controllerRefGlobal.current.abort();
-    };
-  }, []);
+  const controllerAtMount = controllerRefGlobal.current;
+  return () => {
+    if (controllerAtMount) controllerAtMount.abort();
+  };
+}, []);
 
   const loadPreviousShow = useCallback(async () => {
     const lastLoadedShow = showPlaylists.length > 0 ? showPlaylists[showPlaylists.length - 1].showName : currentShow;

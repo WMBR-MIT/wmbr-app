@@ -66,6 +66,8 @@ export default function SchedulePage({ currentShow }: SchedulePageProps) {
     try {      
       // Fetch archives for this show from the recently played service
       const recentlyPlayedService = RecentlyPlayedService.getInstance();
+
+      await recentlyPlayedService.fetchRecentlyPlayed();
       
       // Get the shows cache which contains the archive data
       const showsWithArchives = recentlyPlayedService.getShowsCache();
@@ -87,8 +89,8 @@ export default function SchedulePage({ currentShow }: SchedulePageProps) {
           [{ text: 'OK' }]
         );
       }
-    } catch (error) {
-      debugError('Error fetching show archives:', error);
+    } catch (err) {
+      debugError('Error fetching show archives:', err);
       Alert.alert(
         'Error', 
         'Unable to fetch archive data. Please try again later.',

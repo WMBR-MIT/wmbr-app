@@ -33,6 +33,54 @@ export class RecentlyPlayedService {
     return RecentlyPlayedService.instance;
   }
 
+  /**
+   * Public helper to fetch a playlist for a show on a given date and return processed songs.
+   * Accepts an optional AbortSignal to support cancellation from callers.
+   */
+  async fetchPlaylistAsSongs(showName: string, date: string, signal?: AbortSignal): Promise<ProcessedSong[]> {
+    try {
+      const encodedShowName = encodeURIComponent(showName);
+      const url = `https://wmbr.alexandersimoes.com/get_playlist?show_name=${encodedShowName}&date=${date}`;
+      debugLog(`Fetching playlist (public) for "${showName}" on ${date}`);
+
+      const response = await fetch(url, { headers: { 'Cache-Control': 'no-cache' }, signal });
+      if (!response.ok) {
+        debugError(`Playlist fetch failed for ${showName}: ${response.status}`);
+        return [];
+      }
+
+      const data = await response.json();
+      if (data.error) {
+        return [];
+      }
+
+      const playlist: PlaylistResponse = data as PlaylistResponse;
+      if (!playlist.songs || playlist.songs.length === 0) return [];
+
+      // Map to ProcessedSong (we don't have scheduleShow here, so use showName-date as showId)
+      const songs: ProcessedSong[] = playlist.songs.map((song: PlaylistSong) => ({
+        title: song.song?.trim() || '',
+        artist: song.artist?.trim() || '',
+        album: song.album?.trim() || undefined,
+        released: undefined,
+        appleStreamLink: '',
+        playedAt: this.parsePlaylistTimestamp(song.time),
+        showName: playlist.show_name,
+        showId: `${playlist.show_name}-${playlist.date}`,
+      }));
+
+      songs.sort((a, b) => b.playedAt.getTime() - a.playedAt.getTime());
+      return songs;
+    } catch (err) {
+      if ((err as any)?.name === 'AbortError') {
+        debugLog('Playlist fetch aborted for', showName, date);
+        return [];
+      }
+      debugError(`Error fetching playlist for ${showName}:`, err);
+      return [];
+    }
+  }
+
   getShowsCache(): Show[] {
     return this.showsCache;
   }
@@ -204,7 +252,7 @@ export class RecentlyPlayedService {
         return null;
       }
       
-      const data = await response.json();
+     const data = await response.json();
       
       // If the response has an "error" key, treat as empty playlist
       if (data.error) {
@@ -221,8 +269,8 @@ export class RecentlyPlayedService {
       debugLog(`Got ${playlistData.songs?.length || 0} songs for "${showName}"`);
       
       return playlistData;
-    } catch (error) {
-      debugError(`Error fetching playlist for ${showName}:`, error);
+    } catch (err) {
+      debugError(`Error fetching playlist for ${showName}:`, err);
       return null;
     }
   }

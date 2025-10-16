@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { RecentlyPlayedService } from '../../services/RecentlyPlayedService';
 import { ProcessedSong, ShowGroup } from '../../types/RecentlyPlayed';
 import { ScheduleService } from '../../services/ScheduleService';
@@ -48,7 +48,7 @@ export function useShowPlaylists(currentShow?: string) {
     if (!currentShow || currentShow === 'WMBR 88.1 FM') return;
     if (isRefresh) {
       setRefreshing(true);
-      setShowPlaylists([]);
+      // do NOT clear existing playlists immediately on refresh to avoid flashing "no playlists"
       setHasReachedEndOfDay(false);
       setShouldAutoLoadPrevious(false);
     } else {
@@ -56,29 +56,69 @@ export function useShowPlaylists(currentShow?: string) {
     }
     setError(null);
     let shouldTriggerAutoLoad = false;
+    const controllerRef = controllerRefGlobal;
+    if (controllerRef.current) {
+      controllerRef.current.abort();
+    }
+    controllerRef.current = new AbortController();
+    const controller = controllerRef.current;
 
     try {
       await fetchRecentlyPlayed(isRefresh);
-      const today = new Date();
-      const easternDate = new Date(today.toLocaleString('en-US', { timeZone: 'America/New_York' }));
-      const year = easternDate.getFullYear();
-      const month = String(easternDate.getMonth() + 1).padStart(2, '0');
-      const day = String(easternDate.getDate()).padStart(2, '0');
+
+      // Safely compute date in America/New_York using Intl to avoid platform-specific parsing issues
+      const dtf = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit' });
+      const parts = dtf.formatToParts(new Date());
+      const year = parts.find(p => p.type === 'year')?.value;
+      const month = parts.find(p => p.type === 'month')?.value;
+      const day = parts.find(p => p.type === 'day')?.value;
+      if (!year || !month || !day) {
+        debugError('fetchCurrentShowPlaylist: invalid date parts, skipping playlist fetch');
+        return;
+      }
       const dateStr = `${year}-${month}-${day}`;
 
-      const controller = new AbortController();
+      debugError(`fetchCurrentShowPlaylist: fetching playlist for ${currentShow} on ${dateStr}`);
       const songs = await fetchShowPlaylist(currentShow, dateStr, controller.signal);
-      setShowPlaylists([{ showName: currentShow, songs }]);
-      if (songs.length === 0) shouldTriggerAutoLoad = true;
-    } catch (err) {
+      debugError(`fetchCurrentShowPlaylist: fetched ${songs.length} songs for ${currentShow}`);
+
+      // If the request was aborted, skip any state updates
+      if (controller.signal.aborted) {
+        debugError('fetchCurrentShowPlaylist: aborted, skipping state update');
+        return;
+      }
+
+      // Only update playlists when we actually received songs.
+      // If the fetch returned 0 songs (e.g., 400/404 or no data), do not clobber the UI — instead trigger loading previous.
+      if (songs.length > 0) {
+        setShowPlaylists([{ showName: currentShow, songs }]);
+      } else {
+        debugError(`fetchCurrentShowPlaylist: received 0 songs for ${currentShow}, will trigger load previous`);
+        shouldTriggerAutoLoad = true;
+      }
+    } catch (err: any) {
+      // If aborted, quietly return without changing UI
+      if (err?.name === 'AbortError' || controller.signal.aborted) {
+        debugError('fetchCurrentShowPlaylist: fetch aborted');
+        return;
+      }
       setError(`Failed to load playlist for ${currentShow}`);
       debugError('Error fetching current show playlist:', err);
-      setShowPlaylists([]);
+      // Don't overwrite existing playlists on transient errors
     } finally {
       if (isRefresh) setRefreshing(false); else setLoading(false);
       if (shouldTriggerAutoLoad) setShouldAutoLoadPrevious(true);
     }
   }, [currentShow, fetchRecentlyPlayed, fetchShowPlaylist]);
+
+  // Keep a single AbortController ref for current-show fetches so we can cancel stale requests
+  const controllerRefGlobal = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (controllerRefGlobal.current) controllerRefGlobal.current.abort();
+    };
+  }, []);
 
   const loadPreviousShow = useCallback(async () => {
     const lastLoadedShow = showPlaylists.length > 0 ? showPlaylists[showPlaylists.length - 1].showName : currentShow;
@@ -107,6 +147,7 @@ export function useShowPlaylists(currentShow?: string) {
   }, [currentShow, showPlaylists, loadingMore, hasReachedEndOfDay, fetchShowPlaylist]);
 
   useEffect(() => {
+    debugError(`useShowPlaylists: clearing playlists because currentShow changed -> ${currentShow}`);
     setShowPlaylists([]);
     setHasReachedEndOfDay(false);
     setShouldAutoLoadPrevious(false);

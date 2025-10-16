@@ -21,7 +21,6 @@ import { ScheduleService } from '../services/ScheduleService';
 import { getWMBRLogoSVG } from '../utils/WMBRLogo';
 import ShowDetailsView from '../components/ShowDetailsView';
 import { RecentlyPlayedService } from '../services/RecentlyPlayedService';
-import { useNavigation } from '@react-navigation/native';
 
 interface SchedulePageProps {
   currentShow?: string;

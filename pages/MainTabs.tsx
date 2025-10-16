@@ -1,6 +1,5 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Text, View } from 'react-native';
 import HomeScreen from './HomeScreen';
 import BottomMenuBar from '../components/BottomMenuBar';
 import SchedulePage from './SchedulePage';
@@ -9,14 +8,6 @@ import AboutPage from './AboutPage';
 
 const Tab = createBottomTabNavigator<any>();
 const renderTabBar = (props: any) => <BottomMenuBar {...props} />;
-
-function PlaceholderScreen({ title }: { title: string }) {
-  return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-      <Text>{title}</Text>
-    </View>
-  );
-}
 
 export default function MainTabs() {
   return (

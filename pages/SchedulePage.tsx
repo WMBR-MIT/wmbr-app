@@ -4,7 +4,6 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  Dimensions,
   ScrollView,
   SafeAreaView,
   StatusBar,
@@ -29,7 +28,6 @@ interface SchedulePageProps {
 }
 
 export default function SchedulePage({ currentShow }: SchedulePageProps) { 
-  const navigation = useNavigation();
 
   const [schedule, setSchedule] = useState<ScheduleResponse | null>(null);
   const [loading, setLoading] = useState(true);

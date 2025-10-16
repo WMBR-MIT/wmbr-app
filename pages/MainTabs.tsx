@@ -5,14 +5,7 @@ import HomeScreen from './HomeScreen';
 import BottomMenuBar from '../components/BottomMenuBar';
 import ShowScheduleScreen from './ShowScheduleScreen';
 
-type RootTabParamList = {
-  Home: undefined;
-  Schedule: undefined;
-  Archive: undefined;
-  Messages: undefined;
-};
-
-const Tab = createBottomTabNavigator<RootTabParamList>();
+const Tab = createBottomTabNavigator<any>();
 
 function PlaceholderScreen({ title }: { title: string }) {
   return (
@@ -26,9 +19,9 @@ export default function MainTabs() {
   return (
     <Tab.Navigator screenOptions={{ headerShown: false }} tabBar={(props) => <BottomMenuBar {...props} />}>
       <Tab.Screen name="Home" component={HomeScreen} />
+      <Tab.Screen name="Recently Played" children={() => <PlaceholderScreen title="Recently Played" />} />
       <Tab.Screen name="Schedule" component={ShowScheduleScreen} />
-      <Tab.Screen name="Archive" children={() => <PlaceholderScreen title="Archive" />} />
-      <Tab.Screen name="Messages" children={() => <PlaceholderScreen title="Messages" />} />
+      <Tab.Screen name="About" children={() => <PlaceholderScreen title="About" />} />
     </Tab.Navigator>
   );
 }

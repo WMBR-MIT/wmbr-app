@@ -34,9 +34,6 @@ export default function HomeScreen() {
   const [currentArtist, setCurrentArtist] = useState<string | undefined>();
   const [showSplash, setShowSplash] = useState(true);
   const [previousSong, setPreviousSong] = useState<string>('');
-  const [showDetailsVisible, setShowDetailsVisible] = useState(false);
-  const [archivedShowViewVisible, setArchivedShowViewVisible] = useState(false);
-  const [, setScheduleViewVisible] = useState(false);
   const [isPlayerInitialized, setIsPlayerInitialized] = useState(false);
   const [archiveState, setArchiveState] = useState<ArchivePlaybackState>({
     isPlayingArchive: false,
@@ -290,19 +287,6 @@ export default function HomeScreen() {
 
   const handleSplashEnd = () => setShowSplash(false);
   const handleSwitchToLive = async () => { try { await ArchiveService.getInstance().switchToLive(currentShow); } catch (e) { debugError('Error switching to live:', e); } };
-  const handleShowNamePress = () => {
-    if (archiveState.currentShow) {
-      if (showDetailsVisible) setShowDetailsVisible(false);
-      else if (archivedShowViewVisible) { setArchivedShowViewVisible(false); setShowDetailsVisible(true); }
-      else if (archiveState.isPlayingArchive && archiveState.currentArchive) setArchivedShowViewVisible(true);
-      else setShowDetailsVisible(true);
-    }
-  };
-
-  const formatArchiveDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
-  };
 
   if (showSplash) return <SplashScreen onAnimationEnd={handleSplashEnd} />;
 

@@ -115,8 +115,9 @@ export function useShowPlaylists(currentShow?: string) {
   const controllerRefGlobal = useRef<AbortController | null>(null);
 
   useEffect(() => {
+    const controllerAtMount = controllerRefGlobal.current;
     return () => {
-      if (controllerRefGlobal.current) controllerRefGlobal.current.abort();
+      if (controllerAtMount) controllerAtMount.abort();
     };
   }, []);
 

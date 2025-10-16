@@ -20,6 +20,8 @@ import { ArchiveService, ArchivePlaybackState } from '../services/ArchiveService
 import { AudioPreviewService } from '../services/AudioPreviewService';
 import { getWMBRLogoSVG } from '../utils/WMBRLogo';
 import { useNavigation } from '@react-navigation/native';
+import ShowScheduleView from '../components/ShowScheduleView';
+import ArchivedShowView from '../components/ArchivedShowView';
 
 const streamUrl = 'https://wmbr.org:8002/hi';
 const WMBR_GREEN = '#00843D';
@@ -36,6 +38,10 @@ export default function HomeScreen() {
   const [currentArtist, setCurrentArtist] = useState<string | undefined>();
   const [showSplash, setShowSplash] = useState(true);
   const [previousSong, setPreviousSong] = useState<string>('');
+  const [showDetailsVisible, setShowDetailsVisible] = useState(false);
+  const [archivedShowViewVisible, setArchivedShowViewVisible] = useState(false);
+  const [scheduleViewVisible, setScheduleViewVisible] = useState(false);
+  const [isPlayerInitialized, setIsPlayerInitialized] = useState(false);
   const [archiveState, setArchiveState] = useState<ArchivePlaybackState>({
     isPlayingArchive: false,
     currentArchive: null,
@@ -51,28 +57,38 @@ export default function HomeScreen() {
   const navigation = useNavigation<any>();
 
   useEffect(() => {
-    const updateLiveTrackMetadata = async (showTitle: string) => {
-      try {
-        if (!archiveState.isPlayingArchive) {
-          await TrackPlayer.updateMetadataForTrack(0, {
-            title: 'WMBR 88.1 FM',
-            artist: showTitle || 'Live Radio',
-          });
-        }
-      } catch (error) {
-        debugError('Error updating track metadata:', error);
-      }
-    };
+    // no-op here — replaced by split effects below
+  }, []);
 
+  // Shared helper to update metadata for the live track. Uses the currentShow when available.
+  const updateLiveTrackMetadata = async (showTitle?: string) => {
+    if (!isPlayerInitialized) return;
+
+    try {
+      if (!archiveState.isPlayingArchive) {
+        const artistName = showTitle ?? currentShow ?? 'Live Radio';
+        await TrackPlayer.updateMetadataForTrack(0, {
+          title: 'WMBR 88.1 FM',
+          artist: artistName,
+        });
+      }
+    } catch (error) {
+      debugError('Error updating track metadata:', error);
+    }
+  };
+
+  // Move metadata subscription and player setup to mount-only effect
+  useEffect(() => {
     const setupMetadata = () => {
       const metadataService = MetadataService.getInstance();
-      
+
       const unsubscribeMetadata = metadataService.subscribe((data: ShowInfo) => {
         setCurrentShow(data.showTitle);
         setHosts(data.hosts);
         setShowDescription(data.description);
         setCurrentSong(data.currentSong);
         setCurrentArtist(data.currentArtist);
+        // attempt to update metadata (will no-op if player not initialized yet)
         updateLiveTrackMetadata(data.showTitle);
       });
 
@@ -89,13 +105,15 @@ export default function HomeScreen() {
     };
 
     setupPlayer();
-    setupMetadata();
+    const cleanupMetadata = setupMetadata();
     const unsubscribeArchive = ArchiveService.getInstance().subscribe(setArchiveState);
+
     return () => {
       MetadataService.getInstance().stopPolling();
+      cleanupMetadata && cleanupMetadata();
       unsubscribeArchive();
     };
-  }, [archiveState]);
+  }, []); // run once on mount
 
   useEffect(() => {
     setIsPlaying(playbackState?.state === State.Playing);
@@ -168,6 +186,15 @@ export default function HomeScreen() {
 
   const setupPlayer = async () => {
     try {
+      // If the player already exists, mark it initialized and skip setup
+      try {
+        await TrackPlayer.getPlaybackState();
+        setIsPlayerInitialized(true);
+        return;
+      } catch (e) {
+        // not initialized yet, proceed
+      }
+
       await TrackPlayer.setupPlayer();
       await TrackPlayer.updateOptions({
         capabilities: [Capability.Play, Capability.Pause, Capability.Stop],
@@ -181,12 +208,19 @@ export default function HomeScreen() {
         artist: 'Live Radio',
         artwork: require('../assets/cover.png'),
       });
+
+      setIsPlayerInitialized(true);
     } catch (error) {
       debugError('Error setting up player:', error);
     }
   };
 
   const togglePlayback = async () => {
+    if (!isPlayerInitialized) {
+      debugError('Player not initialized yet, cannot toggle playback');
+      return;
+    }
+
     try {
       const audioPreviewService = AudioPreviewService.getInstance();
       const previewState = audioPreviewService.getCurrentState();
@@ -298,7 +332,7 @@ export default function HomeScreen() {
             <View style={{ height: Math.max(insets.bottom + 56, 56) }} />
           </View>
         </SafeAreaView>
-        <RecentlyPlayedDrawer isVisible={true} onClose={() => {}} />
+  <RecentlyPlayedDrawer isVisible={true} onClose={() => {}} currentShow={currentShow} onShowSchedule={() => setScheduleViewVisible(true)} />
       </LinearGradient>
     </GestureHandlerRootView>
   );

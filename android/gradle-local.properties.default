@@ -1,0 +1,9 @@
+# Android Signing Configuration Template
+# Copy this file to gradle-local.properties and fill in your values
+# gradle-local.properties is gitignored for security
+
+# Release signing configuration for Google Play Store
+WMBR_UPLOAD_STORE_FILE=wmbr-upload-key.keystore
+WMBR_UPLOAD_STORE_PASSWORD=
+WMBR_UPLOAD_KEY_ALIAS=wmbr-upload-key
+WMBR_UPLOAD_KEY_PASSWORD=

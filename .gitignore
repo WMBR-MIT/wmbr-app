@@ -2,6 +2,7 @@
 node_modules/
 android/.gradle/
 android/app/build/
+android/app/.cxx/
 ios/Pods/
 ios/build/
 ios/.xcode.env.local
@@ -9,6 +10,9 @@ ios/.xcode.env.local
 *.jks
 *.p8
 *.p12
+
+# Local gradle properties with secrets
+android/gradle-local.properties
 
 # Builds
 dist/

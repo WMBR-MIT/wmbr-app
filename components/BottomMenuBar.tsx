@@ -5,7 +5,7 @@ import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 export default function BottomMenuBar({ state, navigation }: BottomTabBarProps) {
   return (
     <View style={styles.container}>
-      {state.routes.map((route, idx) => (
+      {state.routes.map((route) => (
         <TouchableOpacity
           key={route.key}
           style={styles.tab}

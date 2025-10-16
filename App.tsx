@@ -2,8 +2,8 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import MainTabs from './navigation/MainTabs';
-import ShowScheduleScreen from './navigation/ShowScheduleScreen';
+import MainTabs from './pages/MainTabs';
+import ShowScheduleScreen from './pages/ShowScheduleScreen';
 
 const Stack = createNativeStackNavigator();
 

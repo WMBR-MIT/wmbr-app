@@ -340,7 +340,11 @@ export default function HomeScreen() {
                             <View style={[styles.pauseBar, isPlaying && styles.pauseBarActive]} />
                           </View>
                         ) : (
-                          <View style={styles.playIcon} />
+                          <SvgXml xml={`
+                              <svg viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
+                                <polygon points="6,4 30,18 6,32" fill="#FFFFFF" />
+                              </svg>
+                            `} width={40} height={40} />
                         )}
                       </View>
                     </View>

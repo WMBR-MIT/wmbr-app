@@ -1,7 +1,7 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Text, View } from 'react-native';
-import HomeScreen from '../pages/HomeScreen';
+import HomeScreen from './HomeScreen';
 import BottomMenuBar from '../components/BottomMenuBar';
 import ShowScheduleScreen from './ShowScheduleScreen';
 

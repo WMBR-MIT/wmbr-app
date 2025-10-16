@@ -15,6 +15,8 @@ A React Native app for streaming WMBR 88.1 FM and browsing show archives, song h
 ### Prerequisites
 - Complete the [React Native environment setup](https://reactnative.dev/docs/set-up-your-environment)
 - Install dependencies: `npm install`
+- Install iOS pods: `cd ios && bundle exec pod install`
+    - If `bundle exec pod install` fails, try `pod install`
 
 ## Build and Run
 
@@ -23,7 +25,7 @@ A React Native app for streaming WMBR 88.1 FM and browsing show archives, song h
 - Copy `ios/.xcode.env` to `ios/.xcode.env.local` and modify the node path
 - Open the app in Xcode:
   ```bash
-  open ios/WMBRRadioApp.xcworkspace
+  open ios/WmbrApp.xcworkspace
   ```
 - Build the app (⇧⌘B)
 - Run iOS simulator:
@@ -53,6 +55,16 @@ A React Native app for streaming WMBR 88.1 FM and browsing show archives, song h
 
 ### Build Release AAB
 
+### Run the Simulator
+
+In one terminal window, start the server with:
+```bash
+npm start
+```
+
+In another, start the simulator with:
+```bash
+npm run ios -- --simulator="iPhone 16" # "iPhone 17" if you're on macOS / Xcode 26
 **Windows:**
 ```bash
 cd android && gradlew bundleRelease

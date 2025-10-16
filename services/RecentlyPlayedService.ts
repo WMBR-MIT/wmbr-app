@@ -204,10 +204,23 @@ export class RecentlyPlayedService {
         return null;
       }
       
-      const data: PlaylistResponse = await response.json();
-      debugLog(`Got ${data.songs?.length || 0} songs for "${showName}"`);
+      const data = await response.json();
       
-      return data;
+      // If the response has an "error" key, treat as empty playlist
+      if (data.error) {
+        debugLog(`No playlist found for "${showName}" (${data.error}), treating as empty`);
+        return {
+          show_name: showName,
+          date: date,
+          playlist_id: '',
+          songs: []
+        };
+      }
+      
+      const playlistData = data as PlaylistResponse;
+      debugLog(`Got ${playlistData.songs?.length || 0} songs for "${showName}"`);
+      
+      return playlistData;
     } catch (error) {
       debugError(`Error fetching playlist for ${showName}:`, error);
       return null;

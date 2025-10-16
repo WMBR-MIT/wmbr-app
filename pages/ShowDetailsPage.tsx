@@ -9,7 +9,6 @@ import {
   ScrollView,
   SafeAreaView,
   StatusBar,
-  BackHandler,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
@@ -22,7 +21,7 @@ import Animated, {
   runOnJS,
 } from 'react-native-reanimated';
 import { SvgXml } from 'react-native-svg';
-import { Show, Archive } from '../types/RecentlyPlayed';
+import { Archive } from '../types/RecentlyPlayed';
 import { ArchiveService } from '../services/ArchiveService';
 import { useProgress, usePlaybackState, State } from 'react-native-track-player';
 import TrackPlayer from 'react-native-track-player';
@@ -32,7 +31,7 @@ import { getWMBRLogoSVG } from '../utils/WMBRLogo';
 import { formatDate, getDurationFromSize, formatShowTime, secondsToTime } from '../utils/DateTime';
 import { generateDarkGradientColors, generateGradientColors } from '../utils/Colors';
 
-const { width, height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 const ALBUM_SIZE = width * 0.6;
 const CIRCLE_DIAMETER = 16;
 

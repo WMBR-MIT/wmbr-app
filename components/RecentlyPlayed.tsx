@@ -61,7 +61,7 @@ export default function RecentlyPlayed({ currentShow, refreshKey }: RecentlyPlay
       // Reset appearance
       Appearance.setColorScheme(null);
     };
-  }, [audioPreviewService]);
+  }, [audioPreviewService]);  
 
   useEffect(() => {
     // Subscribe to preview state changes
@@ -233,41 +233,23 @@ export default function RecentlyPlayed({ currentShow, refreshKey }: RecentlyPlay
 
   // Clear playlist data when current show changes
   useEffect(() => {
-    // Do not aggressively clear existing playlists here; instead reset auxiliary flags
-    // and trigger a fetch so the UI doesn't flash "No playlist found" while fetching.
+    setShowPlaylists([]);
     setHasReachedEndOfDay(false);
     setShouldAutoLoadPrevious(false);
     setError(null);
-    // Try to fetch the playlist for the new current show
-    if (currentShow && currentShow !== 'WMBR 88.1 FM') {
-      // fire-and-forget
-      fetchCurrentShowPlaylist().catch(err => debugError('Error fetching playlist on currentShow change:', err));
-    }
   }, [currentShow]);
 
-  // Respond to refresh requests from the parent drawer (refreshKey increments)
-  useEffect(() => {
-    if (typeof refreshKey === 'number') {
-      // Drawer requested refresh (either opened or user pressed refresh)
-      fetchCurrentShowPlaylist(true).catch(err => debugError('Error fetching playlist on refreshKey:', err));
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [refreshKey]);
-
-  // Initial load on mount: attempt to fetch current show playlist if available
-  useEffect(() => {
-    if (currentShow && currentShow !== 'WMBR 88.1 FM') {
-      fetchCurrentShowPlaylist().catch(err => debugError('Error fetching playlist on mount:', err));
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Load playlist data when drawer becomes visible and we have a current show
   useEffect(() => {
     if (isDrawerOpen && currentShow && currentShow !== 'WMBR 88.1 FM') {
       fetchCurrentShowPlaylist();
     }
   }, [isDrawerOpen, currentShow, fetchCurrentShowPlaylist]);
+
+  useEffect(() => {
+    if (typeof refreshKey === 'number') {
+      fetchCurrentShowPlaylist(true);
+    }
+  }, [refreshKey, fetchCurrentShowPlaylist]);
 
   // Auto-load previous show when current show has no songs
   useEffect(() => {
@@ -283,9 +265,6 @@ export default function RecentlyPlayed({ currentShow, refreshKey }: RecentlyPlay
       loadPreviousShow();
     }
   }, [shouldAutoLoadPrevious, showPlaylists, loading, loadingMore, hasReachedEndOfDay, loadPreviousShow]);
-
-  // Removed automatic loading - only load on scroll or manual trigger
-
 
   const handleRefresh = () => {
     setHasReachedEndOfDay(false);
@@ -342,7 +321,6 @@ export default function RecentlyPlayed({ currentShow, refreshKey }: RecentlyPlay
   };
 
   const renderSong = (song: ProcessedSong, index: number) => {
-    // Validate song data
     if (!song.title || !song.artist) {
       return null;
     }
@@ -425,7 +403,7 @@ export default function RecentlyPlayed({ currentShow, refreshKey }: RecentlyPlay
         </View>
         {showPlaylist.songs.length > 0 ? (
           showPlaylist.songs.map((song, songIndex) => 
-            renderSong(song, `${showIndex}-${songIndex}`)
+            renderSong(song, parseInt(`${showIndex}-${songIndex}`))
           ).filter(Boolean)
         ) : (
           <View style={styles.emptyShowContainer}>
@@ -450,7 +428,7 @@ export default function RecentlyPlayed({ currentShow, refreshKey }: RecentlyPlay
       content.push(
         <View key="current-show">
           {showPlaylists[0].songs.map((song, songIndex) => 
-            renderSong(song, `current-${songIndex}`)
+            renderSong(song, parseInt(`current-${songIndex}`))
           ).filter(Boolean)}
         </View>
       );

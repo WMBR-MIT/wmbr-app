@@ -14,7 +14,6 @@ import { debugError } from '../utils/Debug';
 import { AudioPreviewService, PreviewState } from '../services/AudioPreviewService';
 import { ProcessedSong } from '../types/RecentlyPlayed';
 import { ScheduleService } from '../services/ScheduleService';
-import { RecentlyPlayedService } from '../services/RecentlyPlayedService'
 import CircularProgress from './CircularProgress';
 import { useNavigation } from '@react-navigation/native';
 
@@ -36,7 +35,6 @@ export default function RecentlyPlayed({ currentShow, refreshKey }: RecentlyPlay
   const [loadingMore, setLoadingMore] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [hasReachedEndOfDay, setHasReachedEndOfDay] = useState(false); // Track if we've reached end of shows
   const [previewState, setPreviewState] = useState<PreviewState>({
     isPlaying: false,
@@ -47,8 +45,7 @@ export default function RecentlyPlayed({ currentShow, refreshKey }: RecentlyPlay
   });
   
   const scrollViewRef = useRef<ScrollView>(null);
-  const recentlyPlayedService = RecentlyPlayedService.getInstance();  
-   const audioPreviewService = AudioPreviewService.getInstance();
+  const audioPreviewService = AudioPreviewService.getInstance();
   const [shouldAutoLoadPrevious, setShouldAutoLoadPrevious] = useState(false); // Trigger auto-load of previous show
 
   useEffect(() => {
@@ -240,10 +237,10 @@ export default function RecentlyPlayed({ currentShow, refreshKey }: RecentlyPlay
   }, [currentShow]);
 
   useEffect(() => {
-    if (isDrawerOpen && currentShow && currentShow !== 'WMBR 88.1 FM') {
+    if (currentShow && currentShow !== 'WMBR 88.1 FM') {
       fetchCurrentShowPlaylist();
     }
-  }, [isDrawerOpen, currentShow, fetchCurrentShowPlaylist]);
+  }, [currentShow, fetchCurrentShowPlaylist]);
 
   useEffect(() => {
     if (typeof refreshKey === 'number') {
@@ -283,15 +280,6 @@ export default function RecentlyPlayed({ currentShow, refreshKey }: RecentlyPlay
     // If content is shorter than the view, or user is near bottom, try to load more
     if ((isNearBottom && canScroll) || (!canScroll && showPlaylists.length === 1)) {
       loadPreviousShow();
-    }
-  };
-
-  const handleShowTitlePress = (showId: string) => {
-    // Find the show details from the service's cache
-    const showsCache = recentlyPlayedService.getShowsCache();
-    const show = showsCache.find(s => s.id === showId);
-    if (show) {
-      navigation.push('ShowDetails', { show: show });
     }
   };
 
@@ -518,13 +506,9 @@ export default function RecentlyPlayed({ currentShow, refreshKey }: RecentlyPlay
               <>
                 {renderPlaylistContent()}
               </>
-            ) : isDrawerOpen ? (
-              <View style={styles.emptyContainer}>
-                <Text style={styles.emptyText}>No playlist found for {currentShow}</Text>
-              </View>
             ) : (
               <View style={styles.emptyContainer}>
-                <Text style={styles.emptyText}>Pull up to load playlist</Text>
+                <Text style={styles.emptyText}>No playlist found for {currentShow}</Text>
               </View>
             )}
             

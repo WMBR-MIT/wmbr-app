@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 function getIconName(routeName: string) {
   switch (routeName) {
@@ -20,9 +21,10 @@ function getIconName(routeName: string) {
 
 export default function BottomMenuBar({ state, navigation }: BottomTabBarProps) {
   const activeIndex = state.index;
+  const insets = useSafeAreaInsets();
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingBottom: Math.max(insets.bottom, 8), height: 72 + Math.max(insets.bottom, 8) }]}> 
       {state.routes.map((route, idx) => {
         const focused = idx === activeIndex;
         const iconName = getIconName(route.name);
@@ -46,7 +48,6 @@ export default function BottomMenuBar({ state, navigation }: BottomTabBarProps) 
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    height: 60,
     borderTopWidth: 1,
     borderTopColor: '#222',
     backgroundColor: '#000',

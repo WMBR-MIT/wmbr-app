@@ -14,6 +14,12 @@ class MainActivity : ReactActivity() {
    */
   override fun getMainComponentName(): String = "WmbrApp"
 
+  override fun onCreate(savedInstanceState: Bundle?) {
+    setTheme(R.style.AppTheme)
+    // for react-navigation, see the docs https://reactnavigation.org/docs/getting-started/ for more detail
+    super.onCreate(null)
+  }
+
   /**
    * Returns the instance of the [ReactActivityDelegate]. We use [DefaultReactActivityDelegate]
    * which allows you to enable New Architecture with a single boolean flags [fabricEnabled]
@@ -21,9 +27,4 @@ class MainActivity : ReactActivity() {
   override fun createReactActivityDelegate(): ReactActivityDelegate =
       DefaultReactActivityDelegate(this, mainComponentName, fabricEnabled)
 
-  override fun onCreate(savedInstanceState: Bundle?) {
-    // Switch from splash theme to main theme
-    setTheme(R.style.AppTheme)
-    super.onCreate(savedInstanceState)
-  }
 }

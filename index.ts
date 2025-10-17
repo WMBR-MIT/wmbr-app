@@ -10,7 +10,7 @@ import { name as appName } from './app.json';
 import TrackPlayer from 'react-native-track-player';
 import TrackPlayerService from './TrackPlayerService';
 
-// Register the main app
+// Register the main app (App renders the navigation root)
 AppRegistry.registerComponent(appName, () => App);
 
 // Register the background audio service

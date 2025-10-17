@@ -14,11 +14,11 @@ import { debugError } from '../utils/Debug';
 import { AudioPreviewService, PreviewState } from '../services/AudioPreviewService';
 import { ProcessedSong } from '../types/RecentlyPlayed';
 import { ScheduleService } from '../services/ScheduleService';
+import { RecentlyPlayedService } from '../services/RecentlyPlayedService';
 import CircularProgress from './CircularProgress';
 import { useNavigation } from '@react-navigation/native';
 
 interface RecentlyPlayedProps {
-  currentShow?: string;
   refreshKey?: number;
 }
 
@@ -27,8 +27,11 @@ interface ShowPlaylist {
   songs: ProcessedSong[];
 }
 
-export default function RecentlyPlayed({ currentShow, refreshKey }: RecentlyPlayedProps = {}) {
+export default function RecentlyPlayed({ refreshKey }: RecentlyPlayedProps = {}) {
   const navigation = useNavigation<any>();
+
+  const recentlyPlayedService = RecentlyPlayedService.getInstance();
+  const [currentShow, setCurrentShow] = useState<string | undefined>(undefined);
 
   const [showPlaylists, setShowPlaylists] = useState<ShowPlaylist[]>([]);
   const [loading, setLoading] = useState(false);
@@ -65,6 +68,14 @@ export default function RecentlyPlayed({ currentShow, refreshKey }: RecentlyPlay
     const unsubscribe = audioPreviewService.subscribe(setPreviewState);
     return unsubscribe;
   }, [audioPreviewService]);
+
+  // subscribes to RecentlyPlayedService subscriber
+  useEffect(() => {
+  const unsubscribe = recentlyPlayedService.subscribeToCurrentShow((show) => {
+    setCurrentShow(show ?? undefined);
+  });
+  return unsubscribe;
+}, [recentlyPlayedService]);
 
   const parsePlaylistTimestamp = (timeStr: string): Date => {
     try {
@@ -202,13 +213,13 @@ export default function RecentlyPlayed({ currentShow, refreshKey }: RecentlyPlay
       }
 
       // Check if we've already loaded this specific previous show to prevent duplicates
-      const alreadyLoaded = showPlaylists.some(playlist => playlist.showName === previousShow.show.name);
+  const alreadyLoaded = showPlaylists.some(playlist => playlist.showName === previousShow.show.name);
       if (alreadyLoaded) {
         return;
       }
 
       try {
-        const songs = await fetchShowPlaylist(previousShow.show.name, previousShow.date);
+  const songs = await fetchShowPlaylist(previousShow.show.name, previousShow.date);
 
         setShowPlaylists(prev => [...prev, {
           showName: previousShow.show.name,
@@ -500,7 +511,7 @@ export default function RecentlyPlayed({ currentShow, refreshKey }: RecentlyPlay
               </View>
             ) : !currentShow || currentShow === 'WMBR 88.1 FM' ? (
               <View style={styles.emptyContainer}>
-                <Text style={styles.emptyText}>Pull up when a show is playing to see the playlist</Text>
+                <Text style={styles.emptyText}>No playlists found</Text>
               </View>
             ) : showPlaylists.length > 0 && (showPlaylists[0].songs.length > 0 || showPlaylists.length > 1) ? (
               <>

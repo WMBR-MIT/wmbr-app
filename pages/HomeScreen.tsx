@@ -59,6 +59,13 @@ export default function HomeScreen() {
       setShowDescription(data.description);
       setCurrentSong(data.currentSong);
       setCurrentArtist(data.currentArtist);
+
+      try {
+        const RecentlyPlayedService = require('../services/RecentlyPlayedService').RecentlyPlayedService;
+        RecentlyPlayedService.getInstance().setCurrentShow(data.showTitle);
+      } catch (e) {
+        debugError('current show update failed:', e);
+      }
     });
 
     const unsubscribeSongs = metadataService.subscribeSongHistory((songs: Song[]) => {
@@ -358,7 +365,7 @@ export default function HomeScreen() {
             <View style={styles.bottomSpace} />
           </View>
         </SafeAreaView>
-        <RecentlyPlayedDrawer currentShow={currentShow} />
+        <RecentlyPlayedDrawer />
       </LinearGradient>
     </GestureHandlerRootView>
   );

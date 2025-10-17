@@ -20,6 +20,8 @@ interface PlaylistResponse {
 
 export class RecentlyPlayedService {
   private static instance: RecentlyPlayedService;
+  private currentShow: string | null = null;
+  private currentShowSubscribers: Array<(show: string | null) => void> = [];
   private songsCache: ProcessedSong[] = [];
   private showsCache: Show[] = [];
   private seasonStart: Date | null = null;
@@ -31,6 +33,34 @@ export class RecentlyPlayedService {
       RecentlyPlayedService.instance = new RecentlyPlayedService();
     }
     return RecentlyPlayedService.instance;
+  }
+
+  setCurrentShow(show: string | null) {
+    if (this.currentShow === show) return;
+    this.currentShow = show;
+    try {
+      this.currentShowSubscribers.forEach(callback => {
+        try { 
+          callback(this.currentShow); 
+        } catch (e) {
+        
+        }
+      });
+    } catch (e) {
+    }
+  }
+
+  getCurrentShow(): string | null {
+    return this.currentShow;
+  }
+
+  subscribeToCurrentShow(callback: (show: string | null) => void): () => void {
+    this.currentShowSubscribers.push(callback);
+    try { callback(this.currentShow); } catch (e) {
+    }
+    return () => {
+      this.currentShowSubscribers = this.currentShowSubscribers.filter(c => c !== callback);
+    };
   }
 
   /**

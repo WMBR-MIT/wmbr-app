@@ -24,11 +24,7 @@ const HEADER_HEIGHT = 60;
 const HANDLE_HEIGHT = 20;
 const PEEK_HEIGHT = 100; // How much of the drawer shows when collapsed
 
-interface RecentlyPlayedDrawerProps {
-  currentShow?: string;
-}
-
-export default function RecentlyPlayedDrawer({ currentShow }: RecentlyPlayedDrawerProps) {  
+export default function RecentlyPlayedDrawer() {  
   // Animation values - start in peeking position
   const translateY = useSharedValue(DRAWER_HEIGHT - PEEK_HEIGHT);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -43,12 +39,12 @@ export default function RecentlyPlayedDrawer({ currentShow }: RecentlyPlayedDraw
     }
   }, [isFocused, translateY]);
 
-  // Load playlist data when drawer becomes visible and we have a current show
+  // Load playlist data when drawer becomes visible
   useEffect(() => {
-    if (isDrawerOpen && currentShow && currentShow !== 'WMBR 88.1 FM') {
+    if (isDrawerOpen) {
       handleRefresh();
     }
-  }, [isDrawerOpen, currentShow]);
+  }, [isDrawerOpen]);
 
   const handleDrawerInteraction = (isOpening: boolean) => {
     setIsDrawerOpen(isOpening);
@@ -130,7 +126,6 @@ export default function RecentlyPlayedDrawer({ currentShow }: RecentlyPlayedDraw
           </View>
           <View style={{ flex: 1 }}>
             <RecentlyPlayed
-              currentShow={currentShow}
               refreshKey={refreshKey}
             />
           </View>

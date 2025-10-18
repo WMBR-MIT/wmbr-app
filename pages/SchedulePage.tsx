@@ -67,10 +67,8 @@ export default function SchedulePage({ currentShow }: SchedulePageProps) {
       // Fetch archives for this show from the recently played service
       const recentlyPlayedService = RecentlyPlayedService.getInstance();
 
-      // Ensure the shows cache is populated by fetching recently played data
-      // This will populate the showsCache with archive data from the XML
       await recentlyPlayedService.fetchRecentlyPlayed();
-
+      
       // Get the shows cache which contains the archive data
       const showsWithArchives = recentlyPlayedService.getShowsCache();
 

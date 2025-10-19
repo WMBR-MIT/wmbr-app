@@ -15,7 +15,7 @@ A React Native app for streaming WMBR 88.1 FM and browsing show archives, song h
 ### Prerequisites
 - Complete the [React Native environment setup](https://reactnative.dev/docs/set-up-your-environment)
 - Install dependencies: `npm install`
-- Install iOS pods: `cd ios && bundle exec pod install`
+- Install iOS pods: `bundle install && cd ios && bundle exec pod install`
     - If `bundle exec pod install` fails, try `pod install`
 
 ## Build and Run

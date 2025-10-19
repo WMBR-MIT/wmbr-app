@@ -1,9 +1,5 @@
 import React, { useEffect } from 'react';
-import {
-  View,
-  StyleSheet,
-  StatusBar,
-} from 'react-native';
+import { View, StyleSheet, StatusBar } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -30,7 +26,7 @@ export default function SplashScreen({ onAnimationEnd }: SplashScreenProps) {
 
   useEffect(() => {
     const animationDuration = 2000;
-    
+
     logoOpacity.value = withTiming(1, {
       duration: 300,
       easing: Easing.out(Easing.quad),
@@ -44,32 +40,42 @@ export default function SplashScreen({ onAnimationEnd }: SplashScreenProps) {
       withTiming(1, {
         duration: animationDuration * 0.2,
         easing: Easing.inOut(Easing.quad),
-      })
+      }),
     );
 
     logoScale.value = withSequence(
-      withDelay(200, withTiming(1.1, {
-        duration: animationDuration * 0.4,
-        easing: Easing.out(Easing.back(1.2)),
-      })),
+      withDelay(
+        200,
+        withTiming(1.1, {
+          duration: animationDuration * 0.4,
+          easing: Easing.out(Easing.back(1.2)),
+        }),
+      ),
       withTiming(1, {
         duration: animationDuration * 0.2,
         easing: Easing.inOut(Easing.quad),
       }),
-      withDelay(300, withTiming(0.9, {
-        duration: 300,
-        easing: Easing.in(Easing.quad),
-      }))
+      withDelay(
+        300,
+        withTiming(0.9, {
+          duration: 300,
+          easing: Easing.in(Easing.quad),
+        }),
+      ),
     );
 
     backgroundOpacity.value = withDelay(
       animationDuration,
-      withTiming(0, {
-        duration: 500,
-        easing: Easing.in(Easing.quad),
-      }, () => {
-        runOnJS(onAnimationEnd)();
-      })
+      withTiming(
+        0,
+        {
+          duration: 500,
+          easing: Easing.in(Easing.quad),
+        },
+        () => {
+          runOnJS(onAnimationEnd)();
+        },
+      ),
     );
   }, [backgroundOpacity, circleScale, logoOpacity, logoScale, onAnimationEnd]);
 
@@ -89,17 +95,27 @@ export default function SplashScreen({ onAnimationEnd }: SplashScreenProps) {
 
   return (
     <Animated.View style={[styles.container, containerAnimatedStyle]}>
-      <StatusBar barStyle="light-content" backgroundColor="#000000" translucent={false} />
-      
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor="#000000"
+        translucent={false}
+      />
+
       <LinearGradient
         colors={['#000000', '#1a1a1a', '#000000']}
         style={styles.gradient}
       >
         <View style={styles.content}>
-          <Animated.View style={[styles.circleBackground, circleAnimatedStyle]} />
-          
+          <Animated.View
+            style={[styles.circleBackground, circleAnimatedStyle]}
+          />
+
           <Animated.View style={[styles.logoContainer, logoAnimatedStyle]}>
-            <SvgXml xml={getWMBRLogoSVG(CORE_COLORS.WMBR_GREEN)} width={200} height={43} />
+            <SvgXml
+              xml={getWMBRLogoSVG(CORE_COLORS.WMBR_GREEN)}
+              width={200}
+              height={43}
+            />
           </Animated.View>
         </View>
       </LinearGradient>

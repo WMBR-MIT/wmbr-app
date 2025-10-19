@@ -20,7 +20,10 @@ function getIconName(routeName: string) {
   }
 }
 
-export default function BottomMenuBar({ state, navigation }: BottomTabBarProps) {
+export default function BottomMenuBar({
+  state,
+  navigation,
+}: BottomTabBarProps) {
   const activeIndex = state.index;
   const insets = useSafeAreaInsets();
 
@@ -29,11 +32,11 @@ export default function BottomMenuBar({ state, navigation }: BottomTabBarProps) 
 
   const containerInline = useMemo(
     () => ({ paddingBottom: bottomSpacing, height: heightSpacing }),
-    [bottomSpacing, heightSpacing]
+    [bottomSpacing, heightSpacing],
   );
 
   return (
-    <View style={[styles.container, containerInline]}> 
+    <View style={[styles.container, containerInline]}>
       {state.routes.map((route, idx) => {
         const focused = idx === activeIndex;
         const iconName = getIconName(route.name);
@@ -45,8 +48,14 @@ export default function BottomMenuBar({ state, navigation }: BottomTabBarProps) 
             onPress={() => navigation.navigate(route.name)}
             activeOpacity={0.8}
           >
-            <Icon name={iconName} size={22} color={focused ? '#00D17A' : '#888'} />
-            <Text style={[styles.label, focused && styles.labelActive]}>{route.name}</Text>
+            <Icon
+              name={iconName}
+              size={22}
+              color={focused ? '#00D17A' : '#888'}
+            />
+            <Text style={[styles.label, focused && styles.labelActive]}>
+              {route.name}
+            </Text>
           </TouchableOpacity>
         );
       })}

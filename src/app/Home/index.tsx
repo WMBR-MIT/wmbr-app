@@ -7,16 +7,29 @@ import {
   StyleSheet,
   StatusBar,
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import TrackPlayer, { Capability, State, usePlaybackState } from 'react-native-track-player';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
+import TrackPlayer, {
+  Capability,
+  State,
+  usePlaybackState,
+} from 'react-native-track-player';
 import LinearGradient from 'react-native-linear-gradient';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SvgXml } from 'react-native-svg';
 import PlayButton from './PlayButton';
 import SplashScreen from './SplashScreen';
-import MetadataService, { ShowInfo, Song } from '../../services/MetadataService';
+import MetadataService, {
+  ShowInfo,
+  Song,
+} from '../../services/MetadataService';
 import { RecentlyPlayedService } from '../../services/RecentlyPlayedService';
-import { ArchiveService, ArchivePlaybackState } from '../../services/ArchiveService';
+import {
+  ArchiveService,
+  ArchivePlaybackState,
+} from '../../services/ArchiveService';
 import { AudioPreviewService } from '../../services/AudioPreviewService';
 import { getWMBRLogoSVG } from '../../utils/WMBRLogo';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
@@ -45,16 +58,17 @@ export default function HomeScreen() {
     currentShow: null,
     liveStreamUrl: streamUrl,
   });
-  
+
   const isPlaying = playbackState?.state === State.Playing;
 
-  const navigation = useNavigation<NavigationProp<Record<WmbrRouteName, object | undefined>>>();
+  const navigation =
+    useNavigation<NavigationProp<Record<WmbrRouteName, object | undefined>>>();
 
   useEffect(() => {
     setupPlayer();
 
     const metadataService = MetadataService.getInstance();
-    
+
     const unsubscribeMetadata = metadataService.subscribe((data: ShowInfo) => {
       setShowInfo(data);
       setCurrentShow(data.showTitle);
@@ -68,15 +82,18 @@ export default function HomeScreen() {
       }
     });
 
-    const unsubscribeSongs = metadataService.subscribeSongHistory((songs: Song[]) => {
-      setSongHistory(songs);
-    });
+    const unsubscribeSongs = metadataService.subscribeSongHistory(
+      (songs: Song[]) => {
+        setSongHistory(songs);
+      },
+    );
 
     metadataService.startPolling(15000);
-    
+
     // Subscribe to archive service
-    const unsubscribeArchive = ArchiveService.getInstance().subscribe(setArchiveState);
-    
+    const unsubscribeArchive =
+      ArchiveService.getInstance().subscribe(setArchiveState);
+
     return () => {
       MetadataService.getInstance().stopPolling();
       unsubscribeMetadata();
@@ -148,7 +165,7 @@ export default function HomeScreen() {
     try {
       const audioPreviewService = AudioPreviewService.getInstance();
       const previewState = audioPreviewService.getCurrentState();
-      
+
       if (isPlaying) {
         await TrackPlayer.pause();
       } else {
@@ -173,11 +190,19 @@ export default function HomeScreen() {
     }
   }, [currentShow, isPlayerInitialized, isPlaying]);
 
-
   const handleSplashEnd = () => setShowSplash(false);
-  const handleSwitchToLive = useCallback(async () => { try { await ArchiveService.getInstance().switchToLive(currentShow); } catch (e) { debugError('Error switching to live:', e); } }, [currentShow]);
+  const handleSwitchToLive = useCallback(async () => {
+    try {
+      await ArchiveService.getInstance().switchToLive(currentShow);
+    } catch (e) {
+      debugError('Error switching to live:', e);
+    }
+  }, [currentShow]);
 
-  const bottomSpacerStyle = useMemo(() => ({ height: Math.max(insets.bottom + 56, 56)}), [insets.bottom]);
+  const bottomSpacerStyle = useMemo(
+    () => ({ height: Math.max(insets.bottom + 56, 56) }),
+    [insets.bottom],
+  );
 
   const handleOpenShowDetails = useCallback(() => {
     const show = archiveState.currentShow;
@@ -190,9 +215,12 @@ export default function HomeScreen() {
         routes: [
           { name: 'ScheduleMain' },
           { name: 'ShowDetails', params: { show } },
-          { name: 'ArchivedShowView', params: { show, archive: archiveState.currentArchive } }
-        ]
-      }
+          {
+            name: 'ArchivedShowView',
+            params: { show, archive: archiveState.currentArchive },
+          },
+        ],
+      },
     });
   }, [archiveState.currentShow, archiveState.currentArchive, navigation]);
 
@@ -200,38 +228,99 @@ export default function HomeScreen() {
 
   return (
     <GestureHandlerRootView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={isPlaying ? CORE_COLORS.WMBR_GREEN : COLORS.BACKGROUND.PRIMARY} translucent={false} />
-      <LinearGradient colors={isPlaying ? [CORE_COLORS.WMBR_GREEN, '#006B31', CORE_COLORS.WMBR_GREEN] : ['#000000', '#1a1a1a', '#000000']} style={styles.fullScreenGradient}>
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor={
+          isPlaying ? CORE_COLORS.WMBR_GREEN : COLORS.BACKGROUND.PRIMARY
+        }
+        translucent={false}
+      />
+      <LinearGradient
+        colors={
+          isPlaying
+            ? [CORE_COLORS.WMBR_GREEN, '#006B31', CORE_COLORS.WMBR_GREEN]
+            : ['#000000', '#1a1a1a', '#000000']
+        }
+        style={styles.fullScreenGradient}
+      >
         <SafeAreaView style={styles.safeContainer}>
           <View style={styles.content}>
             <View style={styles.logoContainer}>
-              <SvgXml xml={getWMBRLogoSVG(isPlaying ? "#000000" : CORE_COLORS.WMBR_GREEN)} width={80} height={17} />
+              <SvgXml
+                xml={getWMBRLogoSVG(
+                  isPlaying ? '#000000' : CORE_COLORS.WMBR_GREEN,
+                )}
+                width={80}
+                height={17}
+              />
             </View>
             <View style={styles.showInfo}>
               {archiveState.isPlayingArchive ? (
-                <TouchableOpacity onPress={handleOpenShowDetails} activeOpacity={0.7}>
+                <TouchableOpacity
+                  onPress={handleOpenShowDetails}
+                  activeOpacity={0.7}
+                >
                   <Text style={[styles.showTitle, styles.clickableTitle]}>
                     {archiveState.currentShow?.name || 'Archive'}
                   </Text>
-                  <Text style={[styles.archiveInfo, isPlaying && styles.archiveInfoActive]}>
-                    Archive from {archiveState.currentArchive?.date ? formatArchiveDate(archiveState.currentArchive.date) : ''}
+                  <Text
+                    style={[
+                      styles.archiveInfo,
+                      isPlaying && styles.archiveInfoActive,
+                    ]}
+                  >
+                    Archive from{' '}
+                    {archiveState.currentArchive?.date
+                      ? formatArchiveDate(archiveState.currentArchive.date)
+                      : ''}
                   </Text>
                 </TouchableOpacity>
               ) : (
                 <>
                   <Text style={styles.showTitle}>{currentShow}</Text>
-                  {hosts && <Text style={[styles.hosts, isPlaying && styles.hostsActive]}>with {hosts}</Text>}
+                  {hosts && (
+                    <Text
+                      style={[styles.hosts, isPlaying && styles.hostsActive]}
+                    >
+                      with {hosts}
+                    </Text>
+                  )}
                 </>
               )}
             </View>
-            <PlayButton onPress={togglePlayback} isPlayerInitialized={isPlayerInitialized} />
+            <PlayButton
+              onPress={togglePlayback}
+              isPlayerInitialized={isPlayerInitialized}
+            />
             <View style={styles.bottomInfo}>
               {!archiveState.isPlayingArchive && showDescription && (
-                <Text style={[styles.showDescription, isPlaying && styles.showDescriptionActive]} numberOfLines={3}>{showDescription}</Text>
+                <Text
+                  style={[
+                    styles.showDescription,
+                    isPlaying && styles.showDescriptionActive,
+                  ]}
+                  numberOfLines={3}
+                >
+                  {showDescription}
+                </Text>
               )}
               {archiveState.isPlayingArchive ? (
-                <TouchableOpacity style={[styles.liveButton, isPlaying && styles.liveButtonActive]} onPress={handleSwitchToLive} activeOpacity={0.7}>
-                  <Text style={[styles.liveButtonText, isPlaying && styles.liveButtonTextActive]}>← Switch to LIVE</Text>
+                <TouchableOpacity
+                  style={[
+                    styles.liveButton,
+                    isPlaying && styles.liveButtonActive,
+                  ]}
+                  onPress={handleSwitchToLive}
+                  activeOpacity={0.7}
+                >
+                  <Text
+                    style={[
+                      styles.liveButtonText,
+                      isPlaying && styles.liveButtonTextActive,
+                    ]}
+                  >
+                    ← Switch to LIVE
+                  </Text>
                 </TouchableOpacity>
               ) : (
                 <HomeNowPlaying showInfo={showInfo} />
@@ -288,7 +377,11 @@ const styles = StyleSheet.create({
     lineHeight: 16,
   },
   showDescriptionActive: { color: '#D0D0D0' },
-  streamingText: { color: CORE_COLORS.WMBR_GREEN, fontSize: 14, fontWeight: '500' },
+  streamingText: {
+    color: CORE_COLORS.WMBR_GREEN,
+    fontSize: 14,
+    fontWeight: '500',
+  },
   streamingTextActive: { color: COLORS.TEXT.PRIMARY },
   bottomSpace: { height: 100 },
   liveButton: {

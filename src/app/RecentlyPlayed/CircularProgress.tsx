@@ -25,16 +25,17 @@ export default function CircularProgress({
 }: CircularProgressProps) {
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
-  
+
   const strokeDasharray = `${circumference} ${circumference}`;
-  
+
   const animatedProgress = useDerivedValue(() => {
     return Math.max(0, Math.min(1, progress));
   });
-  
+
   const animatedProps = useAnimatedProps(() => {
-    const strokeDashoffset = circumference - (animatedProgress.value * circumference);
-    
+    const strokeDashoffset =
+      circumference - animatedProgress.value * circumference;
+
     return {
       strokeDashoffset,
     };
@@ -52,7 +53,7 @@ export default function CircularProgress({
           strokeWidth={strokeWidth}
           fill="transparent"
         />
-        
+
         {/* Progress circle */}
         <AnimatedCircle
           cx={size / 2}

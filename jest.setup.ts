@@ -1,4 +1,4 @@
-import { jest } from '@jest/globals'
+import { jest } from '@jest/globals';
 import { createMockFetch } from './__mocks__/MockNetworkResponses';
 
 jest.mock('react-native-gesture-handler', () => {
@@ -12,8 +12,10 @@ jest.mock('react-native-gesture-handler', () => {
         runOnJS: jest.fn().mockReturnThis(),
       }),
     },
-    GestureDetector: ({ children }: { children: React.ReactNode }) => children || View,
-    GestureHandlerRootView: ({ children }: { children: React.ReactNode }) => children || View,
+    GestureDetector: ({ children }: { children: React.ReactNode }) =>
+      children || View,
+    GestureHandlerRootView: ({ children }: { children: React.ReactNode }) =>
+      children || View,
   };
 });
 
@@ -22,7 +24,7 @@ jest.mock('react-native-track-player', () => ({
   useProgress: jest.fn(() => Promise.resolve()),
   State: {
     Playing: jest.mock(''),
-  }
+  },
 }));
 
 // Silence debug logs

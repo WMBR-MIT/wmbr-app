@@ -35,7 +35,10 @@ describe('parsePlaylistTimestamp', () => {
 
       expect(result.getTime()).toBeGreaterThanOrEqual(beforeCall.getTime());
       expect(result.getTime()).toBeLessThanOrEqual(afterCall.getTime());
-      expect(mockedDebugError).toHaveBeenCalledWith('Invalid playlist timestamp format:', '');
+      expect(mockedDebugError).toHaveBeenCalledWith(
+        'Invalid playlist timestamp format:',
+        '',
+      );
     });
 
     test('should return current date for invalid format - missing time part', () => {
@@ -45,7 +48,10 @@ describe('parsePlaylistTimestamp', () => {
 
       expect(result.getTime()).toBeGreaterThanOrEqual(beforeCall.getTime());
       expect(result.getTime()).toBeLessThanOrEqual(afterCall.getTime());
-      expect(mockedDebugError).toHaveBeenCalledWith('Invalid playlist timestamp format:', '2024/01/15');
+      expect(mockedDebugError).toHaveBeenCalledWith(
+        'Invalid playlist timestamp format:',
+        '2024/01/15',
+      );
     });
 
     test('should return current date for invalid format - missing date part', () => {
@@ -55,7 +61,10 @@ describe('parsePlaylistTimestamp', () => {
 
       expect(result.getTime()).toBeGreaterThanOrEqual(beforeCall.getTime());
       expect(result.getTime()).toBeLessThanOrEqual(afterCall.getTime());
-      expect(mockedDebugError).toHaveBeenCalledWith('Invalid playlist timestamp format:', '14:30:45');
+      expect(mockedDebugError).toHaveBeenCalledWith(
+        'Invalid playlist timestamp format:',
+        '14:30:45',
+      );
     });
 
     test('should return current date for malformed date components', () => {
@@ -65,7 +74,10 @@ describe('parsePlaylistTimestamp', () => {
 
       expect(result.getTime()).toBeGreaterThanOrEqual(beforeCall.getTime());
       expect(result.getTime()).toBeLessThanOrEqual(afterCall.getTime());
-      expect(mockedDebugError).toHaveBeenCalledWith('Invalid date components in playlist timestamp:', 'invalid/date/format 14:30:45');
+      expect(mockedDebugError).toHaveBeenCalledWith(
+        'Invalid date components in playlist timestamp:',
+        'invalid/date/format 14:30:45',
+      );
     });
 
     test('should return current date for malformed time components', () => {
@@ -75,7 +87,10 @@ describe('parsePlaylistTimestamp', () => {
 
       expect(result.getTime()).toBeGreaterThanOrEqual(beforeCall.getTime());
       expect(result.getTime()).toBeLessThanOrEqual(afterCall.getTime());
-      expect(mockedDebugError).toHaveBeenCalledWith('Invalid date components in playlist timestamp:', '2024/01/15 invalid:time:format');
+      expect(mockedDebugError).toHaveBeenCalledWith(
+        'Invalid date components in playlist timestamp:',
+        '2024/01/15 invalid:time:format',
+      );
     });
 
     test('should return current date for completely invalid string', () => {
@@ -85,7 +100,10 @@ describe('parsePlaylistTimestamp', () => {
 
       expect(result.getTime()).toBeGreaterThanOrEqual(beforeCall.getTime());
       expect(result.getTime()).toBeLessThanOrEqual(afterCall.getTime());
-      expect(mockedDebugError).toHaveBeenCalledWith('Invalid date components in playlist timestamp:', 'not a timestamp at all');
+      expect(mockedDebugError).toHaveBeenCalledWith(
+        'Invalid date components in playlist timestamp:',
+        'not a timestamp at all',
+      );
     });
 
     test('should handle null or undefined gracefully', () => {
@@ -99,8 +117,18 @@ describe('parsePlaylistTimestamp', () => {
       expect(result2.getTime()).toBeGreaterThanOrEqual(beforeCall.getTime());
       expect(result2.getTime()).toBeLessThanOrEqual(afterCall.getTime());
       expect(mockedDebugError).toHaveBeenCalledTimes(2);
-      expect(mockedDebugError).toHaveBeenNthCalledWith(1, 'Error parsing playlist timestamp:', null, expect.any(Error));
-      expect(mockedDebugError).toHaveBeenNthCalledWith(2, 'Error parsing playlist timestamp:', undefined, expect.any(Error));
+      expect(mockedDebugError).toHaveBeenNthCalledWith(
+        1,
+        'Error parsing playlist timestamp:',
+        null,
+        expect.any(Error),
+      );
+      expect(mockedDebugError).toHaveBeenNthCalledWith(
+        2,
+        'Error parsing playlist timestamp:',
+        undefined,
+        expect.any(Error),
+      );
     });
   });
 

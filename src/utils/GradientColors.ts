@@ -1,7 +1,7 @@
 export const colors: [string, string][] = [
   ['#FF6B6B', '#4ECDC4'], // Red to Teal
   ['#45B7D1', '#96CEB4'], // Blue to Green
-  ['#FECA57', '#FF9FF3'], // Yellow to Pink  
+  ['#FECA57', '#FF9FF3'], // Yellow to Pink
   ['#54A0FF', '#5F27CD'], // Light Blue to Purple
   ['#00D2D3', '#54A0FF'], // Cyan to Blue
   ['#FF9F43', '#FECA57'], // Orange to Yellow
@@ -34,31 +34,33 @@ export const generateGradientColors = (showName: string): [string, string] => {
   let hash = 0;
   for (let i = 0; i < showName.length; i++) {
     const char = showName.charCodeAt(i);
-    hash = ((hash * Math.pow(2, 5)) - hash) + char; // Multiply by 31 and add character
+    hash = hash * Math.pow(2, 5) - hash + char; // Multiply by 31 and add character
     hash = hash % Math.pow(2, 32); // Convert to 32-bit integer
   }
-  
+
   const index = Math.abs(hash) % colors.length;
   return colors[index];
 };
 
 // Generate much darker versions of the colors for backgrounds
-export const generateDarkGradientColors = (showName: string): [string, string] => {
+export const generateDarkGradientColors = (
+  showName: string,
+): [string, string] => {
   const [originalStart, originalEnd] = generateGradientColors(showName);
-  
+
   // Function to convert hex to RGB and darken significantly
   const darkenColor = (hex: string) => {
     const r = parseInt(hex.slice(1, 3), 16);
     const g = parseInt(hex.slice(3, 5), 16);
     const b = parseInt(hex.slice(5, 7), 16);
-    
+
     // Darken to about 15% of original brightness
     const darkenedR = Math.floor(r * 0.15);
     const darkenedG = Math.floor(g * 0.15);
     const darkenedB = Math.floor(b * 0.15);
-    
+
     return `rgb(${darkenedR}, ${darkenedG}, ${darkenedB})`;
   };
-  
+
   return [darkenColor(originalStart), darkenColor(originalEnd)];
 };

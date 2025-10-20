@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { debugError } from '../utils/Debug';
 import {
   View,
@@ -306,6 +306,11 @@ export default function HomeScreen() {
 
   if (showSplash) return <SplashScreen onAnimationEnd={handleSplashEnd} />;
 
+   const bottomSpacing = useMemo(
+    () => Math.max(insets.bottom + 56, 56),
+    [insets.bottom]
+  );
+
   return (
     <GestureHandlerRootView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={isPlaying ? '#00843D' : '#000000'} translucent={false} />
@@ -378,7 +383,7 @@ export default function HomeScreen() {
                 </>
               )}
             </View>
-            <View style={{ height: Math.max(insets.bottom + 56, 56) }} />
+            <View style={{ height: bottomSpacing }} />
           </View>
         </SafeAreaView>
         <RecentlyPlayedDrawer />

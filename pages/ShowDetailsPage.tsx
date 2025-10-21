@@ -231,7 +231,7 @@ export default function ShowDetailsPage() {
           <View style={styles.header}>
             <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
               <Text style={styles.backButtonText}>←</Text>
-              <Text style={styles.headerTitle}>Show Details</Text>
+              <Text style={styles.headerTitle}>Schedule</Text>
               <View style={styles.headerSpacer} />
             </TouchableOpacity>
           </View>

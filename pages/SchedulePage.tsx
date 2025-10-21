@@ -14,7 +14,7 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
 import { debugLog, debugError } from '../utils/Debug';
-import { useIsFocused } from '@react-navigation/native';
+import { RefreshControl } from 'react-native';
 import { SvgXml } from 'react-native-svg';
 import { ScheduleShow, ScheduleResponse } from '../types/Schedule';
 import { ScheduleService } from '../services/ScheduleService';
@@ -43,12 +43,11 @@ export default function SchedulePage({ currentShow }: SchedulePageProps) {
   const fetchSchedule = useCallback(async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const scheduleData = await scheduleService.fetchSchedule();
       debugLog('Schedule data received:', scheduleData);
       setSchedule(scheduleData);
-      
     } catch (err) {
       debugError('Error fetching schedule:', err);
       setError(`Failed to load schedule: ${err instanceof Error ? err.message : 'Unknown error'}`);
@@ -57,12 +56,24 @@ export default function SchedulePage({ currentShow }: SchedulePageProps) {
     }
   }, [scheduleService]);
 
-  const isFocused = useIsFocused();
+  // instead fetch once on mount
   useEffect(() => {
-    if (isFocused) {
-      fetchSchedule();
+    fetchSchedule();
+  }, [fetchSchedule]);
+
+  // Pull to refresh
+  const [refreshing, setRefreshing] = useState(false);
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      const scheduleData = await scheduleService.fetchSchedule();
+      if (scheduleData) setSchedule(scheduleData);
+    } catch (err) {
+      debugError('Error refreshing schedule:', err);
+    } finally {
+      setRefreshing(false);
     }
-  }, [isFocused, fetchSchedule]);
+  }, [scheduleService]);
 
   const handleShowPress = async (show: ScheduleShow) => {
     try {
@@ -298,6 +309,7 @@ export default function SchedulePage({ currentShow }: SchedulePageProps) {
             ref={scrollViewRef}
             style={styles.scrollView} 
             showsVerticalScrollIndicator={false}
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
           >
             {loading ? (
               <View style={styles.loadingContainer}>

@@ -118,9 +118,16 @@ export default function ShowDetailsPage() {
   }));
 
   // Since we're now conditionally rendered, show will always exist
-  const [gradientStart, gradientEnd] = generateGradientColors(show.name);
-  const [darkGradientStart, darkGradientEnd] = generateDarkGradientColors(show.name);
-  const archives = show.archives || [];
+  const [gradientStart, gradientEnd] = useMemo(() => generateGradientColors(show.name), [show.name]);
+  const [darkGradientStart, darkGradientEnd] = useMemo(() => generateDarkGradientColors(show.name), [show.name]);
+
+  const archives = useMemo(() => show.archives || [], [show.archives]);
+
+  const sortedArchives = useMemo(() => {
+    const arr = (archives || []).slice();
+    arr.sort((a: Archive, b: Archive) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    return arr;
+  }, [archives]);
 
   const handlePauseResume = async () => {
     try {
@@ -270,10 +277,8 @@ export default function ShowDetailsPage() {
             {/* Archives List */}
             <View style={styles.archivesSection}>
               <Text style={styles.sectionTitle}>Archives</Text>
-              {archives.length > 0 ? (
-                archives
-                  .sort((a: Archive, b: Archive) => new Date(b.date).getTime() - new Date(a.date).getTime())
-                  .map((archive: Archive, index: number) => {
+              {sortedArchives.length > 0 ? (
+                sortedArchives.map((archive: Archive, index: number) => {
                     const isCurrentlyPlaying = currentlyPlayingArchive && 
                       currentlyPlayingArchive.url === archive.url;
                     const progressPercentage = isCurrentlyPlaying && progress.duration > 0 

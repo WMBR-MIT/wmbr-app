@@ -731,18 +731,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  playIcon: {
-    width: 0,
-    height: 0,
-    borderLeftWidth: 30,
-    borderRightWidth: 0,
-    borderTopWidth: 20,
-    borderBottomWidth: 20,
-    borderLeftColor: '#FFFFFF',
-    borderTopColor: 'transparent',
-    borderBottomColor: 'transparent',
-    marginLeft: 8,
-  },
   pauseIcon: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -304,9 +304,9 @@ export default function HomeScreen() {
     return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
   };
 
-  if (showSplash) return <SplashScreen onAnimationEnd={handleSplashEnd} />;
+  const bottomSpacerStyle = useMemo(() => ({ height: Math.max(insets.bottom + 56, 56)}), [insets.bottom]);
 
-   const bottomSpacerStyle = useMemo(() => ({ height: Math.max(insets.bottom + 56, 56)}), [insets.bottom]);
+  if (showSplash) return <SplashScreen onAnimationEnd={handleSplashEnd} />;
 
   return (
     <GestureHandlerRootView style={styles.container}>

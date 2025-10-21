@@ -14,7 +14,8 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
 import { debugLog, debugError } from '../utils/Debug';
-import { NavigationProp, RefreshControl, useNavigation } from 'react-native';
+import { RefreshControl } from 'react-native';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { SvgXml } from 'react-native-svg';
 import { ScheduleShow, ScheduleResponse } from '../types/Schedule';
 import { ScheduleService } from '../services/ScheduleService';

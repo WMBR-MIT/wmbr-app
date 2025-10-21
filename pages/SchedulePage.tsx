@@ -4,7 +4,6 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  Dimensions,
   ScrollView,
   SafeAreaView,
   StatusBar,
@@ -15,31 +14,20 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
 import { debugLog, debugError } from '../utils/Debug';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-} from 'react-native-reanimated';
+import { RefreshControl } from 'react-native';
 import { SvgXml } from 'react-native-svg';
 import { ScheduleShow, ScheduleResponse } from '../types/Schedule';
 import { ScheduleService } from '../services/ScheduleService';
 import { getWMBRLogoSVG } from '../utils/WMBRLogo';
-import ShowDetailsView from './ShowDetailsView';
+import ShowDetailsView from '../components/ShowDetailsView';
 import { RecentlyPlayedService } from '../services/RecentlyPlayedService';
 
-const { height } = Dimensions.get('window');
-
-interface ShowScheduleViewProps {
-  isVisible: boolean;
-  onClose: () => void;
+interface SchedulePageProps {
   currentShow?: string;
 }
 
+export default function SchedulePage({ currentShow }: SchedulePageProps) { 
 
-export default function ShowScheduleView({ isVisible, onClose, currentShow }: ShowScheduleViewProps) {
-  const translateY = useSharedValue(height);
-  const opacity = useSharedValue(0);
-  
   const [schedule, setSchedule] = useState<ScheduleResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -49,18 +37,17 @@ export default function ShowScheduleView({ isVisible, onClose, currentShow }: Sh
   const [showWithArchives, setShowWithArchives] = useState<any>(null);
   const scrollViewRef = useRef<ScrollView>(null);
   const currentShowRef = useRef<View>(null);
-  
+
   const scheduleService = ScheduleService.getInstance();
 
   const fetchSchedule = useCallback(async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const scheduleData = await scheduleService.fetchSchedule();
       debugLog('Schedule data received:', scheduleData);
       setSchedule(scheduleData);
-      
     } catch (err) {
       debugError('Error fetching schedule:', err);
       setError(`Failed to load schedule: ${err instanceof Error ? err.message : 'Unknown error'}`);
@@ -69,21 +56,24 @@ export default function ShowScheduleView({ isVisible, onClose, currentShow }: Sh
     }
   }, [scheduleService]);
 
+  // instead fetch once on mount
   useEffect(() => {
-    if (isVisible) {
-      translateY.value = withSpring(0);
-      opacity.value = withSpring(1);
-      fetchSchedule();
-    } else {
-      translateY.value = withSpring(height);
-      opacity.value = withSpring(0);
-    }
-  }, [isVisible, fetchSchedule, opacity, translateY]);
+    fetchSchedule();
+  }, [fetchSchedule]);
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: translateY.value }],
-    opacity: opacity.value,
-  }));
+  // Pull to refresh
+  const [refreshing, setRefreshing] = useState(false);
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      const scheduleData = await scheduleService.fetchSchedule();
+      if (scheduleData) setSchedule(scheduleData);
+    } catch (err) {
+      debugError('Error refreshing schedule:', err);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [scheduleService]);
 
   const handleShowPress = async (show: ScheduleShow) => {
     try {
@@ -280,7 +270,7 @@ export default function ShowScheduleView({ isVisible, onClose, currentShow }: Sh
 
 
   return (
-    <Animated.View style={[styles.container, animatedStyle]}>
+    <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#000000" />
       
       <LinearGradient
@@ -289,14 +279,6 @@ export default function ShowScheduleView({ isVisible, onClose, currentShow }: Sh
         style={styles.gradient}
       >
         <SafeAreaView style={styles.safeArea}>
-          {/* Header */}
-          <View style={styles.header}>
-            <TouchableOpacity onPress={onClose} style={styles.backButton}>
-              <Text style={styles.backButtonText}>←</Text>
-              <Text style={styles.headerTitle}>Show Schedule</Text>
-            </TouchableOpacity>
-          </View>
-
           {/* Logo */}
           <View style={styles.logoContainer}>
             <SvgXml xml={getWMBRLogoSVG('#FFFFFF')} width={60} height={13} />
@@ -327,6 +309,7 @@ export default function ShowScheduleView({ isVisible, onClose, currentShow }: Sh
             ref={scrollViewRef}
             style={styles.scrollView} 
             showsVerticalScrollIndicator={false}
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
           >
             {loading ? (
               <View style={styles.loadingContainer}>
@@ -362,7 +345,7 @@ export default function ShowScheduleView({ isVisible, onClose, currentShow }: Sh
           onClose={handleCloseShowDetails}
         />
       )}
-    </Animated.View>
+    </View>
   );
 }
 
@@ -406,7 +389,8 @@ const styles = StyleSheet.create({
   },
   logoContainer: {
     alignItems: 'center',
-    paddingVertical: 20,
+    paddingTop: 60,
+    paddingBottom: 20,
   },
   searchContainer: {
     paddingHorizontal: 20,
@@ -585,3 +569,4 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 });
+

@@ -80,17 +80,11 @@ export default function SchedulePage({ currentShow }: SchedulePageProps) {
       // Fetch archives for this show from the recently played service
       const recentlyPlayedService = RecentlyPlayedService.getInstance();
 
-      // Ensure the shows cache is populated by fetching recently played data
-      // This will populate the showsCache with archive data from the XML
-      await recentlyPlayedService.fetchRecentlyPlayed();
+      // fetch show cache (xml only)
+      await recentlyPlayedService.fetchShowsCacheOnly();
 
-      // Get the shows cache which contains the archive data
-      const showsWithArchives = recentlyPlayedService.getShowsCache();
-
-      // Find the show in the cache (which includes archives)
-      const showWithArchiveData = showsWithArchives.find(
-        recentShow => recentShow.name.toLowerCase() === show.name.toLowerCase()
-      );
+      // find the show from the cache
+      const showWithArchiveData = recentlyPlayedService.getShowByName(show.name);
 
       if (showWithArchiveData && showWithArchiveData.archives.length > 0) {
         navigation.navigate('ShowDetails' as WmbrRouteName, { show: showWithArchiveData });

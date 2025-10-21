@@ -211,7 +211,7 @@ export default function ArchivedShowView({ show, archive, isVisible, onClose }: 
           <View style={styles.header}>
             <TouchableOpacity onPress={onClose} style={styles.backButton}>
               <Text style={styles.backButtonText}>←</Text>
-              <Text style={styles.headerTitle}>Archive</Text>
+              <Text style={styles.headerTitle}>Show Details</Text>
             </TouchableOpacity>
           </View>
 

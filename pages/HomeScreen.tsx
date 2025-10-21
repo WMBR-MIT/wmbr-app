@@ -306,10 +306,7 @@ export default function HomeScreen() {
 
   if (showSplash) return <SplashScreen onAnimationEnd={handleSplashEnd} />;
 
-   const bottomSpacing = useMemo(
-    () => Math.max(insets.bottom + 56, 56),
-    [insets.bottom]
-  );
+   const bottomSpacerStyle = useMemo(() => ({ height: Math.max(insets.bottom + 56, 56)}), [insets.bottom]);
 
   return (
     <GestureHandlerRootView style={styles.container}>
@@ -383,7 +380,7 @@ export default function HomeScreen() {
                 </>
               )}
             </View>
-            <View style={{ height: bottomSpacing }} />
+            <View style={bottomSpacerStyle} />
           </View>
         </SafeAreaView>
         <RecentlyPlayedDrawer />

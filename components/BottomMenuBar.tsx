@@ -1,4 +1,4 @@
-import React, { use, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -23,15 +23,16 @@ export default function BottomMenuBar({ state, navigation }: BottomTabBarProps) 
   const activeIndex = state.index;
   const insets = useSafeAreaInsets();
 
-  const bottomSpacing = useMemo(
-    () => Math.max(insets.bottom, 8),
-    [insets.bottom]
+  const bottomSpacing = Math.max(insets.bottom, 8);
+  const heightSpacing = 72 + bottomSpacing;
+
+  const containerInline = useMemo(
+    () => ({ paddingBottom: bottomSpacing, height: heightSpacing }),
+    [bottomSpacing, heightSpacing]
   );
 
-  const heightSpacing = useMemo(() => 72 + bottomSpacing, [bottomSpacing]);
-
   return (
-    <View style={[styles.container, { paddingBottom: bottomSpacing, height: heightSpacing }]}> 
+    <View style={[styles.container, containerInline]}> 
       {state.routes.map((route, idx) => {
         const focused = idx === activeIndex;
         const iconName = getIconName(route.name);

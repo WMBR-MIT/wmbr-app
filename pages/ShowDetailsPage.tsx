@@ -21,7 +21,7 @@ import Animated, {
   runOnJS,
 } from 'react-native-reanimated';
 import { SvgXml } from 'react-native-svg';
-import { Archive } from '../types/RecentlyPlayed';
+import { Show, Archive } from '../types/RecentlyPlayed';
 import { ArchiveService } from '../services/ArchiveService';
 import { useProgress, usePlaybackState, State } from 'react-native-track-player';
 import TrackPlayer from 'react-native-track-player';
@@ -35,14 +35,15 @@ const { width } = Dimensions.get('window');
 const ALBUM_SIZE = width * 0.6;
 const CIRCLE_DIAMETER = 16;
 
-type Params = {
-  show: any;
+// Route params for ShowDetailsPage
+export type ShowDetailsPageRouteParams = {
+  show: Show;
 };
 
 export default function ShowDetailsPage() {
   const navigation = useNavigation();
-  const route = useRoute<RouteProp<Record<string, Params>, string>>();
-  const show = route.params?.show;
+  const route = useRoute<RouteProp<Record<string, ShowDetailsPageRouteParams>, string>>();
+  const show: Show = route.params!.show;
 
   // Always call hooks at the top level, never conditionally
   // Slide horizontally: start offscreen to the right (translateX = width)
@@ -125,7 +126,7 @@ export default function ShowDetailsPage() {
 
   const sortedArchives = useMemo(() => {
     const arr = (archives || []).slice();
-    arr.sort((a: Archive, b: Archive) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    arr.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     return arr;
   }, [archives]);
 
@@ -278,7 +279,7 @@ export default function ShowDetailsPage() {
             <View style={styles.archivesSection}>
               <Text style={styles.sectionTitle}>Archives</Text>
               {sortedArchives.length > 0 ? (
-                sortedArchives.map((archive: Archive, index: number) => {
+                sortedArchives.map((archive, index) => {
                     const isCurrentlyPlaying = currentlyPlayingArchive && 
                       currentlyPlayingArchive.url === archive.url;
                     const progressPercentage = isCurrentlyPlaying && progress.duration > 0 
@@ -286,7 +287,7 @@ export default function ShowDetailsPage() {
                     
                     return (
                       <TouchableOpacity
-                        key={index}
+                        key={archive.url || index}
                         style={[
                           styles.archiveItem,
                           isCurrentlyPlaying && styles.archiveItemPlaying

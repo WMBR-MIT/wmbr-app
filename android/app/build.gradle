@@ -82,8 +82,8 @@ android {
         applicationId "com.wmbrapp"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 3
-        versionName "3.0"
+        versionCode 1
+        versionName "1.0"
     }
     signingConfigs {
         debug {

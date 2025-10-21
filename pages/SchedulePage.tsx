@@ -14,12 +14,13 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
 import { debugLog, debugError } from '../utils/Debug';
-import { useIsFocused, useNavigation } from '@react-navigation/native';
+import { NavigationProp, useIsFocused, useNavigation } from '@react-navigation/native';
 import { SvgXml } from 'react-native-svg';
 import { ScheduleShow, ScheduleResponse } from '../types/Schedule';
 import { ScheduleService } from '../services/ScheduleService';
 import { getWMBRLogoSVG } from '../utils/WMBRLogo';
 import { RecentlyPlayedService } from '../services/RecentlyPlayedService';
+import { WmbrRouteName } from '../types/Navigation';
 
 interface SchedulePageProps {
   currentShow?: string;
@@ -27,7 +28,7 @@ interface SchedulePageProps {
 
 export default function SchedulePage({ currentShow }: SchedulePageProps) { 
 
-  const navigation = useNavigation<any>();
+  const navigation = useNavigation<NavigationProp<Record<WmbrRouteName, object | undefined>>>();
 
   const [schedule, setSchedule] = useState<ScheduleResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -80,7 +81,7 @@ export default function SchedulePage({ currentShow }: SchedulePageProps) {
       );
 
       if (showWithArchiveData && showWithArchiveData.archives.length > 0) {
-        navigation.push('ShowDetails', { show: showWithArchiveData });
+        navigation.navigate('ShowDetails' as WmbrRouteName, { show: showWithArchiveData });
       } else {
         // If no archives found, show info message
         Alert.alert(

@@ -32,12 +32,14 @@ export default function AboutPage() {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Contact Us</Text>
 
-            <Text style={styles.contactLabel}>Mailing Address</Text>
-            <View style={styles.addressBlock}>
-              <Text style={styles.addressLine}>WMBR Radio</Text>
-              <Text style={styles.addressLine}>142 Memorial Drive, Room 50-030</Text>
-              <Text style={styles.addressLine}>Cambridge, MA 02139</Text>
-            </View>
+            <Text style={styles.contactLabel}>Text or Call the DJ</Text>
+            <TouchableOpacity style={styles.infoRow} onPress={() => openLink('tel:+16172538810')} activeOpacity={0.8}>
+              <Icon name="call-outline" size={20} color="#FFFFFF" />
+              <View style={styles.textBlock}>
+                <Text style={styles.linkText}>(617) 253-8810</Text>
+                <Text style={styles.smallText}>Requests Line</Text>
+              </View>
+            </TouchableOpacity>
 
             <Text style={styles.contactLabel}>Email</Text>
             <TouchableOpacity style={styles.infoRow} onPress={() => openLink('mailto:music@wmbr.org')} activeOpacity={0.8}>
@@ -56,14 +58,12 @@ export default function AboutPage() {
               </View>
             </TouchableOpacity>
 
-            <Text style={styles.contactLabel}>Call Or Text the DJ</Text>
-            <TouchableOpacity style={styles.infoRow} onPress={() => openLink('tel:+16172538810')} activeOpacity={0.8}>
-              <Icon name="call-outline" size={20} color="#FFFFFF" />
-              <View style={styles.textBlock}>
-                <Text style={styles.linkText}>(617) 253-8810</Text>
-                <Text style={styles.smallText}>Requests Line</Text>
-              </View>
-            </TouchableOpacity>
+            <Text style={styles.contactLabel}>Mailing Address</Text>
+            <View style={styles.addressBlock}>
+              <Text style={styles.addressLine}>WMBR Radio</Text>
+              <Text style={styles.addressLine}>142 Memorial Drive, Room 50-030</Text>
+              <Text style={styles.addressLine}>Cambridge, MA 02139</Text>
+            </View>
           </View>
 
           <View style={styles.actionsRow}>

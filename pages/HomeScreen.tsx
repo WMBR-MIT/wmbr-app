@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import { debugError } from '../utils/Debug';
 import {
   View,
@@ -304,6 +304,12 @@ export default function HomeScreen() {
     return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
   };
 
+  const handleOpenShowDetails = useCallback(() => {
+    const show = archiveState.currentShow;
+    if (!show) return;
+    navigation.navigate('ShowDetails' as WmbrRouteName, { show });
+  }, [navigation, archiveState.currentShow]);
+
   if (showSplash) return <SplashScreen onAnimationEnd={handleSplashEnd} />;
 
   return (
@@ -317,7 +323,7 @@ export default function HomeScreen() {
             </View>
             <View style={styles.showInfo}>
               {archiveState.isPlayingArchive ? (
-                <TouchableOpacity onPress={() => navigation.navigate('ShowDetails' as WmbrRouteName, { show: archiveState.currentShow })} activeOpacity={0.7}>
+                <TouchableOpacity onPress={handleOpenShowDetails} activeOpacity={0.7}>
                   <Text style={[styles.showTitle, styles.clickableTitle]}>
                     {archiveState.currentShow?.name || 'Archive'}
                   </Text>

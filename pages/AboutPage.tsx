@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
+import { ABOUT_PAGE_GRADIENT } from '../utils/Colors';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { getWMBRLogoSVG } from '../utils/WMBRLogo';
 import { SvgXml } from 'react-native-svg';
@@ -18,7 +19,7 @@ const openProgramGuide = () => openLink('https://wmbr.org/WMBR_ProgramGuide.pdf'
 export default function AboutPage() {
 
   return (
-    <LinearGradient colors={["#0B0F1A", "#1a1a1a"]} style={styles.gradient}>
+    <LinearGradient colors={ABOUT_PAGE_GRADIENT} style={styles.gradient}>
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.container}>
           <View style={styles.logoRow}>

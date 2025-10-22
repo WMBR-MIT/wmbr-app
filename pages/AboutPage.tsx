@@ -2,45 +2,24 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
+import { ABOUT_PAGE_GRADIENT } from '../utils/Colors';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { getWMBRLogoSVG } from '../utils/WMBRLogo';
 import { SvgXml } from 'react-native-svg';
 
+const openLink = (url: string) => Linking.openURL(url).catch(() => {});
+
+const openWebsite = () => openLink('https://wmbr.org');
+const openInstagram = () => openLink('https://www.instagram.com/wmbrfm');
+const openTwitter = () => openLink('https://x.com/wmbr');
+const openFacebook = () => openLink('https://www.facebook.com/wmbrfm');
+const openMastodon = () => openLink('https://mastodon.mit.edu/@wmbr');
+const openProgramGuide = () => openLink('https://wmbr.org/WMBR_ProgramGuide.pdf');
+
 export default function AboutPage() {
-  const openWebsite = () => {
-    const url = 'https://wmbr.org';
-    Linking.openURL(url).catch(() => {});
-  };
-
-  const openInstagram = () => {
-    const url = 'https://www.instagram.com/wmbrfm';
-    Linking.openURL(url).catch(() => {});
-  };
-
-  const openTwitter = () => {
-    const url = 'https://x.com/wmbr';
-    Linking.openURL(url).catch(() => {});
-  };
-
-  const openFacebook = () => {
-    const url = 'https://www.facebook.com/wmbrfm';
-    Linking.openURL(url).catch(() => {});
-  };
-
-  const openMastodon = () => {
-    const url = 'https://mastodon.mit.edu/@wmbr';
-    Linking.openURL(url).catch(() => {});
-  }
-
-  const openProgramGuide = () => {
-    const url = 'https://wmbr.org/WMBR_ProgramGuide.pdf';
-    Linking.openURL(url).catch(() => {});
-  };
-
-  const openLink = (url: string) => Linking.openURL(url).catch(() => {});
 
   return (
-    <LinearGradient colors={["#0B0F1A", "#1a1a1a"]} style={styles.gradient}>
+    <LinearGradient colors={ABOUT_PAGE_GRADIENT} style={styles.gradient}>
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.container}>
           <View style={styles.logoRow}>
@@ -54,12 +33,14 @@ export default function AboutPage() {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Contact Us</Text>
 
-            <Text style={styles.contactLabel}>Mailing Address</Text>
-            <View style={styles.addressBlock}>
-              <Text style={styles.addressLine}>WMBR Radio</Text>
-              <Text style={styles.addressLine}>142 Memorial Drive, Room 50-030</Text>
-              <Text style={styles.addressLine}>Cambridge, MA 02139</Text>
-            </View>
+            <Text style={styles.contactLabel}>Text or Call the DJ</Text>
+            <TouchableOpacity style={styles.infoRow} onPress={() => openLink('tel:+16172538810')} activeOpacity={0.8}>
+              <Icon name="call-outline" size={20} color="#FFFFFF" />
+              <View style={styles.textBlock}>
+                <Text style={styles.linkText}>(617) 253-8810</Text>
+                <Text style={styles.smallText}>Requests Line</Text>
+              </View>
+            </TouchableOpacity>
 
             <Text style={styles.contactLabel}>Email</Text>
             <TouchableOpacity style={styles.infoRow} onPress={() => openLink('mailto:music@wmbr.org')} activeOpacity={0.8}>
@@ -78,14 +59,12 @@ export default function AboutPage() {
               </View>
             </TouchableOpacity>
 
-            <Text style={styles.contactLabel}>Call Or Text the DJ</Text>
-            <TouchableOpacity style={styles.infoRow} onPress={() => openLink('tel:+16172538810')} activeOpacity={0.8}>
-              <Icon name="call-outline" size={20} color="#FFFFFF" />
-              <View style={styles.textBlock}>
-                <Text style={styles.linkText}>(617) 253-8810</Text>
-                <Text style={styles.smallText}>Requests Line</Text>
-              </View>
-            </TouchableOpacity>
+            <Text style={styles.contactLabel}>Mailing Address</Text>
+            <View style={styles.addressBlock}>
+              <Text style={styles.addressLine}>WMBR Radio</Text>
+              <Text style={styles.addressLine}>142 Memorial Drive, Room 50-030</Text>
+              <Text style={styles.addressLine}>Cambridge, MA 02139</Text>
+            </View>
           </View>
 
           <View style={styles.actionsRow}>

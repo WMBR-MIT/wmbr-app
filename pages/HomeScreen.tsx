@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useMemo } from 'react';
+import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import { debugError } from '../utils/Debug';
 import {
   View,
@@ -19,7 +19,8 @@ import MetadataService, { ShowInfo, Song } from '../services/MetadataService';
 import { ArchiveService, ArchivePlaybackState } from '../services/ArchiveService';
 import { AudioPreviewService } from '../services/AudioPreviewService';
 import { getWMBRLogoSVG } from '../utils/WMBRLogo';
-import { useNavigation } from '@react-navigation/native';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { WmbrRouteName } from '../types/Navigation';
 
 const streamUrl = 'https://wmbr.org:8002/hi';
 const WMBR_GREEN = '#00843D';
@@ -50,7 +51,7 @@ export default function HomeScreen() {
   const songChangeRotate = useRef(new Animated.Value(0)).current;
   const songChangeOpacity = useRef(new Animated.Value(1)).current;
 
-  const navigation = useNavigation<any>();
+  const navigation = useNavigation<NavigationProp<Record<WmbrRouteName, object | undefined>>>();
 
   useEffect(() => {
     setupPlayer();
@@ -306,6 +307,12 @@ export default function HomeScreen() {
 
   const bottomSpacerStyle = useMemo(() => ({ height: Math.max(insets.bottom + 56, 56)}), [insets.bottom]);
 
+  const handleOpenShowDetails = useCallback(() => {
+    const show = archiveState.currentShow;
+    if (!show) return;
+    navigation.navigate('ShowDetails' as WmbrRouteName, { show });
+  }, [navigation, archiveState.currentShow]);
+
   if (showSplash) return <SplashScreen onAnimationEnd={handleSplashEnd} />;
 
   return (
@@ -319,7 +326,7 @@ export default function HomeScreen() {
             </View>
             <View style={styles.showInfo}>
               {archiveState.isPlayingArchive ? (
-                <TouchableOpacity onPress={() => navigation.push('ShowDetails', { show: archiveState.currentShow })} activeOpacity={0.7}>
+                <TouchableOpacity onPress={handleOpenShowDetails} activeOpacity={0.7}>
                   <Text style={[styles.showTitle, styles.clickableTitle]}>
                     {archiveState.currentShow?.name || 'Archive'}
                   </Text>

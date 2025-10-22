@@ -21,7 +21,7 @@ import Animated, {
   runOnJS,
 } from 'react-native-reanimated';
 import { SvgXml } from 'react-native-svg';
-import { Archive } from '../types/RecentlyPlayed';
+import { Show, Archive } from '../types/RecentlyPlayed';
 import { ArchiveService } from '../services/ArchiveService';
 import { useProgress, usePlaybackState, State } from 'react-native-track-player';
 import TrackPlayer from 'react-native-track-player';
@@ -35,14 +35,15 @@ const { width } = Dimensions.get('window');
 const ALBUM_SIZE = width * 0.6;
 const CIRCLE_DIAMETER = 16;
 
-type Params = {
-  show: any;
+// Route params for ShowDetailsPage
+export type ShowDetailsPageRouteParams = {
+  show: Show;
 };
 
 export default function ShowDetailsPage() {
   const navigation = useNavigation();
-  const route = useRoute<RouteProp<Record<string, Params>, string>>();
-  const show = route.params?.show;
+  const route = useRoute<RouteProp<Record<string, ShowDetailsPageRouteParams>, string>>();
+  const show: Show = route.params!.show;
 
   // Always call hooks at the top level, never conditionally
   // Slide horizontally: start offscreen to the right (translateX = width)
@@ -118,9 +119,16 @@ export default function ShowDetailsPage() {
   }));
 
   // Since we're now conditionally rendered, show will always exist
-  const [gradientStart, gradientEnd] = generateGradientColors(show.name);
-  const [darkGradientStart, darkGradientEnd] = generateDarkGradientColors(show.name);
-  const archives = show.archives || [];
+  const [gradientStart, gradientEnd] = useMemo(() => generateGradientColors(show.name), [show.name]);
+  const [darkGradientStart, darkGradientEnd] = useMemo(() => generateDarkGradientColors(show.name), [show.name]);
+
+  const archives = useMemo(() => show.archives || [], [show.archives]);
+
+  const sortedArchives = useMemo(() => {
+    const arr = (archives || []).slice();
+    arr.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    return arr;
+  }, [archives]);
 
   const handlePauseResume = async () => {
     try {
@@ -223,7 +231,7 @@ export default function ShowDetailsPage() {
           <View style={styles.header}>
             <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
               <Text style={styles.backButtonText}>←</Text>
-              <Text style={styles.headerTitle}>Show Details</Text>
+              <Text style={styles.headerTitle}>Schedule</Text>
               <View style={styles.headerSpacer} />
             </TouchableOpacity>
           </View>
@@ -270,10 +278,8 @@ export default function ShowDetailsPage() {
             {/* Archives List */}
             <View style={styles.archivesSection}>
               <Text style={styles.sectionTitle}>Archives</Text>
-              {archives.length > 0 ? (
-                archives
-                  .sort((a: Archive, b: Archive) => new Date(b.date).getTime() - new Date(a.date).getTime())
-                  .map((archive: Archive, index: number) => {
+              {sortedArchives.length > 0 ? (
+                sortedArchives.map((archive, index) => {
                     const isCurrentlyPlaying = currentlyPlayingArchive && 
                       currentlyPlayingArchive.url === archive.url;
                     const progressPercentage = isCurrentlyPlaying && progress.duration > 0 
@@ -281,7 +287,7 @@ export default function ShowDetailsPage() {
                     
                     return (
                       <TouchableOpacity
-                        key={index}
+                        key={archive.url || index}
                         style={[
                           styles.archiveItem,
                           isCurrentlyPlaying && styles.archiveItemPlaying

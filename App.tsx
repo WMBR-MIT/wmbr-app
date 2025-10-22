@@ -9,19 +9,27 @@ import AboutPage from './pages/AboutPage';
 
 const Stack = createNativeStackNavigator();
 
+const PrimaryScreens = (
+  <>
+    <Stack.Screen name="Main" component={MainTabs} />
+    <Stack.Screen name="SchedulePage" component={SchedulePage} />
+    <Stack.Screen name="AboutPage" component={AboutPage} />
+  </>
+);
+
+const ModalScreens = (
+  <>
+    <Stack.Screen name="ShowDetails" component={ShowDetailsPage} />
+  </>
+);
+
 export default function App() {
   return (
-  <SafeAreaProvider>
+    <SafeAreaProvider>
       <NavigationContainer>
         <Stack.Navigator screenOptions={{ headerShown: false }}>
-          <Stack.Group>
-            <Stack.Screen name="Main" component={MainTabs} />
-            <Stack.Screen name="SchedulePage" component={SchedulePage} />
-            <Stack.Screen name="About" component={AboutPage} />
-          </Stack.Group>
-          <Stack.Group screenOptions={{ presentation: 'modal' }}>
-            <Stack.Screen name="ShowDetails" component={ShowDetailsPage} />
-          </Stack.Group>
+          <Stack.Group>{PrimaryScreens}</Stack.Group>
+          <Stack.Group screenOptions={{ presentation: 'modal' }}>{ModalScreens}</Stack.Group>
         </Stack.Navigator>
       </NavigationContainer>
     </SafeAreaProvider>

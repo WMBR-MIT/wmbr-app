@@ -14,12 +14,14 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
 import { debugLog, debugError } from '../utils/Debug';
-import { useIsFocused, useNavigation } from '@react-navigation/native';
+import { RefreshControl } from 'react-native';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { SvgXml } from 'react-native-svg';
 import { ScheduleShow, ScheduleResponse } from '../types/Schedule';
 import { ScheduleService } from '../services/ScheduleService';
 import { getWMBRLogoSVG } from '../utils/WMBRLogo';
 import { RecentlyPlayedService } from '../services/RecentlyPlayedService';
+import { WmbrRouteName } from '../types/Navigation';
 
 interface SchedulePageProps {
   currentShow?: string;
@@ -27,7 +29,7 @@ interface SchedulePageProps {
 
 export default function SchedulePage({ currentShow }: SchedulePageProps) { 
 
-  const navigation = useNavigation<any>();
+  const navigation = useNavigation<NavigationProp<Record<WmbrRouteName, object | undefined>>>();
 
   const [schedule, setSchedule] = useState<ScheduleResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -41,12 +43,11 @@ export default function SchedulePage({ currentShow }: SchedulePageProps) {
   const fetchSchedule = useCallback(async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const scheduleData = await scheduleService.fetchSchedule();
       debugLog('Schedule data received:', scheduleData);
       setSchedule(scheduleData);
-      
     } catch (err) {
       debugError('Error fetching schedule:', err);
       setError(`Failed to load schedule: ${err instanceof Error ? err.message : 'Unknown error'}`);
@@ -55,30 +56,38 @@ export default function SchedulePage({ currentShow }: SchedulePageProps) {
     }
   }, [scheduleService]);
 
-  const isFocused = useIsFocused();
+  // instead fetch once on mount
   useEffect(() => {
-    if (isFocused) {
-      fetchSchedule();
+    fetchSchedule();
+  }, [fetchSchedule]);
+
+  // Pull to refresh
+  const [refreshing, setRefreshing] = useState(false);
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      const scheduleData = await scheduleService.fetchSchedule();
+      if (scheduleData) setSchedule(scheduleData);
+    } catch (err) {
+      debugError('Error refreshing schedule:', err);
+    } finally {
+      setRefreshing(false);
     }
-  }, [isFocused, fetchSchedule]);
+  }, [scheduleService]);
 
   const handleShowPress = async (show: ScheduleShow) => {
     try {
       // Fetch archives for this show from the recently played service
       const recentlyPlayedService = RecentlyPlayedService.getInstance();
 
-      await recentlyPlayedService.fetchRecentlyPlayed();
-      
-      // Get the shows cache which contains the archive data
-      const showsWithArchives = recentlyPlayedService.getShowsCache();
+      // fetch show cache (xml only)
+      await recentlyPlayedService.fetchShowsCacheOnly();
 
-      // Find the show in the cache (which includes archives)
-      const showWithArchiveData = showsWithArchives.find(
-        recentShow => recentShow.name.toLowerCase() === show.name.toLowerCase()
-      );
+      // find the show from the cache
+      const showWithArchiveData = recentlyPlayedService.getShowByName(show.name);
 
       if (showWithArchiveData && showWithArchiveData.archives.length > 0) {
-        navigation.push('ShowDetails', { show: showWithArchiveData });
+        navigation.navigate('ShowDetails' as WmbrRouteName, { show: showWithArchiveData });
       } else {
         // If no archives found, show info message
         Alert.alert(
@@ -285,6 +294,7 @@ export default function SchedulePage({ currentShow }: SchedulePageProps) {
             ref={scrollViewRef}
             style={styles.scrollView} 
             showsVerticalScrollIndicator={false}
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
           >
             {loading ? (
               <View style={styles.loadingContainer}>

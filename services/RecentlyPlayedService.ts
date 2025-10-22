@@ -27,6 +27,7 @@ export class RecentlyPlayedService {
   private seasonStart: Date | null = null;
   private lastFetch: number = 0;
   private readonly CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+  private showsLastFetch: number = 0;
 
   static getInstance(): RecentlyPlayedService {
     if (!RecentlyPlayedService.instance) {
@@ -171,6 +172,39 @@ export class RecentlyPlayedService {
       debugError('Error fetching recently played data:', error);
       return [];
     }
+  }
+
+  /**
+   * fetches XML only (archives metadata) for schedule page, where fetching
+   * playlists for each show isn't immediately necessary.
+   */
+  async fetchShowsCacheOnly(forceRefresh = false): Promise<Show[]> {
+    const now = Date.now();
+
+    if (!forceRefresh && this.showsCache.length > 0 && (now - this.showsLastFetch) < this.CACHE_DURATION) {
+      return this.showsCache;
+    }
+
+    try {
+      const timestamp = Date.now();
+      const showsResponse = await fetch(`https://wmbr.org/cgi-bin/xmlarch?t=${timestamp}`, {
+        headers: { 'Cache-Control': 'no-cache' }
+      });
+      const showsXml = await showsResponse.text();
+      this.showsCache = await this.parseShowsXML(showsXml);
+      this.showsLastFetch = now;
+      return this.showsCache;
+    } catch (error) {
+      debugError('Error fetching shows XML:', error);
+      return [];
+    }
+  }
+
+  /**
+   * finds cached show by name, returns undefined if not found
+   */
+  getShowByName(name: string): Show | undefined {
+    return this.showsCache.find(s => s.name.toLowerCase() === name.toLowerCase());
   }
 
   private parseShowsXML(xmlString: string): Promise<Show[]> {

@@ -326,13 +326,14 @@ export default function RecentlyPlayed({ refreshKey }: RecentlyPlayedProps = {})
     }
   };
 
-  const renderSong = (song: ProcessedSong, index: number) => {
+  const renderSong = (song: ProcessedSong, key: string) => {
+    // Validate song data
     if (!song.title || !song.artist) {
       return null;
     }
 
     return (
-      <View key={`${song.title}-${song.artist}-${index}-${song.playedAt.getTime()}`} style={styles.songItem}>
+      <View key={`${key}-${song.title}-${song.artist}-${song.playedAt.getTime()}`} style={styles.songItem}>
         <View style={styles.songInfo}>
           <Text style={styles.songTitle} numberOfLines={2}>
             {song.title || 'Unknown Title'}
@@ -409,7 +410,7 @@ export default function RecentlyPlayed({ refreshKey }: RecentlyPlayedProps = {})
         </View>
         {showPlaylist.songs.length > 0 ? (
           showPlaylist.songs.map((song, songIndex) => 
-            renderSong(song, parseInt(`${showIndex}-${songIndex}`))
+            renderSong(song, `${showIndex}-${songIndex}`)
           ).filter(Boolean)
         ) : (
           <View style={styles.emptyShowContainer}>
@@ -434,7 +435,7 @@ export default function RecentlyPlayed({ refreshKey }: RecentlyPlayedProps = {})
       content.push(
         <View key="current-show">
           {showPlaylists[0].songs.map((song, songIndex) => 
-            renderSong(song, parseInt(`current-${songIndex}`))
+            renderSong(song, `current-${songIndex}`)
           ).filter(Boolean)}
         </View>
       );
@@ -464,7 +465,7 @@ export default function RecentlyPlayed({ refreshKey }: RecentlyPlayedProps = {})
       content.push(
         <View key="end-of-day" style={styles.endOfDayContainer}>
           <Text style={styles.endOfDayText}>No more shows for today</Text>
-            <TouchableOpacity onPress={() => navigation.push('Schedule')} style={styles.scheduleButton}>
+            <TouchableOpacity onPress={() => navigation.navigate('Schedule')} style={styles.scheduleButton}>
               <Text style={styles.scheduleButtonText}>View Full Schedule</Text>
             </TouchableOpacity>
         </View>

@@ -6,38 +6,16 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import { getWMBRLogoSVG } from '../utils/WMBRLogo';
 import { SvgXml } from 'react-native-svg';
 
+const openLink = (url: string) => Linking.openURL(url).catch(() => {});
+
+const openWebsite = () => openLink('https://wmbr.org');
+const openInstagram = () => openLink('https://www.instagram.com/wmbrfm');
+const openTwitter = () => openLink('https://x.com/wmbr');
+const openFacebook = () => openLink('https://www.facebook.com/wmbrfm');
+const openMastodon = () => openLink('https://mastodon.mit.edu/@wmbr');
+const openProgramGuide = () => openLink('https://wmbr.org/WMBR_ProgramGuide.pdf');
+
 export default function AboutPage() {
-  const openWebsite = () => {
-    const url = 'https://wmbr.org';
-    Linking.openURL(url).catch(() => {});
-  };
-
-  const openInstagram = () => {
-    const url = 'https://www.instagram.com/wmbrfm';
-    Linking.openURL(url).catch(() => {});
-  };
-
-  const openTwitter = () => {
-    const url = 'https://x.com/wmbr';
-    Linking.openURL(url).catch(() => {});
-  };
-
-  const openFacebook = () => {
-    const url = 'https://www.facebook.com/wmbrfm';
-    Linking.openURL(url).catch(() => {});
-  };
-
-  const openMastodon = () => {
-    const url = 'https://mastodon.mit.edu/@wmbr';
-    Linking.openURL(url).catch(() => {});
-  }
-
-  const openProgramGuide = () => {
-    const url = 'https://wmbr.org/WMBR_ProgramGuide.pdf';
-    Linking.openURL(url).catch(() => {});
-  };
-
-  const openLink = (url: string) => Linking.openURL(url).catch(() => {});
 
   return (
     <LinearGradient colors={["#0B0F1A", "#1a1a1a"]} style={styles.gradient}>

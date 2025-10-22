@@ -14,6 +14,7 @@ const PrimaryScreens = (
   <>
     <Stack.Screen name="Main" component={MainTabs} />
     <Stack.Screen name="SchedulePage" component={SchedulePage} />
+    <Stack.Screen name="AboutPage" component={AboutPage} />
   </>
 );
 

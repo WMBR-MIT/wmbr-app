@@ -10,7 +10,7 @@ import {
   RefreshControl,
   Appearance,
 } from 'react-native';
-import { debugError } from '../utils/Debug';
+import { debugError, debugLog } from '../utils/Debug';
 import { AudioPreviewService, PreviewState } from '../services/AudioPreviewService';
 import { ProcessedSong } from '../types/RecentlyPlayed';
 import { ScheduleService } from '../services/ScheduleService';
@@ -158,15 +158,22 @@ export default function RecentlyPlayed({ refreshKey }: RecentlyPlayedProps = {})
     let shouldTriggerAutoLoad = false;
 
     try {
-      // Get today's date in Eastern Time (WMBR's timezone) in YYYY-MM-DD format
-      const today = new Date();
-      const easternDate = new Date(today.toLocaleString("en-US", { timeZone: "America/New_York" }));
-
-      const year = easternDate.getFullYear();
-      const month = String(easternDate.getMonth() + 1).padStart(2, "0");
-      const day = String(easternDate.getDate()).padStart(2, "0");
-
-      const dateStr = `${year}-${month}-${day}`;
+      let dateStr: string;
+      try {
+        // this should fix the ISO formatting issue since en-CA is already formatted like that
+        dateStr = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+          throw new Error('unexpected date format');
+        }
+      } catch (e) {
+        // Fallback: construct local date
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        dateStr = `${year}-${month}-${day}`;
+        debugLog('RecentlyPlayed: fallback date used', { dateStr, error: (e as any)?.message });
+      }
 
       const songs = await fetchShowPlaylist(currentShow, dateStr);
       setShowPlaylists([{ showName: currentShow, songs }]);
@@ -319,13 +326,14 @@ export default function RecentlyPlayed({ refreshKey }: RecentlyPlayedProps = {})
     }
   };
 
-  const renderSong = (song: ProcessedSong, index: number) => {
+  const renderSong = (song: ProcessedSong, key: string) => {
+    // Validate song data
     if (!song.title || !song.artist) {
       return null;
     }
 
     return (
-      <View key={`${song.title}-${song.artist}-${index}-${song.playedAt.getTime()}`} style={styles.songItem}>
+      <View key={`${key}-${song.title}-${song.artist}-${song.playedAt.getTime()}`} style={styles.songItem}>
         <View style={styles.songInfo}>
           <Text style={styles.songTitle} numberOfLines={2}>
             {song.title || 'Unknown Title'}
@@ -402,7 +410,7 @@ export default function RecentlyPlayed({ refreshKey }: RecentlyPlayedProps = {})
         </View>
         {showPlaylist.songs.length > 0 ? (
           showPlaylist.songs.map((song, songIndex) => 
-            renderSong(song, parseInt(`${showIndex}-${songIndex}`))
+            renderSong(song, `${showIndex}-${songIndex}`)
           ).filter(Boolean)
         ) : (
           <View style={styles.emptyShowContainer}>
@@ -427,7 +435,7 @@ export default function RecentlyPlayed({ refreshKey }: RecentlyPlayedProps = {})
       content.push(
         <View key="current-show">
           {showPlaylists[0].songs.map((song, songIndex) => 
-            renderSong(song, parseInt(`current-${songIndex}`))
+            renderSong(song, `current-${songIndex}`)
           ).filter(Boolean)}
         </View>
       );
@@ -457,7 +465,7 @@ export default function RecentlyPlayed({ refreshKey }: RecentlyPlayedProps = {})
       content.push(
         <View key="end-of-day" style={styles.endOfDayContainer}>
           <Text style={styles.endOfDayText}>No more shows for today</Text>
-            <TouchableOpacity onPress={() => navigation.push('Schedule')} style={styles.scheduleButton}>
+            <TouchableOpacity onPress={() => navigation.navigate('Schedule')} style={styles.scheduleButton}>
               <Text style={styles.scheduleButtonText}>View Full Schedule</Text>
             </TouchableOpacity>
         </View>

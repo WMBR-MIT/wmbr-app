@@ -16,6 +16,7 @@ import { SvgXml } from 'react-native-svg';
 import RecentlyPlayedDrawer from '../components/RecentlyPlayedDrawer';
 import SplashScreen from '../components/SplashScreen';
 import MetadataService, { ShowInfo, Song } from '../services/MetadataService';
+import { RecentlyPlayedService } from '../services/RecentlyPlayedService';
 import { ArchiveService, ArchivePlaybackState } from '../services/ArchiveService';
 import { AudioPreviewService } from '../services/AudioPreviewService';
 import { getWMBRLogoSVG } from '../utils/WMBRLogo';
@@ -62,7 +63,6 @@ export default function HomeScreen() {
       setCurrentArtist(data.currentArtist);
 
       try {
-        const RecentlyPlayedService = require('../services/RecentlyPlayedService').RecentlyPlayedService;
         RecentlyPlayedService.getInstance().setCurrentShow(data.showTitle);
       } catch (e) {
         debugError('current show update failed:', e);

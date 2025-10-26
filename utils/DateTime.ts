@@ -68,3 +68,15 @@ export const formatShowTime = (show: Show) => {
   const plural = show.day === 7 ? dayName : `${dayName}s`;
   return `${plural} at ${show.time_str}`;
 };
+
+/* Get current date in ISO format (YYYY-MM-DD) in Eastern Time
+*/
+export const getDateISO = (): string => {
+  let dateStr: string;
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  dateStr = `${year}-${month}-${day}`;
+  return dateStr;
+};

@@ -1,15 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, SafeAreaView, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import RecentlyPlayed from '../components/RecentlyPlayed';
 
 export default function RecentlyPlayedPage() {
   const [refreshKey, setRefreshKey] = useState(0);
 
+  const handleRefresh = useCallback(() => setRefreshKey(k => k + 1), [setRefreshKey]);
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Recently Played</Text>
-        <TouchableOpacity onPress={() => setRefreshKey(k => k + 1)} style={styles.refreshButton}>
+        <TouchableOpacity onPress={handleRefresh} style={styles.refreshButton}>
           <Text style={styles.refreshText}>↻</Text>
         </TouchableOpacity>
       </View>

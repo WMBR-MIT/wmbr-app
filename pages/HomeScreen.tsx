@@ -16,11 +16,13 @@ import { SvgXml } from 'react-native-svg';
 import RecentlyPlayedDrawer from '../components/RecentlyPlayedDrawer';
 import SplashScreen from '../components/SplashScreen';
 import MetadataService, { ShowInfo, Song } from '../services/MetadataService';
+import { RecentlyPlayedService } from '../services/RecentlyPlayedService';
 import { ArchiveService, ArchivePlaybackState } from '../services/ArchiveService';
 import { AudioPreviewService } from '../services/AudioPreviewService';
 import { getWMBRLogoSVG } from '../utils/WMBRLogo';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { WmbrRouteName } from '../types/Navigation';
+import { DEFAULT_NAME } from '../types/Playlist';
 
 const streamUrl = 'https://wmbr.org:8002/hi';
 const WMBR_GREEN = '#00843D';
@@ -28,7 +30,7 @@ const WMBR_GREEN = '#00843D';
 export default function HomeScreen() {
   const playbackState = usePlaybackState();
   const [isPlaying, setIsPlaying] = useState(false);
-  const [currentShow, setCurrentShow] = useState('WMBR 88.1 FM');
+  const [currentShow, setCurrentShow] = useState(DEFAULT_NAME);
   const [, setSongHistory] = useState<Song[]>([]);
   const [hosts, setHosts] = useState<string | undefined>();
   const [showDescription, setShowDescription] = useState<string | undefined>();
@@ -65,7 +67,6 @@ export default function HomeScreen() {
       setCurrentArtist(data.currentArtist);
 
       try {
-        const RecentlyPlayedService = require('../services/RecentlyPlayedService').RecentlyPlayedService;
         RecentlyPlayedService.getInstance().setCurrentShow(data.showTitle);
       } catch (e) {
         debugError('current show update failed:', e);
@@ -100,7 +101,7 @@ export default function HomeScreen() {
         // Only update if we're not playing an archive
         if (!archiveState.isPlayingArchive) {
           await TrackPlayer.updateMetadataForTrack(0, {
-            title: 'WMBR 88.1 FM',
+            title: DEFAULT_NAME,
             artist: currentShow || 'Live Radio',
           });
         }
@@ -249,7 +250,7 @@ export default function HomeScreen() {
       await TrackPlayer.add({
         id: 'wmbr-stream',
         url: streamUrl,
-        title: 'WMBR 88.1 FM',
+        title: DEFAULT_NAME,
         artist: 'Live Radio',
         artwork: require('../assets/cover.png'),
       });
@@ -281,7 +282,7 @@ export default function HomeScreen() {
             await TrackPlayer.add({
               id: 'wmbr-stream',
               url: streamUrl,
-              title: 'WMBR 88.1 FM',
+              title: DEFAULT_NAME,
               artist: currentShow || 'Live Radio',
               artwork: require('../assets/cover.png'),
             });

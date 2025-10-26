@@ -16,7 +16,10 @@ import { ProcessedSong } from '../types/RecentlyPlayed';
 import { ScheduleService } from '../services/ScheduleService';
 import { RecentlyPlayedService } from '../services/RecentlyPlayedService';
 import CircularProgress from './CircularProgress';
-import { useNavigation } from '@react-navigation/native';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { getDateISO } from '../utils/DateTime';
+import { WmbrRouteName } from '../types/Navigation';
+import { DEFAULT_NAME } from '../types/Playlist';
 
 interface RecentlyPlayedProps {
   refreshKey?: number;
@@ -28,7 +31,7 @@ interface ShowPlaylist {
 }
 
 export default function RecentlyPlayed({ refreshKey }: RecentlyPlayedProps = {}) {
-  const navigation = useNavigation<any>();
+  const navigation = useNavigation<NavigationProp<Record<WmbrRouteName, object | undefined>>>();
 
   const recentlyPlayedService = RecentlyPlayedService.getInstance();
   const [currentShow, setCurrentShow] = useState<string | undefined>(undefined);
@@ -50,6 +53,8 @@ export default function RecentlyPlayed({ refreshKey }: RecentlyPlayedProps = {})
   const scrollViewRef = useRef<ScrollView>(null);
   const audioPreviewService = AudioPreviewService.getInstance();
   const [shouldAutoLoadPrevious, setShouldAutoLoadPrevious] = useState(false); // Trigger auto-load of previous show
+  // Prevent concurrent fetches
+  const fetchInFlightRef = useRef(false);
 
   useEffect(() => {
     // Force dark mode for light-colored refresh control spinner
@@ -141,9 +146,12 @@ export default function RecentlyPlayed({ refreshKey }: RecentlyPlayedProps = {})
   }, []);
 
   const fetchCurrentShowPlaylist = useCallback(async (isRefresh = false) => {
-    if (!currentShow || currentShow === 'WMBR 88.1 FM') {
-      return;
-    }
+    if (!currentShow || currentShow === DEFAULT_NAME) return;
+
+    // Prevent concurrent fetches (debounce)
+    if (fetchInFlightRef.current) return;
+
+    fetchInFlightRef.current = true;
 
     if (isRefresh) {
       setRefreshing(true);
@@ -158,24 +166,7 @@ export default function RecentlyPlayed({ refreshKey }: RecentlyPlayedProps = {})
     let shouldTriggerAutoLoad = false;
 
     try {
-      let dateStr: string;
-      try {
-        // this should fix the ISO formatting issue since en-CA is already formatted like that
-        dateStr = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
-        if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-          throw new Error('unexpected date format');
-        }
-      } catch (e) {
-        // Fallback: construct local date
-        const now = new Date();
-        const year = now.getFullYear();
-        const month = String(now.getMonth() + 1).padStart(2, '0');
-        const day = String(now.getDate()).padStart(2, '0');
-        dateStr = `${year}-${month}-${day}`;
-        debugLog('RecentlyPlayed: fallback date used', { dateStr, error: (e as any)?.message });
-      }
-
-      const songs = await fetchShowPlaylist(currentShow, dateStr);
+      const songs = await fetchShowPlaylist(currentShow, getDateISO());
       setShowPlaylists([{ showName: currentShow, songs }]);
 
       // If current show has no songs, mark for auto-load of previous show
@@ -197,6 +188,8 @@ export default function RecentlyPlayed({ refreshKey }: RecentlyPlayedProps = {})
       if (shouldTriggerAutoLoad) {
         setShouldAutoLoadPrevious(true);
       }
+
+      fetchInFlightRef.current = false;
     }
   }, [currentShow, fetchShowPlaylist]);
 
@@ -204,7 +197,7 @@ export default function RecentlyPlayed({ refreshKey }: RecentlyPlayedProps = {})
     // Determine which show to find the previous show for
     const lastLoadedShow = showPlaylists.length > 0 ? showPlaylists[showPlaylists.length - 1].showName : currentShow;
 
-    if (!lastLoadedShow || !currentShow || currentShow === 'WMBR 88.1 FM' || loadingMore || hasReachedEndOfDay) {
+    if (!lastLoadedShow || !currentShow || currentShow === DEFAULT_NAME || loadingMore || hasReachedEndOfDay) {
       return;
     }
 
@@ -255,7 +248,7 @@ export default function RecentlyPlayed({ refreshKey }: RecentlyPlayedProps = {})
   }, [currentShow]);
 
   useEffect(() => {
-    if (currentShow && currentShow !== 'WMBR 88.1 FM') {
+    if (currentShow && currentShow !== DEFAULT_NAME) {
       fetchCurrentShowPlaylist();
     }
   }, [currentShow, fetchCurrentShowPlaylist]);
@@ -498,7 +491,7 @@ export default function RecentlyPlayed({ refreshKey }: RecentlyPlayedProps = {})
             }
           >
             {/* Current Show Header - only show when there's a single show with songs */}
-            {currentShow && currentShow !== 'WMBR 88.1 FM' && showPlaylists.length === 1 && showPlaylists[0].songs.length > 0 && (
+            {currentShow && currentShow !== DEFAULT_NAME && showPlaylists.length === 1 && showPlaylists[0].songs.length > 0 && (
               <View style={styles.currentShowHeader}>
                 <Text style={styles.currentShowTitle}>{currentShow}</Text>
                 <Text style={styles.currentShowSubtitle}>Now Playing</Text>
@@ -517,7 +510,7 @@ export default function RecentlyPlayed({ refreshKey }: RecentlyPlayedProps = {})
                   <Text style={styles.retryButtonText}>Retry</Text>
                 </TouchableOpacity>
               </View>
-            ) : !currentShow || currentShow === 'WMBR 88.1 FM' ? (
+            ) : !currentShow || currentShow === DEFAULT_NAME ? (
               <View style={styles.emptyContainer}>
                 <Text style={styles.emptyText}>No playlists found</Text>
               </View>

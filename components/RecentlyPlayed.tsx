@@ -150,8 +150,6 @@ export default function RecentlyPlayed({ refreshKey }: RecentlyPlayedProps = {})
 
     // Prevent concurrent fetches (debounce)
     if (fetchInFlightRef.current) return;
-    if (isRefresh && refreshing) return; // already refreshing
-    if (!isRefresh && loading) return; // already loading
 
     fetchInFlightRef.current = true;
 

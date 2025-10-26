@@ -191,7 +191,7 @@ export default function RecentlyPlayed({ refreshKey }: RecentlyPlayedProps = {})
 
       fetchInFlightRef.current = false;
     }
-  }, [currentShow, fetchShowPlaylist, loading, refreshing]);
+  }, [currentShow, fetchShowPlaylist]);
 
   const loadPreviousShow = useCallback(async () => {
     // Determine which show to find the previous show for

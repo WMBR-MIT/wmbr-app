@@ -10,7 +10,7 @@ import {
   RefreshControl,
   Appearance,
 } from 'react-native';
-import { debugError, debugLog } from '../utils/Debug';
+import { debugError } from '../utils/Debug';
 import { AudioPreviewService, PreviewState } from '../services/AudioPreviewService';
 import { ProcessedSong } from '../types/RecentlyPlayed';
 import { ScheduleService } from '../services/ScheduleService';

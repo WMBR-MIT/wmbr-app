@@ -7,8 +7,8 @@ import {
   StyleSheet,
   StatusBar,
   Animated,
-  SafeAreaView,
 } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import TrackPlayer, { Capability, State, usePlaybackState } from 'react-native-track-player';
 import LinearGradient from 'react-native-linear-gradient';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -29,6 +29,7 @@ const WMBR_GREEN = '#00843D';
 
 export default function HomeScreen() {
   const playbackState = usePlaybackState();
+  const insets = useSafeAreaInsets();
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentShow, setCurrentShow] = useState(DEFAULT_NAME);
   const [, setSongHistory] = useState<Song[]>([]);
@@ -305,6 +306,8 @@ export default function HomeScreen() {
     return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
   };
 
+  const bottomSpacerStyle = useMemo(() => ({ height: Math.max(insets.bottom + 56, 56)}), [insets.bottom]);
+
   const handleOpenShowDetails = useCallback(() => {
     const show = archiveState.currentShow;
     if (!show) return;
@@ -385,7 +388,7 @@ export default function HomeScreen() {
                 </>
               )}
             </View>
-            <View style={styles.bottomSpace} />
+            <View style={bottomSpacerStyle} />
           </View>
         </SafeAreaView>
         <RecentlyPlayedDrawer />

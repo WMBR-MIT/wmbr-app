@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 function getIconName(routeName: string) {
   switch (routeName) {
@@ -20,9 +21,18 @@ function getIconName(routeName: string) {
 
 export default function BottomMenuBar({ state, navigation }: BottomTabBarProps) {
   const activeIndex = state.index;
+  const insets = useSafeAreaInsets();
+
+  const bottomSpacing = Math.max(insets.bottom, 8);
+  const heightSpacing = 72 + bottomSpacing;
+
+  const containerInline = useMemo(
+    () => ({ paddingBottom: bottomSpacing, height: heightSpacing }),
+    [bottomSpacing, heightSpacing]
+  );
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, containerInline]}> 
       {state.routes.map((route, idx) => {
         const focused = idx === activeIndex;
         const iconName = getIconName(route.name);
@@ -46,7 +56,6 @@ export default function BottomMenuBar({ state, navigation }: BottomTabBarProps) 
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    height: 60,
     borderTopWidth: 1,
     borderTopColor: '#222',
     backgroundColor: '#000',

@@ -16,16 +16,16 @@ export const formatDate = (dateString: string) => {
 };
 
 export const formatTime = (timeString: string) => {
-  try {
-    const date = new Date(timeString);
-    return date.toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
-    });
-  } catch (error) {
-    return timeString;
+  if (!timeString) return '';
+
+  // normalize slashes to get rid of Invalid Date response
+  const normalized = timeString.trim().replace(/\//g, '-').replace(/^(\d{4}-\d{2}-\d{2})[ \t]+(\d{1,2}:\d{2}(?::\d{2})?)/, '$1T$2');
+  const parsed = new Date(normalized);
+  if (!isNaN(parsed.getTime())) {
+    return parsed.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
   }
+
+  return timeString;
 };
 
 export const secondsToTime = (seconds: number) => {

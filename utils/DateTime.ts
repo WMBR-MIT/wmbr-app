@@ -1,5 +1,4 @@
 import { Show } from '../types/RecentlyPlayed';
-import { debugLog } from './Debug';
 
 export const formatDuration = (seconds: number) => {
   const minutes = Math.floor(seconds / 60);
@@ -71,24 +70,13 @@ export const formatShowTime = (show: Show) => {
 };
 
 /* Get current date in ISO format (YYYY-MM-DD) in Eastern Time
-  Uses en-CA format because en-US sometimes returns dates as (YYYY-M-D) which causes errors
 */
-export const getDateISO = () => {
+export const getDateISO = (): string => {
   let dateStr: string;
-    try {
-    // this should fix the ISO formatting issue since en-CA is already formatted like that
-    dateStr = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-        throw new Error('unexpected date format');
-      }
-    } catch (e) {
-      // Fallback: construct local date
-      const now = new Date();
-      const year = now.getFullYear();
-      const month = String(now.getMonth() + 1).padStart(2, '0');
-      const day = String(now.getDate()).padStart(2, '0');
-      dateStr = `${year}-${month}-${day}`;
-      debugLog('RecentlyPlayed: fallback date used', { dateStr, error: (e as any)?.message });
-    }
-    return dateStr;
-  };
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  dateStr = `${year}-${month}-${day}`;
+  return dateStr;
+};

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import { debugError } from '../utils/Debug';
 import {
   View,
@@ -20,6 +20,8 @@ import { RecentlyPlayedService } from '../services/RecentlyPlayedService';
 import { ArchiveService, ArchivePlaybackState } from '../services/ArchiveService';
 import { AudioPreviewService } from '../services/AudioPreviewService';
 import { getWMBRLogoSVG } from '../utils/WMBRLogo';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { WmbrRouteName } from '../types/Navigation';
 import { DEFAULT_NAME } from '../types/Playlist';
 
 const streamUrl = 'https://wmbr.org:8002/hi';
@@ -49,6 +51,8 @@ export default function HomeScreen() {
   const songChangeScale = useRef(new Animated.Value(1)).current;
   const songChangeRotate = useRef(new Animated.Value(0)).current;
   const songChangeOpacity = useRef(new Animated.Value(1)).current;
+
+  const navigation = useNavigation<NavigationProp<Record<WmbrRouteName, object | undefined>>>();
 
   useEffect(() => {
     setupPlayer();
@@ -296,6 +300,17 @@ export default function HomeScreen() {
   const handleSplashEnd = () => setShowSplash(false);
   const handleSwitchToLive = async () => { try { await ArchiveService.getInstance().switchToLive(currentShow); } catch (e) { debugError('Error switching to live:', e); } };
 
+  const formatArchiveDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+  };
+
+  const handleOpenShowDetails = useCallback(() => {
+    const show = archiveState.currentShow;
+    if (!show) return;
+    navigation.navigate('ShowDetails' as WmbrRouteName, { show });
+  }, [navigation, archiveState.currentShow]);
+
   if (showSplash) return <SplashScreen onAnimationEnd={handleSplashEnd} />;
 
   return (
@@ -309,7 +324,14 @@ export default function HomeScreen() {
             </View>
             <View style={styles.showInfo}>
               {archiveState.isPlayingArchive ? (
-                <div></div>
+                <TouchableOpacity onPress={handleOpenShowDetails} activeOpacity={0.7}>
+                  <Text style={[styles.showTitle, styles.clickableTitle]}>
+                    {archiveState.currentShow?.name || 'Archive'}
+                  </Text>
+                  <Text style={[styles.archiveInfo, isPlaying && styles.archiveInfoActive]}>
+                    Archive from {archiveState.currentArchive?.date ? formatArchiveDate(archiveState.currentArchive.date) : ''}
+                  </Text>
+                </TouchableOpacity>
               ) : (
                 <>
                   <Text style={styles.showTitle}>{currentShow}</Text>

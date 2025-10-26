@@ -1,5 +1,6 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import MainTabs from './pages/MainTabs';
@@ -26,12 +27,14 @@ const ModalScreens = (
 export default function App() {
   return (
     <SafeAreaProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
       <NavigationContainer>
         <Stack.Navigator screenOptions={{ headerShown: false }}>
           <Stack.Group>{PrimaryScreens}</Stack.Group>
           <Stack.Group screenOptions={{ presentation: 'modal' }}>{ModalScreens}</Stack.Group>
         </Stack.Navigator>
       </NavigationContainer>
-    </SafeAreaProvider>
+    </GestureHandlerRootView>
+  </SafeAreaProvider>
   );
 }

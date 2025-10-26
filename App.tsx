@@ -5,6 +5,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import MainTabs from './pages/MainTabs';
 import SchedulePage from './pages/SchedulePage';
 import ShowDetailsPage from './pages/ShowDetailsPage';
+import AboutPage from './pages/AboutPage';
 
 const Stack = createNativeStackNavigator();
 
@@ -12,6 +13,7 @@ const PrimaryScreens = (
   <>
     <Stack.Screen name="Main" component={MainTabs} />
     <Stack.Screen name="SchedulePage" component={SchedulePage} />
+    <Stack.Screen name="AboutPage" component={AboutPage} />
   </>
 );
 

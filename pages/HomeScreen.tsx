@@ -16,9 +16,11 @@ import { SvgXml } from 'react-native-svg';
 import RecentlyPlayedDrawer from '../components/RecentlyPlayedDrawer';
 import SplashScreen from '../components/SplashScreen';
 import MetadataService, { ShowInfo, Song } from '../services/MetadataService';
+import { RecentlyPlayedService } from '../services/RecentlyPlayedService';
 import { ArchiveService, ArchivePlaybackState } from '../services/ArchiveService';
 import { AudioPreviewService } from '../services/AudioPreviewService';
 import { getWMBRLogoSVG } from '../utils/WMBRLogo';
+import { DEFAULT_NAME } from '../types/Playlist';
 
 const streamUrl = 'https://wmbr.org:8002/hi';
 const WMBR_GREEN = '#00843D';
@@ -26,7 +28,7 @@ const WMBR_GREEN = '#00843D';
 export default function HomeScreen() {
   const playbackState = usePlaybackState();
   const [isPlaying, setIsPlaying] = useState(false);
-  const [currentShow, setCurrentShow] = useState('WMBR 88.1 FM');
+  const [currentShow, setCurrentShow] = useState(DEFAULT_NAME);
   const [, setSongHistory] = useState<Song[]>([]);
   const [hosts, setHosts] = useState<string | undefined>();
   const [showDescription, setShowDescription] = useState<string | undefined>();
@@ -34,9 +36,6 @@ export default function HomeScreen() {
   const [currentArtist, setCurrentArtist] = useState<string | undefined>();
   const [showSplash, setShowSplash] = useState(true);
   const [previousSong, setPreviousSong] = useState<string>('');
-  const [showDetailsVisible, setShowDetailsVisible] = useState(false);
-  const [archivedShowViewVisible, setArchivedShowViewVisible] = useState(false);
-  const [, setScheduleViewVisible] = useState(false);
   const [isPlayerInitialized, setIsPlayerInitialized] = useState(false);
   const [archiveState, setArchiveState] = useState<ArchivePlaybackState>({
     isPlayingArchive: false,
@@ -62,6 +61,12 @@ export default function HomeScreen() {
       setShowDescription(data.description);
       setCurrentSong(data.currentSong);
       setCurrentArtist(data.currentArtist);
+
+      try {
+        RecentlyPlayedService.getInstance().setCurrentShow(data.showTitle);
+      } catch (e) {
+        debugError('current show update failed:', e);
+      }
     });
 
     const unsubscribeSongs = metadataService.subscribeSongHistory((songs: Song[]) => {
@@ -92,7 +97,7 @@ export default function HomeScreen() {
         // Only update if we're not playing an archive
         if (!archiveState.isPlayingArchive) {
           await TrackPlayer.updateMetadataForTrack(0, {
-            title: 'WMBR 88.1 FM',
+            title: DEFAULT_NAME,
             artist: currentShow || 'Live Radio',
           });
         }
@@ -241,7 +246,7 @@ export default function HomeScreen() {
       await TrackPlayer.add({
         id: 'wmbr-stream',
         url: streamUrl,
-        title: 'WMBR 88.1 FM',
+        title: DEFAULT_NAME,
         artist: 'Live Radio',
         artwork: require('../assets/cover.png'),
       });
@@ -273,7 +278,7 @@ export default function HomeScreen() {
             await TrackPlayer.add({
               id: 'wmbr-stream',
               url: streamUrl,
-              title: 'WMBR 88.1 FM',
+              title: DEFAULT_NAME,
               artist: currentShow || 'Live Radio',
               artwork: require('../assets/cover.png'),
             });
@@ -290,19 +295,6 @@ export default function HomeScreen() {
 
   const handleSplashEnd = () => setShowSplash(false);
   const handleSwitchToLive = async () => { try { await ArchiveService.getInstance().switchToLive(currentShow); } catch (e) { debugError('Error switching to live:', e); } };
-  const handleShowNamePress = () => {
-    if (archiveState.currentShow) {
-      if (showDetailsVisible) setShowDetailsVisible(false);
-      else if (archivedShowViewVisible) { setArchivedShowViewVisible(false); setShowDetailsVisible(true); }
-      else if (archiveState.isPlayingArchive && archiveState.currentArchive) setArchivedShowViewVisible(true);
-      else setShowDetailsVisible(true);
-    }
-  };
-
-  const formatArchiveDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
-  };
 
   if (showSplash) return <SplashScreen onAnimationEnd={handleSplashEnd} />;
 
@@ -317,10 +309,7 @@ export default function HomeScreen() {
             </View>
             <View style={styles.showInfo}>
               {archiveState.isPlayingArchive ? (
-                <TouchableOpacity onPress={handleShowNamePress} activeOpacity={0.7}>
-                  <Text style={[styles.showTitle, styles.clickableTitle]}>{archiveState.currentShow?.name || 'Archive'}</Text>
-                  <Text style={[styles.archiveInfo, isPlaying && styles.archiveInfoActive]}>Archive from {archiveState.currentArchive?.date ? formatArchiveDate(archiveState.currentArchive.date) : ''}</Text>
-                </TouchableOpacity>
+                <div></div>
               ) : (
                 <>
                   <Text style={styles.showTitle}>{currentShow}</Text>
@@ -377,7 +366,7 @@ export default function HomeScreen() {
             <View style={styles.bottomSpace} />
           </View>
         </SafeAreaView>
-      <RecentlyPlayedDrawer isVisible={true} onClose={() => {}} currentShow={currentShow} onShowSchedule={() => setScheduleViewVisible(true)} />
+        <RecentlyPlayedDrawer />
       </LinearGradient>
     </GestureHandlerRootView>
   );

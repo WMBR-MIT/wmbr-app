@@ -15,20 +15,25 @@ A React Native app for streaming WMBR 88.1 FM and browsing show archives, song h
 ### Prerequisites
 - Complete the [React Native environment setup](https://reactnative.dev/docs/set-up-your-environment)
 - Install dependencies: `npm install`
+- Start the server:
+  ```bash
+  npm start
+  ```
 
 ## Build and Run
 
 ### iOS
-- Install iOS pods: `cd ios && bundle exec pod install`
+- Install iOS pods: `bundle install && cd ios && bundle exec pod install`
+    - If `bundle exec pod install` fails, try `pod install`
 - Copy `ios/.xcode.env` to `ios/.xcode.env.local` and modify the node path
 - Open the app in Xcode:
   ```bash
-  open ios/WMBRRadioApp.xcworkspace
+  open ios/WmbrApp.xcworkspace
   ```
 - Build the app (⇧⌘B)
-- Run iOS simulator:
+- Start the simulator with:
   ```bash
-  npm run ios -- --simulator="iPhone 16"
+  npm run ios -- --simulator="iPhone 16" # "iPhone 17" if you're on macOS / Xcode 26
   ```
 
 ### Android
@@ -72,6 +77,14 @@ Output: `android/app/build/outputs/bundle/release/app-release.aab`
 - **Debug menu**: Press `Cmd + D` in simulator for debug options
 
 ## Troubleshooting
+
+
+### General Issues
+
+1. Clear Metro cache:
+  ```bash
+  npm start -- --reset-cache
+  ```
 
 ### Kotlin 2.1.x Compatibility Fix
 

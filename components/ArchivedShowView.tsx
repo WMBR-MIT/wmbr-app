@@ -10,6 +10,7 @@ import {
   StatusBar,
   ActivityIndicator,
   Alert,
+  BackHandler,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
@@ -101,6 +102,24 @@ export default function ArchivedShowView({ show, archive, isVisible, onClose }: 
       opacity.value = withSpring(0);
     }
   }, [isVisible, opacity, translateY, archive.date, playlistService, show.name]);
+
+  useEffect(() => {
+    if (!isVisible) return;
+
+    const onBackPress = () => {
+      try {
+        onClose();
+      } catch (e) {
+        debugError('Error during back handler onClose:', e);
+      }
+      return true;
+    };
+
+    const sub = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    return () => {
+      sub.remove();
+    };
+  }, [isVisible, onClose]);
 
   useEffect(() => {
     // Subscribe to archive service state changes
@@ -211,7 +230,7 @@ export default function ArchivedShowView({ show, archive, isVisible, onClose }: 
           <View style={styles.header}>
             <TouchableOpacity onPress={onClose} style={styles.backButton}>
               <Text style={styles.backButtonText}>←</Text>
-              <Text style={styles.headerTitle}>Archive</Text>
+              <Text style={styles.headerTitle}>Show Details</Text>
             </TouchableOpacity>
           </View>
 
@@ -375,6 +394,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
+    paddingTop:20,
   },
   backButtonText: {
     color: '#FFFFFF',

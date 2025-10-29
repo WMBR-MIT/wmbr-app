@@ -11,3 +11,5 @@ export interface PlaylistResponse {
   playlist_id: string;
   songs: PlaylistSong[];
 }
+
+export const DEFAULT_NAME = 'WMBR 88.1 FM';

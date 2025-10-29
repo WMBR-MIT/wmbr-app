@@ -4,7 +4,6 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  Dimensions,
   ScrollView,
   SafeAreaView,
   StatusBar,
@@ -15,52 +14,40 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
 import { debugLog, debugError } from '../utils/Debug';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-} from 'react-native-reanimated';
+import { RefreshControl } from 'react-native';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { SvgXml } from 'react-native-svg';
 import { ScheduleShow, ScheduleResponse } from '../types/Schedule';
 import { ScheduleService } from '../services/ScheduleService';
 import { getWMBRLogoSVG } from '../utils/WMBRLogo';
-import ShowDetailsView from './ShowDetailsView';
 import { RecentlyPlayedService } from '../services/RecentlyPlayedService';
+import { WmbrRouteName } from '../types/Navigation';
 
-const { height } = Dimensions.get('window');
-
-interface ShowScheduleViewProps {
-  isVisible: boolean;
-  onClose: () => void;
+interface SchedulePageProps {
   currentShow?: string;
 }
 
+export default function SchedulePage({ currentShow }: SchedulePageProps) { 
 
-export default function ShowScheduleView({ isVisible, onClose, currentShow }: ShowScheduleViewProps) {
-  const translateY = useSharedValue(height);
-  const opacity = useSharedValue(0);
-  
+  const navigation = useNavigation<NavigationProp<Record<WmbrRouteName, object | undefined>>>();
+
   const [schedule, setSchedule] = useState<ScheduleResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [, setSelectedShow] = useState<ScheduleShow | null>(null);
-  const [showDetailsVisible, setShowDetailsVisible] = useState(false);
-  const [showWithArchives, setShowWithArchives] = useState<any>(null);
   const scrollViewRef = useRef<ScrollView>(null);
   const currentShowRef = useRef<View>(null);
-  
+
   const scheduleService = ScheduleService.getInstance();
 
   const fetchSchedule = useCallback(async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const scheduleData = await scheduleService.fetchSchedule();
       debugLog('Schedule data received:', scheduleData);
       setSchedule(scheduleData);
-      
     } catch (err) {
       debugError('Error fetching schedule:', err);
       setError(`Failed to load schedule: ${err instanceof Error ? err.message : 'Unknown error'}`);
@@ -69,44 +56,38 @@ export default function ShowScheduleView({ isVisible, onClose, currentShow }: Sh
     }
   }, [scheduleService]);
 
+  // instead fetch once on mount
   useEffect(() => {
-    if (isVisible) {
-      translateY.value = withSpring(0);
-      opacity.value = withSpring(1);
-      fetchSchedule();
-    } else {
-      translateY.value = withSpring(height);
-      opacity.value = withSpring(0);
-    }
-  }, [isVisible, fetchSchedule, opacity, translateY]);
+    fetchSchedule();
+  }, [fetchSchedule]);
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: translateY.value }],
-    opacity: opacity.value,
-  }));
+  // Pull to refresh
+  const [refreshing, setRefreshing] = useState(false);
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      const scheduleData = await scheduleService.fetchSchedule();
+      if (scheduleData) setSchedule(scheduleData);
+    } catch (err) {
+      debugError('Error refreshing schedule:', err);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [scheduleService]);
 
   const handleShowPress = async (show: ScheduleShow) => {
     try {
-      setSelectedShow(show);
-
       // Fetch archives for this show from the recently played service
       const recentlyPlayedService = RecentlyPlayedService.getInstance();
 
-      // Ensure the shows cache is populated by fetching recently played data
-      // This will populate the showsCache with archive data from the XML
-      await recentlyPlayedService.fetchRecentlyPlayed();
+      // fetch show cache (xml only)
+      await recentlyPlayedService.fetchShowsCacheOnly();
 
-      // Get the shows cache which contains the archive data
-      const showsWithArchives = recentlyPlayedService.getShowsCache();
-
-      // Find the show in the cache (which includes archives)
-      const showWithArchiveData = showsWithArchives.find(
-        recentShow => recentShow.name.toLowerCase() === show.name.toLowerCase()
-      );
+      // find the show from the cache
+      const showWithArchiveData = recentlyPlayedService.getShowByName(show.name);
 
       if (showWithArchiveData && showWithArchiveData.archives.length > 0) {
-        setShowWithArchives(showWithArchiveData);
-        setShowDetailsVisible(true);
+        navigation.navigate('ShowDetails' as WmbrRouteName, { show: showWithArchiveData });
       } else {
         // If no archives found, show info message
         Alert.alert(
@@ -123,12 +104,6 @@ export default function ShowScheduleView({ isVisible, onClose, currentShow }: Sh
         [{ text: 'OK' }]
       );
     }
-  };
-
-  const handleCloseShowDetails = () => {
-    setShowDetailsVisible(false);
-    setSelectedShow(null);
-    setShowWithArchives(null);
   };
 
   const isCurrentShowForDay = (show: ScheduleShow, dayName: string): boolean => {
@@ -280,7 +255,7 @@ export default function ShowScheduleView({ isVisible, onClose, currentShow }: Sh
 
 
   return (
-    <Animated.View style={[styles.container, animatedStyle]}>
+    <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#000000" />
       
       <LinearGradient
@@ -289,14 +264,6 @@ export default function ShowScheduleView({ isVisible, onClose, currentShow }: Sh
         style={styles.gradient}
       >
         <SafeAreaView style={styles.safeArea}>
-          {/* Header */}
-          <View style={styles.header}>
-            <TouchableOpacity onPress={onClose} style={styles.backButton}>
-              <Text style={styles.backButtonText}>←</Text>
-              <Text style={styles.headerTitle}>Show Schedule</Text>
-            </TouchableOpacity>
-          </View>
-
           {/* Logo */}
           <View style={styles.logoContainer}>
             <SvgXml xml={getWMBRLogoSVG('#FFFFFF')} width={60} height={13} />
@@ -327,6 +294,7 @@ export default function ShowScheduleView({ isVisible, onClose, currentShow }: Sh
             ref={scrollViewRef}
             style={styles.scrollView} 
             showsVerticalScrollIndicator={false}
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
           >
             {loading ? (
               <View style={styles.loadingContainer}>
@@ -353,16 +321,7 @@ export default function ShowScheduleView({ isVisible, onClose, currentShow }: Sh
           </ScrollView>
         </SafeAreaView>
       </LinearGradient>
-
-      {/* Show Details View for archive shows */}
-      {showDetailsVisible && showWithArchives && (
-        <ShowDetailsView
-          show={showWithArchives}
-          isVisible={showDetailsVisible}
-          onClose={handleCloseShowDetails}
-        />
-      )}
-    </Animated.View>
+    </View>
   );
 }
 
@@ -406,7 +365,8 @@ const styles = StyleSheet.create({
   },
   logoContainer: {
     alignItems: 'center',
-    paddingVertical: 20,
+    paddingTop: 60,
+    paddingBottom: 20,
   },
   searchContainer: {
     paddingHorizontal: 20,
@@ -585,3 +545,4 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 });
+

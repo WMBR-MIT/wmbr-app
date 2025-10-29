@@ -20,17 +20,96 @@ interface PlaylistResponse {
 
 export class RecentlyPlayedService {
   private static instance: RecentlyPlayedService;
+  private currentShow: string | null = null;
+  private currentShowSubscribers: Array<(show: string | null) => void> = [];
   private songsCache: ProcessedSong[] = [];
   private showsCache: Show[] = [];
   private seasonStart: Date | null = null;
   private lastFetch: number = 0;
   private readonly CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+  private showsLastFetch: number = 0;
 
   static getInstance(): RecentlyPlayedService {
     if (!RecentlyPlayedService.instance) {
       RecentlyPlayedService.instance = new RecentlyPlayedService();
     }
     return RecentlyPlayedService.instance;
+  }
+
+  setCurrentShow(show: string | null) {
+    if (this.currentShow === show) return;
+    this.currentShow = show;
+    try {
+      this.currentShowSubscribers.forEach(callback => {
+        try { 
+          callback(this.currentShow); 
+        } catch (e) {
+        
+        }
+      });
+    } catch (e) {
+    }
+  }
+
+  getCurrentShow(): string | null {
+    return this.currentShow;
+  }
+
+  subscribeToCurrentShow(callback: (show: string | null) => void): () => void {
+    this.currentShowSubscribers.push(callback);
+    try { callback(this.currentShow); } catch (e) {
+    }
+    return () => {
+      this.currentShowSubscribers = this.currentShowSubscribers.filter(c => c !== callback);
+    };
+  }
+
+  /**
+   * Public helper to fetch a playlist for a show on a given date and return processed songs.
+   * Accepts an optional AbortSignal to support cancellation from callers.
+   */
+  async fetchPlaylistAsSongs(showName: string, date: string, signal?: AbortSignal): Promise<ProcessedSong[]> {
+    try {
+      const encodedShowName = encodeURIComponent(showName);
+      const url = `https://wmbr.alexandersimoes.com/get_playlist?show_name=${encodedShowName}&date=${date}`;
+      debugLog(`Fetching playlist (public) for "${showName}" on ${date}`);
+
+      const response = await fetch(url, { headers: { 'Cache-Control': 'no-cache' }, signal });
+      if (!response.ok) {
+        debugError(`Playlist fetch failed for ${showName}: ${response.status}`);
+        return [];
+      }
+
+      const data = await response.json();
+      if (data.error) {
+        return [];
+      }
+
+      const playlist: PlaylistResponse = data as PlaylistResponse;
+      if (!playlist.songs || playlist.songs.length === 0) return [];
+
+      // Map to ProcessedSong (we don't have scheduleShow here, so use showName-date as showId)
+      const songs: ProcessedSong[] = playlist.songs.map((song: PlaylistSong) => ({
+        title: song.song?.trim() || '',
+        artist: song.artist?.trim() || '',
+        album: song.album?.trim() || undefined,
+        released: undefined,
+        appleStreamLink: '',
+        playedAt: this.parsePlaylistTimestamp(song.time),
+        showName: playlist.show_name,
+        showId: `${playlist.show_name}-${playlist.date}`,
+      }));
+
+      songs.sort((a, b) => b.playedAt.getTime() - a.playedAt.getTime());
+      return songs;
+    } catch (err) {
+      if ((err as any)?.name === 'AbortError') {
+        debugLog('Playlist fetch aborted for', showName, date);
+        return [];
+      }
+      debugError(`Error fetching playlist for ${showName}:`, err);
+      return [];
+    }
   }
 
   getShowsCache(): Show[] {
@@ -93,6 +172,39 @@ export class RecentlyPlayedService {
       debugError('Error fetching recently played data:', error);
       return [];
     }
+  }
+
+  /**
+   * fetches XML only (archives metadata) for schedule page, where fetching
+   * playlists for each show isn't immediately necessary.
+   */
+  async fetchShowsCacheOnly(forceRefresh = false): Promise<Show[]> {
+    const now = Date.now();
+
+    if (!forceRefresh && this.showsCache.length > 0 && (now - this.showsLastFetch) < this.CACHE_DURATION) {
+      return this.showsCache;
+    }
+
+    try {
+      const timestamp = Date.now();
+      const showsResponse = await fetch(`https://wmbr.org/cgi-bin/xmlarch?t=${timestamp}`, {
+        headers: { 'Cache-Control': 'no-cache' }
+      });
+      const showsXml = await showsResponse.text();
+      this.showsCache = await this.parseShowsXML(showsXml);
+      this.showsLastFetch = now;
+      return this.showsCache;
+    } catch (error) {
+      debugError('Error fetching shows XML:', error);
+      return [];
+    }
+  }
+
+  /**
+   * finds cached show by name, returns undefined if not found
+   */
+  getShowByName(name: string): Show | undefined {
+    return this.showsCache.find(s => s.name.toLowerCase() === name.toLowerCase());
   }
 
   private parseShowsXML(xmlString: string): Promise<Show[]> {
@@ -204,7 +316,7 @@ export class RecentlyPlayedService {
         return null;
       }
       
-      const data = await response.json();
+     const data = await response.json();
       
       // If the response has an "error" key, treat as empty playlist
       if (data.error) {
@@ -221,8 +333,8 @@ export class RecentlyPlayedService {
       debugLog(`Got ${playlistData.songs?.length || 0} songs for "${showName}"`);
       
       return playlistData;
-    } catch (error) {
-      debugError(`Error fetching playlist for ${showName}:`, error);
+    } catch (err) {
+      debugError(`Error fetching playlist for ${showName}:`, err);
       return null;
     }
   }

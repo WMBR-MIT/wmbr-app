@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import {
   View,
   Text,
@@ -15,7 +16,8 @@ import { debugLog, debugError } from '../utils/Debug';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
-  withSpring,
+  withTiming,
+  Easing,
   runOnJS,
 } from 'react-native-reanimated';
 import { SvgXml } from 'react-native-svg';
@@ -24,24 +26,28 @@ import { ArchiveService } from '../services/ArchiveService';
 import { useProgress, usePlaybackState, State } from 'react-native-track-player';
 import TrackPlayer from 'react-native-track-player';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import ArchivedShowView from './ArchivedShowView';
+import ArchivedShowView from '../components/ArchivedShowView';
 import { getWMBRLogoSVG } from '../utils/WMBRLogo';
 import { formatDate, getDurationFromSize, formatShowTime, secondsToTime } from '../utils/DateTime';
 import { generateDarkGradientColors, generateGradientColors } from '../utils/Colors';
 
-const { width, height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 const ALBUM_SIZE = width * 0.6;
 const CIRCLE_DIAMETER = 16;
 
-interface ShowDetailsViewProps {
+// Route params for ShowDetailsPage
+export type ShowDetailsPageRouteParams = {
   show: Show;
-  isVisible: boolean;
-  onClose: () => void;
-}
+};
 
-export default function ShowDetailsView({ show, isVisible, onClose }: ShowDetailsViewProps) {
+export default function ShowDetailsPage() {
+  const navigation = useNavigation();
+  const route = useRoute<RouteProp<Record<string, ShowDetailsPageRouteParams>, string>>();
+  const show: Show = route.params!.show;
+
   // Always call hooks at the top level, never conditionally
-  const translateY = useSharedValue(height);
+  // Slide horizontally: start offscreen to the right (translateX = width)
+  const translateX = useSharedValue(width);
   const opacity = useSharedValue(0);
   const circleScale = useSharedValue(1);
   const dragX = useSharedValue(0);
@@ -67,16 +73,6 @@ export default function ShowDetailsView({ show, isVisible, onClose }: ShowDetail
   const archiveService = ArchiveService.getInstance();
 
   useEffect(() => {
-    if (isVisible) {
-      translateY.value = withSpring(0);
-      opacity.value = withSpring(1);
-    } else {
-      translateY.value = withSpring(height);
-      opacity.value = withSpring(0);
-    }
-  }, [isVisible, translateY, opacity]);
-
-  useEffect(() => {
     // Subscribe to archive service to track currently playing archive
     const unsubscribe = archiveService.subscribe((state) => {
       if (state.isPlayingArchive && state.currentArchive) {
@@ -99,9 +95,20 @@ export default function ShowDetailsView({ show, isVisible, onClose }: ShowDetail
   }, [progress.position, progress.duration, isScrubbing, progressBarWidth, dragX, progress]);
 
   const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: translateY.value }],
+    transform: [{ translateX: translateX.value }],
     opacity: opacity.value,
   }));
+
+  // Animate in on mount (slide from right → left) and animate out on unmount
+  useEffect(() => {
+    translateX.value = withTiming(0, { duration: 300, easing: Easing.out(Easing.cubic) });
+    opacity.value = withTiming(1, { duration: 200, easing: Easing.out(Easing.cubic) });
+
+    return () => {
+      translateX.value = withTiming(width, { duration: 300, easing: Easing.out(Easing.cubic) });
+      opacity.value = withTiming(0, { duration: 200, easing: Easing.out(Easing.cubic) });
+    };
+  }, [translateX, opacity]);
 
   const circleAnimatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: circleScale.value }],
@@ -112,9 +119,16 @@ export default function ShowDetailsView({ show, isVisible, onClose }: ShowDetail
   }));
 
   // Since we're now conditionally rendered, show will always exist
-  const [gradientStart, gradientEnd] = generateGradientColors(show.name);
-  const [darkGradientStart, darkGradientEnd] = generateDarkGradientColors(show.name);
-  const archives = show.archives || [];
+  const [gradientStart, gradientEnd] = useMemo(() => generateGradientColors(show.name), [show.name]);
+  const [darkGradientStart, darkGradientEnd] = useMemo(() => generateDarkGradientColors(show.name), [show.name]);
+
+  const archives = useMemo(() => show.archives || [], [show.archives]);
+
+  const sortedArchives = useMemo(() => {
+    const arr = (archives || []).slice();
+    arr.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    return arr;
+  }, [archives]);
 
   const handlePauseResume = async () => {
     try {
@@ -174,7 +188,7 @@ export default function ShowDetailsView({ show, isVisible, onClose }: ShowDetail
 
   const dragGesture = Gesture.Pan()
     .onStart(() => {
-      circleScale.value = withSpring(1.5);
+      circleScale.value = withTiming(1.5, { duration: 120, easing: Easing.out(Easing.quad) });
       runOnJS(setIsScrubbing)(true);
     })
     .onUpdate((event) => {
@@ -190,7 +204,7 @@ export default function ShowDetailsView({ show, isVisible, onClose }: ShowDetail
       runOnJS(setPreviewTime)(previewSeconds);
     })
     .onEnd(() => {
-      circleScale.value = withSpring(1);
+      circleScale.value = withTiming(1, { duration: 120, easing: Easing.out(Easing.quad) });
       runOnJS(setIsScrubbing)(false);
       
       if (progressBarWidth > 0) {
@@ -215,9 +229,9 @@ export default function ShowDetailsView({ show, isVisible, onClose }: ShowDetail
         <SafeAreaView style={styles.safeArea}>
           {/* Header */}
           <View style={styles.header}>
-            <TouchableOpacity onPress={onClose} style={styles.backButton}>
+            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
               <Text style={styles.backButtonText}>←</Text>
-              <Text style={styles.headerTitle}>Show Details</Text>
+              <Text style={styles.headerTitle}>Back</Text>
               <View style={styles.headerSpacer} />
             </TouchableOpacity>
           </View>
@@ -264,10 +278,8 @@ export default function ShowDetailsView({ show, isVisible, onClose }: ShowDetail
             {/* Archives List */}
             <View style={styles.archivesSection}>
               <Text style={styles.sectionTitle}>Archives</Text>
-              {archives.length > 0 ? (
-                archives
-                  .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-                  .map((archive, index) => {
+              {sortedArchives.length > 0 ? (
+                sortedArchives.map((archive, index) => {
                     const isCurrentlyPlaying = currentlyPlayingArchive && 
                       currentlyPlayingArchive.url === archive.url;
                     const progressPercentage = isCurrentlyPlaying && progress.duration > 0 
@@ -275,7 +287,7 @@ export default function ShowDetailsView({ show, isVisible, onClose }: ShowDetail
                     
                     return (
                       <TouchableOpacity
-                        key={index}
+                        key={archive.url || index}
                         style={[
                           styles.archiveItem,
                           isCurrentlyPlaying && styles.archiveItemPlaying
@@ -413,7 +425,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     paddingHorizontal: 16,
-    paddingTop: 10,
+    paddingTop: 30,
     paddingBottom: 10,
   },
   backButton: {

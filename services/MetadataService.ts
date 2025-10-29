@@ -1,3 +1,4 @@
+import { DEFAULT_NAME } from '../types/Playlist';
 import { debugLog, debugError } from '../utils/Debug';
 
 interface ShowInfo {
@@ -82,7 +83,7 @@ class MetadataService {
       // Extract show title (first <b> tag)
       const titleMatch = decodedContent.match(/<b>(.*?)<\/b>/);
       debugLog('=== Title match ===', titleMatch);
-      const rawTitle = titleMatch ? titleMatch[1] : 'WMBR 88.1 FM';
+      const rawTitle = titleMatch ? titleMatch[1] : DEFAULT_NAME;
       debugLog('Raw title before stripping:', rawTitle);
       const showTitle = this.stripHTML(rawTitle);
       debugLog('Show title after stripping:', showTitle);
@@ -186,7 +187,7 @@ class MetadataService {
 
   private getFallbackData(): ShowInfo {
     return {
-      showTitle: 'WMBR 88.1 FM',
+      showTitle: DEFAULT_NAME,
       hosts: undefined,
       description: undefined,
     };

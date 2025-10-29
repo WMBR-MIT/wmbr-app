@@ -16,16 +16,16 @@ export const formatDate = (dateString: string) => {
 };
 
 export const formatTime = (timeString: string) => {
-  try {
-    const date = new Date(timeString);
-    return date.toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
-    });
-  } catch (error) {
-    return timeString;
+  if (!timeString) return '';
+
+  // normalize slashes to get rid of Invalid Date response
+  const normalized = timeString.trim().replace(/\//g, '-').replace(/^(\d{4}-\d{2}-\d{2})[ \t]+(\d{1,2}:\d{2}(?::\d{2})?)/, '$1T$2');
+  const parsed = new Date(normalized);
+  if (!isNaN(parsed.getTime())) {
+    return parsed.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
   }
+
+  return timeString;
 };
 
 export const secondsToTime = (seconds: number) => {
@@ -67,4 +67,16 @@ export const formatShowTime = (show: Show) => {
   // Only add 's' if it's not already plural (weekdays)
   const plural = show.day === 7 ? dayName : `${dayName}s`;
   return `${plural} at ${show.time_str}`;
+};
+
+/* Get current date in ISO format (YYYY-MM-DD) in Eastern Time
+*/
+export const getDateISO = (): string => {
+  let dateStr: string;
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  dateStr = `${year}-${month}-${day}`;
+  return dateStr;
 };

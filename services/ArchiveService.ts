@@ -1,6 +1,7 @@
 import TrackPlayer, { Track } from 'react-native-track-player';
 import { Show, Archive } from '../types/RecentlyPlayed';
 import { debugLog, debugError } from '../utils/Debug';
+import { DEFAULT_NAME } from '../types/Playlist';
 
 export interface ArchivePlaybackState {
   isPlayingArchive: boolean;
@@ -56,7 +57,7 @@ export class ArchiveService {
         id: 'archive',
         url: archive.url,
         title: `${show.name} - Archive`,
-        artist: `WMBR 88.1 FM - ${archive.date}`,
+        artist: `${DEFAULT_NAME} - ${archive.date}`,
         artwork: require('../assets/cover.png'),
       };
 
@@ -91,7 +92,7 @@ export class ArchiveService {
       const liveTrack: Track = {
         id: 'wmbr-stream',
         url: this.currentState.liveStreamUrl,
-        title: 'WMBR 88.1 FM',
+        title: DEFAULT_NAME,
         artist: currentShowTitle || 'Live Radio',
         artwork: require('../assets/cover.png'),
       };

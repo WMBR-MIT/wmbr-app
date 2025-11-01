@@ -340,8 +340,8 @@ export default function ShowDetailsPage() {
                               onPress={handleProgressPress}
                               activeOpacity={1}
                               onLayout={() => {
-                                progressBarRef.current?.measure((x, y, width, height, pageX) => {
-                                  setProgressBarWidth(width);
+                                progressBarRef.current?.measure((_x, _y, currentWidth, _height, pageX) => {
+                                  setProgressBarWidth(currentWidth);
                                   setProgressBarX(pageX);
                                 });
                               }}

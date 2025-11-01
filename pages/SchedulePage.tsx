@@ -22,6 +22,7 @@ import { ScheduleService } from '../services/ScheduleService';
 import { getWMBRLogoSVG } from '../utils/WMBRLogo';
 import { RecentlyPlayedService } from '../services/RecentlyPlayedService';
 import { WmbrRouteName } from '../types/Navigation';
+import { WMBR_GREEN } from '../utils/Colors';
 
 interface SchedulePageProps {
   currentShow?: string;
@@ -225,7 +226,7 @@ export default function SchedulePage({ currentShow }: SchedulePageProps) {
                 <Icon 
                   name="chevron-forward" 
                   size={20} 
-                  color={isCurrent ? "#00843D" : "#888"} 
+                  color={isCurrent ? WMBR_GREEN : "#888"} 
                 />
               </TouchableOpacity>
             );
@@ -477,7 +478,7 @@ const styles = StyleSheet.create({
   },
   currentShowItem: {
     backgroundColor: 'rgba(0, 132, 61, 0.2)',
-    borderColor: '#00843D',
+    borderColor: WMBR_GREEN,
     borderWidth: 2,
   },
   showContent: {
@@ -498,7 +499,7 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   currentShowName: {
-    color: '#00843D',
+    color: WMBR_GREEN,
     fontWeight: 'bold',
   },
   showTime: {
@@ -507,7 +508,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   currentShowTime: {
-    color: '#00843D',
+    color: WMBR_GREEN,
     fontWeight: '600',
   },
   showHosts: {

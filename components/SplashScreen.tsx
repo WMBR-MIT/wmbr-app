@@ -16,9 +16,7 @@ import Animated, {
 import LinearGradient from 'react-native-linear-gradient';
 import { SvgXml } from 'react-native-svg';
 import { getWMBRLogoSVG } from '../utils/WMBRLogo';
-
-const WMBR_GREEN = '#00843D';
-
+import { WMBR_GREEN } from '../utils/Colors';
 
 interface SplashScreenProps {
   onAnimationEnd: () => void;

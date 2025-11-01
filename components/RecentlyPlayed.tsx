@@ -20,6 +20,7 @@ import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { getDateISO } from '../utils/DateTime';
 import { WmbrRouteName } from '../types/Navigation';
 import { DEFAULT_NAME } from '../types/Playlist';
+import { WMBR_GREEN } from '../utils/Colors';
 
 interface RecentlyPlayedProps {
   refreshKey?: number;
@@ -483,7 +484,7 @@ export default function RecentlyPlayed({ refreshKey }: RecentlyPlayedProps = {})
                 refreshing={refreshing}
                 onRefresh={handleRefresh}
                 tintColor="#FFFFFF"
-                colors={['#00843D', '#FFFFFF']}
+                colors={[WMBR_GREEN, '#FFFFFF']}
                 progressBackgroundColor="#000000"
                 titleColor="#FFFFFF"
                 title=""
@@ -564,7 +565,7 @@ const styles = StyleSheet.create({
   },
   refreshButtonText: {
     fontSize: 20,
-    color: '#00843D',
+    color: WMBR_GREEN,
   },
   dragHint: {
     fontSize: 16,
@@ -599,7 +600,7 @@ const styles = StyleSheet.create({
   showTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#00843D',
+    color: WMBR_GREEN,
     flex: 1,
   },
   headerRight: {
@@ -652,7 +653,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#00843D',
+    backgroundColor: WMBR_GREEN,
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
@@ -717,7 +718,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   retryButton: {
-    backgroundColor: '#00843D',
+    backgroundColor: WMBR_GREEN,
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 8,
@@ -750,7 +751,7 @@ const styles = StyleSheet.create({
   currentShowTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#00843D',
+    color: WMBR_GREEN,
     marginBottom: 4,
   },
   currentShowSubtitle: {
@@ -768,7 +769,7 @@ const styles = StyleSheet.create({
   showHeaderTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#00843D',
+    color: WMBR_GREEN,
     marginBottom: 2,
   },
   showHeaderSubtitle: {
@@ -817,11 +818,11 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   scheduleButton: {
-    backgroundColor: '#00843D',
+    backgroundColor: WMBR_GREEN,
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 8,
-    shadowColor: '#00843D',
+    shadowColor: WMBR_GREEN,
     shadowOffset: {
       width: 0,
       height: 2,

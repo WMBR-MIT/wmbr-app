@@ -23,9 +23,9 @@ import { getWMBRLogoSVG } from '../utils/WMBRLogo';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { WmbrRouteName } from '../types/Navigation';
 import { DEFAULT_NAME } from '../types/Playlist';
+import { WMBR_GREEN } from '../utils/Colors';
 
 const streamUrl = 'https://wmbr.org:8002/hi';
-const WMBR_GREEN = '#00843D';
 
 export default function HomeScreen() {
   const playbackState = usePlaybackState();
@@ -318,12 +318,12 @@ export default function HomeScreen() {
 
   return (
     <GestureHandlerRootView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={isPlaying ? '#00843D' : '#000000'} translucent={false} />
-      <LinearGradient colors={isPlaying ? ['#00843D', '#006B31', '#00843D'] : ['#000000', '#1a1a1a', '#000000']} style={styles.fullScreenGradient}>
+      <StatusBar barStyle="light-content" backgroundColor={isPlaying ? WMBR_GREEN : '#000000'} translucent={false} />
+      <LinearGradient colors={isPlaying ? [WMBR_GREEN, '#006B31', WMBR_GREEN] : ['#000000', '#1a1a1a', '#000000']} style={styles.fullScreenGradient}>
         <SafeAreaView style={styles.safeContainer}>
           <View style={styles.content}>
             <View style={styles.logoContainer}>
-              <SvgXml xml={getWMBRLogoSVG(isPlaying ? "#000000" : "#00843D")} width={80} height={17} />
+              <SvgXml xml={getWMBRLogoSVG(isPlaying ? "#000000" : WMBR_GREEN)} width={80} height={17} />
             </View>
             <View style={styles.showInfo}>
               {archiveState.isPlayingArchive ? (

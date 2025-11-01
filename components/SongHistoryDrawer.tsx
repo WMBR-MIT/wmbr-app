@@ -15,6 +15,7 @@ import {
   Gesture,
   GestureDetector,
 } from 'react-native-gesture-handler';
+import { WMBR_GREEN } from '../utils/Colors';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const DRAWER_HEIGHT = SCREEN_HEIGHT * 0.7;
@@ -139,8 +140,8 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderLeftWidth: 1,
     borderRightWidth: 1,
-    borderColor: '#00843D',
-    shadowColor: '#00843D',
+    borderColor: WMBR_GREEN,
+    shadowColor: WMBR_GREEN,
     shadowOffset: {
       width: 0,
       height: -4,
@@ -152,7 +153,7 @@ const styles = StyleSheet.create({
   handle: {
     width: 40,
     height: 4,
-    backgroundColor: '#00843D',
+    backgroundColor: WMBR_GREEN,
     borderRadius: 2,
     alignSelf: 'center',
     marginTop: 12,
@@ -201,7 +202,7 @@ const styles = StyleSheet.create({
   },
   songTime: {
     fontSize: 12,
-    color: '#00843D',
+    color: WMBR_GREEN,
     fontWeight: '500',
   },
   emptyState: {

@@ -30,7 +30,7 @@ import { PlaylistService } from '../services/PlaylistService';
 import { ArchiveService } from '../services/ArchiveService';
 import { getWMBRLogoSVG } from '../utils/WMBRLogo';
 import { formatDate, formatDuration, formatTime } from '../utils/DateTime';
-import { generateDarkGradientColors, generateGradientColors } from '../utils/Colors';
+import { generateDarkGradientColors, generateGradientColors } from '../utils/GradientColors';
 
 const { width, height } = Dimensions.get('window');
 const ALBUM_SIZE = width * 0.6;

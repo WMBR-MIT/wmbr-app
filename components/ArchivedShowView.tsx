@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -138,7 +138,7 @@ export default function ArchivedShowView({ show, archive, isVisible, onClose }: 
   }));
 
   // Calculate current progress percentage
-  const getCurrentPercentage = () => {
+  const getCurrentPercentage = useCallback(() => {
     if (isDragging) {
       // During dragging, clamp the visual percentage but allow the user to keep dragging
       return Math.min(Math.max(dragPercentage, 0), 100);
@@ -147,7 +147,7 @@ export default function ArchivedShowView({ show, archive, isVisible, onClose }: 
       return Math.min(Math.max((progress.position / progress.duration) * 100, 0), 100);
     }
     return 0;
-  };
+  }, [dragPercentage, isDragging, progress.duration, progress.position]);
 
   const [gradientStart, gradientEnd] = generateGradientColors(show.name);
   const [darkGradientStart, darkGradientEnd] = generateDarkGradientColors(show.name);

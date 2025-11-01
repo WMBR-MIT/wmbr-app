@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
-import { ABOUT_PAGE_GRADIENT } from '../utils/Colors';
+import { ABOUT_PAGE_GRADIENT } from '../utils/GradientColors';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { getWMBRLogoSVG } from '../utils/WMBRLogo';
 import { SvgXml } from 'react-native-svg';

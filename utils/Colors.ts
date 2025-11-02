@@ -34,8 +34,8 @@ export const generateGradientColors = (showName: string): [string, string] => {
   let hash = 0;
   for (let i = 0; i < showName.length; i++) {
     const char = showName.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash; // Convert to 32-bit integer
+    hash = ((hash * Math.pow(2, 5)) - hash) + char; // Multiply by 31 and add character
+    hash = hash % Math.pow(2, 32); // Convert to 32-bit integer
   }
   
   const index = Math.abs(hash) % colors.length;

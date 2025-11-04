@@ -12,7 +12,7 @@ import Animated, {
   useAnimatedStyle,
   withSpring,
   interpolate,
-  Extrapolate,
+  Extrapolation,
   runOnJS,
 } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
@@ -100,7 +100,7 @@ export default function RecentlyPlayedDrawer() {
       translateY.value,
       [0, DRAWER_HEIGHT - PEEK_HEIGHT],
       [0.5, 0],
-      Extrapolate.CLAMP
+      Extrapolation.CLAMP
     ),
   }));
 
@@ -124,7 +124,7 @@ export default function RecentlyPlayedDrawer() {
               <Text style={styles.dragHint}>▲</Text>
             </View>
           </View>
-          <View style={{ flex: 1 }}>
+          <View style={styles.recentlyPlayedWrapper}>
             <RecentlyPlayed
               refreshKey={refreshKey}
             />
@@ -136,6 +136,9 @@ export default function RecentlyPlayedDrawer() {
 }
 
 const styles = StyleSheet.create({
+  recentlyPlayedWrapper: {
+    flex: 1,
+  },
   overlay: {
     position: 'absolute',
     top: 0,

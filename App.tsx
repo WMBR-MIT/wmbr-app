@@ -1,4 +1,5 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -27,14 +28,18 @@ const ModalScreens = (
 export default function App() {
   return (
     <SafeAreaProvider>
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <NavigationContainer>
-        <Stack.Navigator screenOptions={{ headerShown: false }}>
-          <Stack.Group>{PrimaryScreens}</Stack.Group>
-          <Stack.Group screenOptions={{ presentation: 'modal' }}>{ModalScreens}</Stack.Group>
-        </Stack.Navigator>
-      </NavigationContainer>
-    </GestureHandlerRootView>
-  </SafeAreaProvider>
+      <GestureHandlerRootView style={styles.gestureRoot}>
+        <NavigationContainer>
+          <Stack.Navigator screenOptions={{ headerShown: false }}>
+            <Stack.Group>{PrimaryScreens}</Stack.Group>
+            <Stack.Group screenOptions={{ presentation: 'modal' }}>{ModalScreens}</Stack.Group>
+          </Stack.Navigator>
+        </NavigationContainer>
+      </GestureHandlerRootView>
+    </SafeAreaProvider>
   );
 }
+
+const styles = StyleSheet.create({
+  gestureRoot: { flex: 1 },
+});

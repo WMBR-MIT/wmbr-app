@@ -17,6 +17,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import RecentlyPlayed from './RecentlyPlayed';
+import { WMBR_GREEN } from '../utils/Colors';
 
 const { height: screenHeight } = Dimensions.get('window');
 const DRAWER_HEIGHT = screenHeight * 0.8;
@@ -206,7 +207,7 @@ const styles = StyleSheet.create({
   },
   refreshButtonText: {
     fontSize: 20,
-    color: '#00843D',
+    color: WMBR_GREEN,
   },
   dragHint: {
     fontSize: 16,
@@ -240,7 +241,7 @@ const styles = StyleSheet.create({
   showTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#00843D',
+    color: WMBR_GREEN,
     flex: 1,
   },
   headerRight: {
@@ -293,7 +294,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#00843D',
+    backgroundColor: WMBR_GREEN,
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
@@ -358,7 +359,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   retryButton: {
-    backgroundColor: '#00843D',
+    backgroundColor: WMBR_GREEN,
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 8,
@@ -401,7 +402,7 @@ const styles = StyleSheet.create({
   showHeaderTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#00843D',
+    color: WMBR_GREEN,
     marginBottom: 2,
   },
   showHeaderSubtitle: {

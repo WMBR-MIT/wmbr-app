@@ -29,7 +29,7 @@ import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import ArchivedShowView from '../components/ArchivedShowView';
 import { getWMBRLogoSVG } from '../utils/WMBRLogo';
 import { formatDate, getDurationFromSize, formatShowTime, secondsToTime } from '../utils/DateTime';
-import { generateDarkGradientColors, generateGradientColors } from '../utils/Colors';
+import { generateDarkGradientColors, generateGradientColors } from '../utils/GradientColors';
 
 const { width } = Dimensions.get('window');
 const ALBUM_SIZE = width * 0.6;

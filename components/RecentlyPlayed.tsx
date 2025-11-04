@@ -280,7 +280,7 @@ export default function RecentlyPlayed({ refreshKey }: RecentlyPlayedProps = {})
     fetchCurrentShowPlaylist(true);
   };
 
-  const handleScroll = (event: any) => {
+  const handleScroll = useCallback((event: any) => {
     const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
     const paddingToBottom = 50;
     
@@ -292,9 +292,9 @@ export default function RecentlyPlayed({ refreshKey }: RecentlyPlayedProps = {})
     if ((isNearBottom && canScroll) || (!canScroll && showPlaylists.length === 1)) {
       loadPreviousShow();
     }
-  };
+  }, [loadPreviousShow, showPlaylists.length]);
 
-   const handlePlayPreview = async (song: ProcessedSong) => {
+   const handlePlayPreview = useCallback(async (song: ProcessedSong) => {
     if (!song.appleStreamLink) {
       Alert.alert('Preview Unavailable', 'No preview available for this song');
       return;
@@ -317,9 +317,9 @@ export default function RecentlyPlayed({ refreshKey }: RecentlyPlayedProps = {})
       debugError('Error handling preview playback:', previewError);
       Alert.alert('Error', 'Failed to play preview');
     }
-  };
+  }, [audioPreviewService, previewState.isPlaying, previewState.url]);
 
-  const renderSong = (song: ProcessedSong, key: string) => {
+  const renderSong = useCallback((song: ProcessedSong, key: string) => {
     // Validate song data
     if (!song.title || !song.artist) {
       return null;
@@ -387,9 +387,9 @@ export default function RecentlyPlayed({ refreshKey }: RecentlyPlayedProps = {})
         )}
       </View>
     );
-  };
+  }, [handlePlayPreview, previewState.isPlaying, previewState.progress, previewState.url]);
 
-  const renderShowGroup = (showPlaylist: ShowPlaylist, showIndex: number) => {
+  const renderShowGroup = useCallback((showPlaylist: ShowPlaylist, showIndex: number) => {
     return (
       <View key={`show-${showIndex}`} style={styles.showGroup}>
         <View style={styles.showHeader}>
@@ -414,9 +414,9 @@ export default function RecentlyPlayed({ refreshKey }: RecentlyPlayedProps = {})
         )}
       </View>
     );
-  };
+  }, [renderSong]);
 
-  const renderPlaylistContent = () => {
+  const renderPlaylistContent = useCallback(() => {
     if (!showPlaylists || showPlaylists.length === 0) {
       return [];
     }
@@ -466,7 +466,7 @@ export default function RecentlyPlayed({ refreshKey }: RecentlyPlayedProps = {})
     }
 
     return content;
-  };
+  }, [hasReachedEndOfDay, loadingMore, navigation, renderShowGroup, renderSong, showPlaylists]);
 
   return (
     <>

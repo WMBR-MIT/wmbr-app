@@ -1660,7 +1660,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - react-native-track-player (4.1.2):
+  - react-native-track-player (4.1.1):
     - React-Core
     - SwiftAudioEx (= 1.1.0)
   - React-NativeModulesApple (0.80.1):
@@ -2715,7 +2715,7 @@ SPEC CHECKSUMS:
   React-Mapbuffer: 0c045c844ce6d85cde53e85ab163294c6adad349
   React-microtasksnativemodule: 26edbece4d0c029ef6ac694e42102a338f2bae0a
   react-native-safe-area-context: 8a49d796bc2fda5d22207da244713de67b4b8895
-  react-native-track-player: dd56f9948e03756a217c75e0a61aa04aab65b5a1
+  react-native-track-player: 6dc2e2633265704b8ab6d8124b80239d4ed1f911
   React-NativeModulesApple: 00beb364b4dd0a64d91b07658a43628672e888cb
   React-oscompat: 114036cd8f064558c9c1a0c04fc9ae5e1453706a
   React-perflogger: e7287fee27c16e3c8bd4d470f2361572b63be16b

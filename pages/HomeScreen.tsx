@@ -51,7 +51,7 @@ export default function HomeScreen() {
   const songChangeRotate = useRef(new Animated.Value(0)).current;
   const songChangeOpacity = useRef(new Animated.Value(1)).current;
 
-  const isPlaying = useMemo(() => playbackState?.state === State.Playing, [playbackState]);
+  const isPlaying = playbackState?.state === State.Playing;
 
   const navigation = useNavigation<NavigationProp<Record<WmbrRouteName, object | undefined>>>();
 

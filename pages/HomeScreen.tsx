@@ -14,6 +14,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SvgXml } from 'react-native-svg';
 import RecentlyPlayedDrawer from '../components/RecentlyPlayedDrawer';
+import PlayButton from '../components/PlayButton';
 import SplashScreen from '../components/SplashScreen';
 import MetadataService, { ShowInfo, Song } from '../services/MetadataService';
 import { RecentlyPlayedService } from '../services/RecentlyPlayedService';
@@ -30,7 +31,6 @@ const streamUrl = 'https://wmbr.org:8002/hi';
 export default function HomeScreen() {
   const playbackState = usePlaybackState();
   const insets = useSafeAreaInsets();
-  const [isPlaying, setIsPlaying] = useState(false);
   const [currentShow, setCurrentShow] = useState(DEFAULT_NAME);
   const [, setSongHistory] = useState<Song[]>([]);
   const [hosts, setHosts] = useState<string | undefined>();
@@ -47,8 +47,6 @@ export default function HomeScreen() {
     liveStreamUrl: streamUrl,
   });
   
-  const pulseAnim = useRef(new Animated.Value(1)).current;
-  const rotateAnim = useRef(new Animated.Value(0)).current;
   const songChangeScale = useRef(new Animated.Value(1)).current;
   const songChangeRotate = useRef(new Animated.Value(0)).current;
   const songChangeOpacity = useRef(new Animated.Value(1)).current;
@@ -114,37 +112,7 @@ export default function HomeScreen() {
     updateLiveTrackMetadata();
   }, [currentShow, archiveState.isPlayingArchive, isPlayerInitialized]);
 
-  useEffect(() => {
-    setIsPlaying(playbackState?.state === State.Playing);
-
-    const startPulseAnimation = () => {
-      Animated.loop(
-        Animated.sequence([
-          Animated.timing(pulseAnim, { toValue: 1.1, duration: 1000, useNativeDriver: true }),
-          Animated.timing(pulseAnim, { toValue: 1, duration: 1000, useNativeDriver: true }),
-        ])
-      ).start();
-    };
-  
-    const startRotateAnimation = () => {
-      Animated.loop(
-        Animated.timing(rotateAnim, { toValue: 1, duration: 10000, useNativeDriver: true })
-      ).start();
-    };
-  
-    const stopAnimations = () => {
-      pulseAnim.stopAnimation();
-      rotateAnim.stopAnimation();
-      Animated.timing(pulseAnim, { toValue: 1, duration: 300, useNativeDriver: true }).start();
-    };
-    
-    if (playbackState?.state === State.Playing) {
-      startPulseAnimation();
-      startRotateAnimation();
-    } else {
-      stopAnimations();
-    }
-  }, [playbackState, rotateAnim, pulseAnim]);
+  const isPlaying = useMemo(() => playbackState?.state === State.Playing, [playbackState]);
 
 // Trigger animation when song changes
   useEffect(() => {
@@ -342,30 +310,7 @@ export default function HomeScreen() {
                 </>
               )}
             </View>
-            <View style={styles.centerButton}>
-              <Animated.View style={[styles.outerRing, { transform: [{ scale: pulseAnim }] }]}>
-                <View style={styles.middleRing}>
-                  <TouchableOpacity style={[styles.playButton, isPlaying && styles.playButtonActive]} onPress={togglePlayback} activeOpacity={0.8}>
-                    <View style={styles.buttonContent}>
-                      <View style={styles.iconContainer}>
-                        {isPlaying ? (
-                          <View style={styles.pauseIcon}>
-                            <View style={[styles.pauseBar, isPlaying && styles.pauseBarActive]} />
-                            <View style={[styles.pauseBar, isPlaying && styles.pauseBarActive]} />
-                          </View>
-                        ) : (
-                          <SvgXml xml={`
-                              <svg viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
-                                <polygon points="6,4 30,18 6,32" fill="#FFFFFF" />
-                              </svg>
-                            `} width={40} height={40} />
-                        )}
-                      </View>
-                    </View>
-                  </TouchableOpacity>
-                </View>
-              </Animated.View>
-            </View>
+            <PlayButton onPress={togglePlayback} isPlayerInitialized={isPlayerInitialized} />
             <View style={styles.bottomInfo}>
               {!archiveState.isPlayingArchive && showDescription && (
                 <Text style={[styles.showDescription, isPlaying && styles.showDescriptionActive]} numberOfLines={3}>{showDescription}</Text>
@@ -419,17 +364,6 @@ const styles = StyleSheet.create({
   nowPlayingLabelActive: { color: '#BBBBBB' },
   currentSongText: { fontSize: 12, color: '#CCCCCC', textAlign: 'center', fontStyle: 'italic' },
   currentSongTextActive: { color: '#E0E0E0' },
-  centerButton: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  outerRing: { width: 280, height: 280, borderRadius: 140, borderWidth: 2, borderColor: WMBR_GREEN, justifyContent: 'center', alignItems: 'center', opacity: 0.3 },
-  middleRing: { width: 240, height: 240, borderRadius: 120, borderWidth: 3, borderColor: WMBR_GREEN, justifyContent: 'center', alignItems: 'center', opacity: 0.6 },
-  playButton: { width: 180, height: 180, borderRadius: 90, backgroundColor: WMBR_GREEN, justifyContent: 'center', alignItems: 'center', shadowColor: WMBR_GREEN, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.4, shadowRadius: 16, elevation: 12 },
-  playButtonActive: { backgroundColor: '#FFFFFF', shadowColor: '#FFFFFF' },
-  buttonContent: { width: '100%', height: '100%', justifyContent: 'center', alignItems: 'center' },
-  iconContainer: { justifyContent: 'center', alignItems: 'center' },
-  playIcon: { width: 0, height: 0, borderLeftWidth: 30, borderRightWidth: 0, borderTopWidth: 20, borderBottomWidth: 20, borderLeftColor: '#FFFFFF', borderTopColor: 'transparent', borderBottomColor: 'transparent', marginLeft: 8 },
-  pauseIcon: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  pauseBar: { width: 8, height: 36, backgroundColor: '#FFFFFF', borderRadius: 2 },
-  pauseBarActive: { backgroundColor: WMBR_GREEN },
   streamingText: { color: WMBR_GREEN, fontSize: 14, fontWeight: '500' },
   streamingTextActive: { color: '#FFFFFF' },
   bottomSpace: { height: 100 },

@@ -54,6 +54,7 @@ export default function PlayButton({ onPress, isPlayerInitialized: _isPlayerInit
             style={[styles.playButton, isPlaying && styles.playButtonActive]}
             onPress={onPress}
             activeOpacity={0.8}
+            aria-label={isPlaying ? 'Pause Button' : 'Play Button'}
           >
             <View style={styles.buttonContent}>
               <View style={styles.iconContainer}>

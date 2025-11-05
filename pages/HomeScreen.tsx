@@ -295,7 +295,7 @@ export default function HomeScreen() {
     }
   }, [currentShow, isPlayerInitialized, isPlaying]);
 
-  const songRotation = useMemo(() => songChangeRotate.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] }), [songChangeRotate])
+  const songRotation = songChangeRotate.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });
 
   const handleSplashEnd = () => setShowSplash(false);
   const handleSwitchToLive = useCallback(async () => { try { await ArchiveService.getInstance().switchToLive(currentShow); } catch (e) { debugError('Error switching to live:', e); } }, [currentShow]);

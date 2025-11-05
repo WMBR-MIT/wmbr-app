@@ -1,4 +1,5 @@
 import { Show } from '../types/RecentlyPlayed';
+import { debugError } from '../utils/Debug';
 
 export const formatDuration = (seconds: number) => {
   const minutes = Math.floor(seconds / 60);
@@ -37,6 +38,32 @@ export const secondsToTime = (seconds: number) => {
     return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   } else {
     return `${minutes}:${secs.toString().padStart(2, '0')}`;
+  }
+};
+
+export const parsePlaylistTimestamp = (timeStr: string): Date => {
+  try {
+    // Format: YYYY/MM/DD HH:MM:SS
+    const [datePart, timePart] = timeStr.split(' ');
+
+    if (!datePart || !timePart) {
+      debugError('Invalid playlist timestamp format:', timeStr);
+      return new Date();
+    }
+
+    const [year, month, day] = datePart.split('/').map(Number);
+    const [hour, minute, second] = timePart.split(':').map(Number);
+
+    if (isNaN(year) || isNaN(month) || isNaN(day) || isNaN(hour) || isNaN(minute) || isNaN(second)) {
+      debugError('Invalid date components in playlist timestamp:', timeStr);
+      return new Date();
+    }
+
+    // Create date object (month is 0-based in JS Date constructor)
+    return new Date(year, month - 1, day, hour, minute, second);
+  } catch (parseError) {
+    debugError('Error parsing playlist timestamp:', timeStr, parseError);
+    return new Date();
   }
 };
 

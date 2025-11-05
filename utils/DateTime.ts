@@ -44,7 +44,9 @@ export const secondsToTime = (seconds: number) => {
 export const parsePlaylistTimestamp = (timeStr: string): Date => {
   try {
     // Format: YYYY/MM/DD HH:MM:SS
-    const [datePart, timePart] = timeStr.split(' ');
+    // Trim whitespace and normalize spaces between date and time
+    const trimmed = timeStr.trim().replace(/\s+/g, ' ');
+    const [datePart, timePart] = trimmed.split(' ');
 
     if (!datePart || !timePart) {
       debugError('Invalid playlist timestamp format:', timeStr);

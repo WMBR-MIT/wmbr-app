@@ -17,7 +17,7 @@ import { ScheduleService } from '../services/ScheduleService';
 import { RecentlyPlayedService } from '../services/RecentlyPlayedService';
 import CircularProgress from './CircularProgress';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import { getDateISO } from '../utils/DateTime';
+import { getDateISO, parsePlaylistTimestamp } from '../utils/DateTime';
 import { WmbrRouteName } from '../types/Navigation';
 import { DEFAULT_NAME } from '../types/Playlist';
 import { WMBR_GREEN } from '../utils/Colors';
@@ -82,24 +82,6 @@ export default function RecentlyPlayed({ refreshKey }: RecentlyPlayedProps = {})
   });
   return unsubscribe;
 }, [recentlyPlayedService]);
-
-  const parsePlaylistTimestamp = (timeStr: string): Date => {
-    try {
-      // Format: YYYY/MM/DD HH:MM:SS
-      const [datePart, timePart] = timeStr.split(' ');
-      
-      if (!datePart || !timePart) {
-        return new Date();
-      }
-      
-      const [year, month, day] = datePart.split('/').map(Number);
-      const [hour, minute, second] = timePart.split(':').map(Number);
-      
-      return new Date(year, month - 1, day, hour, minute, second);
-    } catch (parseError) {
-      return new Date();
-    }
-  };
 
   const fetchShowPlaylist = useCallback(async (showName: string, date: string): Promise<ProcessedSong[]> => {
     const encodedShowName = encodeURIComponent(showName);

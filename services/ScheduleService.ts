@@ -1,7 +1,6 @@
 import { parseString } from 'react-native-xml2js';
 import { ScheduleShow, ScheduleResponse } from '../types/Schedule';
 import { debugLog, debugError } from '../utils/Debug';
-import { getDateISO } from '../utils/DateTime';
 
 export class ScheduleService {
   private static instance: ScheduleService;
@@ -144,7 +143,7 @@ export class ScheduleService {
   }
 
   // Helper method to find the previous show based on current time
-  async findPreviousShow(currentShowName: string): Promise<{show: ScheduleShow, date: string} | null> {
+  async findPreviousShow(currentShowName: string): Promise<{show: ScheduleShow, date: Date} | null> {
     try {
       const scheduleData = await this.fetchSchedule();
       const now = new Date();
@@ -192,9 +191,8 @@ export class ScheduleService {
       
       if (currentShowIndex > 0) {
         const previousShow = showsWithTime[currentShowIndex - 1];
-        const todayDateStr = getDateISO(easternNow);
         debugLog(`Previous show found: "${previousShow.name}" at ${previousShow.time_str}`);
-        return { show: previousShow, date: todayDateStr };
+        return { show: previousShow, date: easternNow };
       }
 
       // If current show is the first show of the day, we've reached the beginning
@@ -216,9 +214,8 @@ export class ScheduleService {
         const currentIndex = showsWithTime.indexOf(currentShow);
         if (currentIndex > 0) {
           const previousByTime = showsWithTime[currentIndex - 1];
-          const todayDateStr = getDateISO(easternNow);
           debugLog(`Previous show by time: "${previousByTime.name}" at ${previousByTime.time_str}`);
-          return { show: previousByTime, date: todayDateStr };
+          return { show: previousByTime, date: easternNow };
         }
       }
 

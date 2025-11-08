@@ -13,8 +13,8 @@ export class PlaylistService {
     return PlaylistService.instance;
   }
 
-  async fetchPlaylist(showName: string, date: string): Promise<PlaylistResponse> {
-    const cacheKey = `${showName}-${date}`;
+  async fetchPlaylist(showName: string, date: Date): Promise<PlaylistResponse> {
+    const cacheKey = `${showName}-${date.toISOString()}`;
     
     // Check cache first
     if (this.cache.has(cacheKey)) {
@@ -23,7 +23,7 @@ export class PlaylistService {
 
     try {
       // Convert date from "Wed, 06 Aug 2025 20:00:00 GMT" format to "2025-08-06"
-      const formattedDate = getDateISO(new Date(date));
+      const formattedDate = getDateISO(date);
       const encodedShowName = encodeURIComponent(showName);
       
       const url = `https://wmbr.alexandersimoes.com/get_playlist?show_name=${encodedShowName}&date=${formattedDate}`;

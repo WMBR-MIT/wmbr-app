@@ -68,7 +68,7 @@ export default function ArchivedShowView({ show, archive, isVisible, onClose }: 
     setError(null);
     
     try {
-      const playlistData = await playlistService.fetchPlaylist(show.name, archive.date);
+      const playlistData = await playlistService.fetchPlaylist(show.name, new Date(archive.date));
       setPlaylist(playlistData);
     } catch (err) {
       debugError('Error fetching playlist:', err);
@@ -84,7 +84,7 @@ export default function ArchivedShowView({ show, archive, isVisible, onClose }: 
       setError(null);
       
       try {
-        const playlistData = await playlistService.fetchPlaylist(show.name, archive.date);
+        const playlistData = await playlistService.fetchPlaylist(show.name, new Date(archive.date));
         setPlaylist(playlistData);
       } catch (err) {
         debugError('Error fetching playlist:', err);

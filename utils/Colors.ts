@@ -7,6 +7,7 @@ export const CORE_COLORS = {
   GRAY_400: '#AAAAAA',
   GRAY_500: '#999999',
   GRAY_600: '#888888',
+  GRAY_700: '#555555',
   GRAY_900: '#333333',
   GRAY_950: '#2a2a2a',
   GRAY_975: '#1a1a1a',
@@ -31,6 +32,10 @@ export const COLORS = {
     ELEVATED: CORE_COLORS.GRAY_950,       // #2a2a2a - Headers, elevated sections (4 uses)
   },
   BUTTON: {
+    PRIMARY: {
+      BORDER: CORE_COLORS.GRAY_700,
+      TEXT: CORE_COLORS.WHITE,
+    },
     ACCENT: {
       BACKGROUND: CORE_COLORS.WMBR_GREEN,
       TEXT: CORE_COLORS.WHITE,

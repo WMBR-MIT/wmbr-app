@@ -818,11 +818,11 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   scheduleButton: {
-    backgroundColor: CORE_COLORS.WMBR_GREEN,
+    backgroundColor: COLORS.BUTTON.ACCENT.BACKGROUND,
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 8,
-    shadowColor: CORE_COLORS.WMBR_GREEN,
+    shadowColor: COLORS.BUTTON.ACCENT.SHADOW,
     shadowOffset: {
       width: 0,
       height: 2,
@@ -832,7 +832,7 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   scheduleButtonText: {
-    color: '#FFFFFF',
+    color: COLORS.BUTTON.ACCENT.TEXT,
     fontSize: 14,
     fontWeight: '600',
     textAlign: 'center',

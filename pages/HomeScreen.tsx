@@ -25,6 +25,7 @@ import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { WmbrRouteName } from '../types/Navigation';
 import { DEFAULT_NAME } from '../types/Playlist';
 import { WMBR_GREEN } from '../utils/Colors';
+import { formatArchiveDate } from '../utils/DateTime';
 
 const streamUrl = 'https://wmbr.org:8002/hi';
 
@@ -268,11 +269,6 @@ export default function HomeScreen() {
 
   const handleSplashEnd = () => setShowSplash(false);
   const handleSwitchToLive = useCallback(async () => { try { await ArchiveService.getInstance().switchToLive(currentShow); } catch (e) { debugError('Error switching to live:', e); } }, [currentShow]);
-
-  const formatArchiveDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
-  };
 
   const bottomSpacerStyle = useMemo(() => ({ height: Math.max(insets.bottom + 56, 56)}), [insets.bottom]);
 

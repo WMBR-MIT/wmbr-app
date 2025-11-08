@@ -22,7 +22,7 @@ import { ScheduleService } from '../services/ScheduleService';
 import { getWMBRLogoSVG } from '../utils/WMBRLogo';
 import { RecentlyPlayedService } from '../services/RecentlyPlayedService';
 import { WmbrRouteName } from '../types/Navigation';
-import { WMBR_GREEN } from '../utils/Colors';
+import { COLORS, CORE_COLORS } from '../utils/Colors';
 
 interface SchedulePageProps {
   currentShow?: string;
@@ -226,7 +226,7 @@ export default function SchedulePage({ currentShow }: SchedulePageProps) {
                 <Icon 
                   name="chevron-forward" 
                   size={20} 
-                  color={isCurrent ? WMBR_GREEN : "#888"} 
+                  color={isCurrent ? CORE_COLORS.WMBR_GREEN : "#888"} 
                 />
               </TouchableOpacity>
             );
@@ -257,7 +257,7 @@ export default function SchedulePage({ currentShow }: SchedulePageProps) {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#000000" />
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.BACKGROUND.PRIMARY} />
       
       <LinearGradient
         colors={['#1a1a1a', '#0a0a0a', '#000000']}
@@ -359,7 +359,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   headerTitle: {
-    color: '#FFFFFF',
+    color: COLORS.TEXT.PRIMARY,
     fontSize: 16,
     fontWeight: '600',
     marginLeft: 8,
@@ -404,7 +404,7 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
   },
   loadingText: {
-    color: '#888',
+    color: COLORS.TEXT.TERTIARY,
     marginTop: 16,
     fontSize: 16,
   },
@@ -414,7 +414,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   errorText: {
-    color: '#FF4444',
+    color: COLORS.TEXT.ERROR,
     textAlign: 'center',
     fontSize: 16,
     marginBottom: 20,
@@ -436,7 +436,7 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   dayHeader: {
-    color: '#FFFFFF',
+    color: COLORS.TEXT.PRIMARY,
     fontSize: 22,
     fontWeight: 'bold',
     marginBottom: 16,
@@ -445,7 +445,7 @@ const styles = StyleSheet.create({
     borderBottomColor: '#333',
   },
   stickyDayHeader: {
-    backgroundColor: '#2a2a2a',
+    backgroundColor: COLORS.BACKGROUND.ELEVATED,
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
@@ -460,7 +460,7 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   dayHeaderSticky: {
-    color: '#FFFFFF',
+    color: COLORS.TEXT.PRIMARY,
     fontSize: 20,
     fontWeight: 'bold',
   },
@@ -478,7 +478,7 @@ const styles = StyleSheet.create({
   },
   currentShowItem: {
     backgroundColor: 'rgba(0, 132, 61, 0.2)',
-    borderColor: WMBR_GREEN,
+    borderColor: CORE_COLORS.WMBR_GREEN,
     borderWidth: 2,
   },
   showContent: {
@@ -492,14 +492,14 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   showName: {
-    color: '#FFFFFF',
+    color: COLORS.TEXT.PRIMARY,
     fontSize: 16,
     fontWeight: '600',
     flex: 1,
     marginRight: 8,
   },
   currentShowName: {
-    color: WMBR_GREEN,
+    color: CORE_COLORS.WMBR_GREEN,
     fontWeight: 'bold',
   },
   showTime: {
@@ -508,16 +508,16 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   currentShowTime: {
-    color: WMBR_GREEN,
+    color: CORE_COLORS.WMBR_GREEN,
     fontWeight: '600',
   },
   showHosts: {
-    color: '#CCCCCC',
+    color: COLORS.TEXT.SECONDARY,
     fontSize: 14,
     marginBottom: 4,
   },
   currentShowHosts: {
-    color: '#FFFFFF',
+    color: COLORS.TEXT.PRIMARY,
   },
   showFrequency: {
     color: '#999',
@@ -529,18 +529,18 @@ const styles = StyleSheet.create({
     color: '#BBBBBB',
   },
   showDescription: {
-    color: '#888',
+    color: COLORS.TEXT.TERTIARY,
     fontSize: 12,
     lineHeight: 16,
   },
   currentShowDescription: {
-    color: '#CCCCCC',
+    color: COLORS.TEXT.SECONDARY,
   },
   bottomPadding: {
     height: 100,
   },
   debugText: {
-    color: '#FFFFFF',
+    color: COLORS.TEXT.PRIMARY,
     fontSize: 14,
     marginBottom: 10,
     textAlign: 'center',

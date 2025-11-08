@@ -17,7 +17,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import RecentlyPlayed from './RecentlyPlayed';
-import { WMBR_GREEN } from '../utils/Colors';
+import { COLORS, CORE_COLORS } from '../utils/Colors';
 
 const { height: screenHeight } = Dimensions.get('window');
 const DRAWER_HEIGHT = screenHeight * 0.8;
@@ -146,7 +146,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: '#000000',
+    backgroundColor: COLORS.BACKGROUND.PRIMARY,
     zIndex: 998,
   },
   drawer: {
@@ -155,7 +155,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: DRAWER_HEIGHT,
-    backgroundColor: '#1a1a1a',
+    backgroundColor: COLORS.BACKGROUND.SECONDARY,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     zIndex: 999,
@@ -181,7 +181,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: COLORS.TEXT.PRIMARY,
   },
   peekHeader: {
     height: PEEK_HEIGHT - HANDLE_HEIGHT,
@@ -195,7 +195,7 @@ const styles = StyleSheet.create({
   peekHeaderTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: COLORS.TEXT.PRIMARY,
   },
   headerActions: {
     flexDirection: 'row',
@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
   },
   refreshButtonText: {
     fontSize: 20,
-    color: WMBR_GREEN,
+    color: CORE_COLORS.WMBR_GREEN,
   },
   dragHint: {
     fontSize: 16,
@@ -221,7 +221,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   stickyHeader: {
-    backgroundColor: '#2a2a2a',
+    backgroundColor: COLORS.BACKGROUND.ELEVATED,
     paddingHorizontal: 20,
     paddingVertical: 12,
     flexDirection: 'row',
@@ -241,7 +241,7 @@ const styles = StyleSheet.create({
   showTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: WMBR_GREEN,
+    color: CORE_COLORS.WMBR_GREEN,
     flex: 1,
   },
   headerRight: {
@@ -251,7 +251,7 @@ const styles = StyleSheet.create({
   },
   songCount: {
     fontSize: 12,
-    color: '#888',
+    color: COLORS.TEXT.TERTIARY,
   },
   chevron: {
     fontSize: 16,
@@ -273,17 +273,17 @@ const styles = StyleSheet.create({
   songTitle: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#FFFFFF',
+    color: COLORS.TEXT.PRIMARY,
     marginBottom: 4,
   },
   songArtist: {
     fontSize: 14,
-    color: '#CCCCCC',
+    color: COLORS.TEXT.SECONDARY,
     marginBottom: 2,
   },
   songAlbum: {
     fontSize: 12,
-    color: '#888',
+    color: COLORS.TEXT.TERTIARY,
     marginBottom: 4,
   },
   playedTime: {
@@ -294,7 +294,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: WMBR_GREEN,
+    backgroundColor: CORE_COLORS.WMBR_GREEN,
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
@@ -341,7 +341,7 @@ const styles = StyleSheet.create({
     paddingVertical: 60,
   },
   loadingText: {
-    color: '#888',
+    color: COLORS.TEXT.TERTIARY,
     marginTop: 16,
     fontSize: 16,
   },
@@ -353,13 +353,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   errorText: {
-    color: '#FF4444',
+    color: COLORS.TEXT.ERROR,
     textAlign: 'center',
     fontSize: 16,
     marginBottom: 20,
   },
   retryButton: {
-    backgroundColor: WMBR_GREEN,
+    backgroundColor: CORE_COLORS.WMBR_GREEN,
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 8,
@@ -375,7 +375,7 @@ const styles = StyleSheet.create({
     paddingVertical: 60,
   },
   emptyText: {
-    color: '#888',
+    color: COLORS.TEXT.TERTIARY,
     fontSize: 16,
     textAlign: 'center',
   },
@@ -392,7 +392,7 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
   showHeader: {
-    backgroundColor: '#2a2a2a',
+    backgroundColor: COLORS.BACKGROUND.ELEVATED,
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderBottomWidth: 1,
@@ -402,12 +402,12 @@ const styles = StyleSheet.create({
   showHeaderTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: WMBR_GREEN,
+    color: CORE_COLORS.WMBR_GREEN,
     marginBottom: 2,
   },
   showHeaderSubtitle: {
     fontSize: 12,
-    color: '#888',
+    color: COLORS.TEXT.TERTIARY,
   },
   bottomPadding: {
     height: 100,

@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { COLORS } from '../utils/Colors';
 
 function getIconName(routeName: string) {
   switch (routeName) {
@@ -58,7 +59,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     borderTopWidth: 1,
     borderTopColor: '#222',
-    backgroundColor: '#000',
+    backgroundColor: COLORS.BACKGROUND.PRIMARY,
     alignItems: 'center',
     justifyContent: 'space-around',
   },
@@ -68,7 +69,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   label: {
-    color: '#888',
+    color: COLORS.TEXT.TERTIARY,
     fontSize: 12,
     marginTop: 2,
   },

@@ -5,6 +5,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import { ABOUT_PAGE_GRADIENT } from '../utils/GradientColors';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { getWMBRLogoSVG } from '../utils/WMBRLogo';
+import { COLORS } from '../utils/Colors';
 import { SvgXml } from 'react-native-svg';
 
 const openLink = (url: string) => Linking.openURL(url).catch(() => {});
@@ -108,10 +109,10 @@ const styles = StyleSheet.create({
     paddingTop: 20,
   },
   logoRow: { alignItems: 'center', marginBottom: 20, marginTop: 20 },
-  title: { color: '#FFFFFF', fontSize: 22, fontWeight: '700', marginBottom: 8 },
-  body: { color: '#CCCCCC', fontSize: 15, lineHeight: 22, marginBottom: 20 },
+  title: { color: COLORS.TEXT.PRIMARY, fontSize: 22, fontWeight: '700', marginBottom: 8 },
+  body: { color: COLORS.TEXT.SECONDARY, fontSize: 15, lineHeight: 22, marginBottom: 20 },
   infoRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
-  infoText: { color: '#FFFFFF', marginLeft: 8 },
+  infoText: { color: COLORS.TEXT.PRIMARY, marginLeft: 8 },
   actionsRow: { flexDirection: 'row', marginTop: 16, gap: 12 },
   button: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#00D17A', paddingHorizontal: 12, paddingVertical: 10, borderRadius: 8, marginRight: 8 },
   buttonText: { marginLeft: 8, color: '#000', fontWeight: '700' },
@@ -121,13 +122,13 @@ const styles = StyleSheet.create({
   socialButton: { marginRight: 12 },
   versionRow: { marginTop: 40, alignItems: 'center' },
   versionText: { color: '#777' },
-  linkText: { color: '#00D17A', textDecorationLine: 'underline' },
+  linkText: { color: COLORS.TEXT.LINK, textDecorationLine: 'underline' },
   smallText: { color: '#AAAAAA', fontSize: 12, marginTop: 2 },
   section: { marginTop: 12, marginBottom: 8 },
-  sectionTitle: { color: '#FFFFFF', fontSize: 16, fontWeight: '700', marginBottom: 6 },
+  sectionTitle: { color: COLORS.TEXT.PRIMARY, fontSize: 16, fontWeight: '700', marginBottom: 6 },
   addressBlock: { marginBottom: 8 },
-  addressLine: { color: '#FFFFFF', fontSize: 14 },
-  contactLabel: { color: '#FFFFFF', fontSize: 14, fontWeight: '600', marginTop: 8, marginBottom: 6 },
+  addressLine: { color: COLORS.TEXT.PRIMARY, fontSize: 14 },
+  contactLabel: { color: COLORS.TEXT.PRIMARY, fontSize: 14, fontWeight: '600', marginTop: 8, marginBottom: 6 },
   phoneContainer: { marginLeft: 8 },
   textBlock: {
     marginLeft: 12,

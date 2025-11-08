@@ -23,7 +23,7 @@ import { getWMBRLogoSVG } from '../utils/WMBRLogo';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { WmbrRouteName } from '../types/Navigation';
 import { DEFAULT_NAME } from '../types/Playlist';
-import { WMBR_GREEN } from '../utils/Colors';
+import { COLORS, CORE_COLORS } from '../utils/Colors';
 
 const streamUrl = 'https://wmbr.org:8002/hi';
 
@@ -317,12 +317,12 @@ export default function HomeScreen() {
 
   return (
     <GestureHandlerRootView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={isPlaying ? WMBR_GREEN : '#000000'} translucent={false} />
-      <LinearGradient colors={isPlaying ? [WMBR_GREEN, '#006B31', WMBR_GREEN] : ['#000000', '#1a1a1a', '#000000']} style={styles.fullScreenGradient}>
+      <StatusBar barStyle="light-content" backgroundColor={isPlaying ? CORE_COLORS.WMBR_GREEN : COLORS.BACKGROUND.PRIMARY} translucent={false} />
+      <LinearGradient colors={isPlaying ? [CORE_COLORS.WMBR_GREEN, '#006B31', CORE_COLORS.WMBR_GREEN] : ['#000000', '#1a1a1a', '#000000']} style={styles.fullScreenGradient}>
         <SafeAreaView style={styles.safeContainer}>
           <View style={styles.content}>
             <View style={styles.logoContainer}>
-              <SvgXml xml={getWMBRLogoSVG(isPlaying ? "#000000" : WMBR_GREEN)} width={80} height={17} />
+              <SvgXml xml={getWMBRLogoSVG(isPlaying ? "#000000" : CORE_COLORS.WMBR_GREEN)} width={80} height={17} />
             </View>
             <View style={styles.showInfo}>
               {archiveState.isPlayingArchive ? (
@@ -397,40 +397,40 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000000' },
+  container: { flex: 1, backgroundColor: COLORS.BACKGROUND.PRIMARY },
   fullScreenGradient: { flex: 1 },
   safeContainer: { flex: 1 },
   content: { flex: 1, justifyContent: 'space-between', alignItems: 'center', paddingVertical: 60 },
   logoContainer: { alignItems: 'center', marginTop: 10, marginBottom: 5 },
   showInfo: { alignItems: 'center', marginTop: 20 },
-  showTitle: { fontSize: 24, fontWeight: '600', color: '#FFFFFF', textAlign: 'center', marginBottom: 8 },
+  showTitle: { fontSize: 24, fontWeight: '600', color: COLORS.TEXT.PRIMARY, textAlign: 'center', marginBottom: 8 },
   clickableTitle: { textDecorationLine: 'underline' },
-  archiveInfo: { fontSize: 14, color: '#CCCCCC', textAlign: 'center', marginBottom: 8 },
+  archiveInfo: { fontSize: 14, color: COLORS.TEXT.SECONDARY, textAlign: 'center', marginBottom: 8 },
   archiveInfoActive: { color: '#E0E0E0' },
-  hosts: { fontSize: 16, color: '#CCCCCC', textAlign: 'center', marginBottom: 8 },
+  hosts: { fontSize: 16, color: COLORS.TEXT.SECONDARY, textAlign: 'center', marginBottom: 8 },
   hostsActive: { color: '#E0E0E0' },
   bottomInfo: { alignItems: 'center', paddingHorizontal: 20, marginTop: 20 },
-  showDescription: { fontSize: 12, color: '#CCCCCC', textAlign: 'center', marginBottom: 12, lineHeight: 16 },
+  showDescription: { fontSize: 12, color: COLORS.TEXT.SECONDARY, textAlign: 'center', marginBottom: 12, lineHeight: 16 },
   showDescriptionActive: { color: '#D0D0D0' },
   liveText: { fontSize: 14, color: '#FF4444', fontWeight: '500', marginBottom: 8 },
   nowPlayingContainer: { alignItems: 'center', marginTop: 4 },
   nowPlayingLabel: { fontSize: 10, color: '#999999', fontWeight: '500', marginBottom: 2, textTransform: 'uppercase', letterSpacing: 0.5 },
   nowPlayingLabelActive: { color: '#BBBBBB' },
-  currentSongText: { fontSize: 12, color: '#CCCCCC', textAlign: 'center', fontStyle: 'italic' },
+  currentSongText: { fontSize: 12, color: COLORS.TEXT.SECONDARY, textAlign: 'center', fontStyle: 'italic' },
   currentSongTextActive: { color: '#E0E0E0' },
   centerButton: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  outerRing: { width: 280, height: 280, borderRadius: 140, borderWidth: 2, borderColor: WMBR_GREEN, justifyContent: 'center', alignItems: 'center', opacity: 0.3 },
-  middleRing: { width: 240, height: 240, borderRadius: 120, borderWidth: 3, borderColor: WMBR_GREEN, justifyContent: 'center', alignItems: 'center', opacity: 0.6 },
-  playButton: { width: 180, height: 180, borderRadius: 90, backgroundColor: WMBR_GREEN, justifyContent: 'center', alignItems: 'center', shadowColor: WMBR_GREEN, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.4, shadowRadius: 16, elevation: 12 },
+  outerRing: { width: 280, height: 280, borderRadius: 140, borderWidth: 2, borderColor: CORE_COLORS.WMBR_GREEN, justifyContent: 'center', alignItems: 'center', opacity: 0.3 },
+  middleRing: { width: 240, height: 240, borderRadius: 120, borderWidth: 3, borderColor: CORE_COLORS.WMBR_GREEN, justifyContent: 'center', alignItems: 'center', opacity: 0.6 },
+  playButton: { width: 180, height: 180, borderRadius: 90, backgroundColor: CORE_COLORS.WMBR_GREEN, justifyContent: 'center', alignItems: 'center', shadowColor: CORE_COLORS.WMBR_GREEN, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.4, shadowRadius: 16, elevation: 12 },
   playButtonActive: { backgroundColor: '#FFFFFF', shadowColor: '#FFFFFF' },
   buttonContent: { width: '100%', height: '100%', justifyContent: 'center', alignItems: 'center' },
   iconContainer: { justifyContent: 'center', alignItems: 'center' },
   playIcon: { width: 0, height: 0, borderLeftWidth: 30, borderRightWidth: 0, borderTopWidth: 20, borderBottomWidth: 20, borderLeftColor: '#FFFFFF', borderTopColor: 'transparent', borderBottomColor: 'transparent', marginLeft: 8 },
   pauseIcon: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   pauseBar: { width: 8, height: 36, backgroundColor: '#FFFFFF', borderRadius: 2 },
-  pauseBarActive: { backgroundColor: WMBR_GREEN },
-  streamingText: { color: WMBR_GREEN, fontSize: 14, fontWeight: '500' },
-  streamingTextActive: { color: '#FFFFFF' },
+  pauseBarActive: { backgroundColor: CORE_COLORS.WMBR_GREEN },
+  streamingText: { color: CORE_COLORS.WMBR_GREEN, fontSize: 14, fontWeight: '500' },
+  streamingTextActive: { color: COLORS.TEXT.PRIMARY },
   bottomSpace: { height: 100 },
   liveButton: { marginTop: 16, paddingHorizontal: 20, paddingVertical: 12, backgroundColor: 'rgba(255, 68, 68, 0.2)', borderRadius: 20, borderWidth: 1, borderColor: '#FF4444' },
   liveButtonActive: { backgroundColor: 'rgba(255, 255, 255, 0.2)', borderColor: '#FFFFFF' },

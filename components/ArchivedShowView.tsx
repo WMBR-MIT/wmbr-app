@@ -30,6 +30,7 @@ import { PlaylistService } from '../services/PlaylistService';
 import { ArchiveService } from '../services/ArchiveService';
 import { getWMBRLogoSVG } from '../utils/WMBRLogo';
 import { formatDate, formatDuration, formatTime } from '../utils/DateTime';
+import { COLORS } from '../utils/Colors';
 import { generateDarkGradientColors, generateGradientColors } from '../utils/GradientColors';
 
 const { width, height } = Dimensions.get('window');
@@ -402,7 +403,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   headerTitle: {
-    color: '#FFFFFF',
+    color: COLORS.TEXT.PRIMARY,
     fontSize: 16,
     fontWeight: '600',
     marginLeft: 8,
@@ -448,7 +449,7 @@ const styles = StyleSheet.create({
     paddingLeft: 20,
   },
   albumShowName: {
-    color: '#FFFFFF',
+    color: COLORS.TEXT.PRIMARY,
     fontSize: 22,
     fontWeight: 'bold',
     textAlign: 'left',
@@ -458,7 +459,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   albumArchiveLabel: {
-    color: '#FFFFFF',
+    color: COLORS.TEXT.PRIMARY,
     fontSize: 12,
     fontWeight: '600',
     letterSpacing: 1,
@@ -469,7 +470,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   albumDate: {
-    color: '#FFFFFF',
+    color: COLORS.TEXT.PRIMARY,
     fontSize: 14,
     opacity: 0.8,
     textShadowColor: 'rgba(0, 0, 0, 0.3)',
@@ -489,7 +490,7 @@ const styles = StyleSheet.create({
     paddingTop: 20,
   },
   sectionTitle: {
-    color: '#FFFFFF',
+    color: COLORS.TEXT.PRIMARY,
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 16,
@@ -509,22 +510,22 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   songTitle: {
-    color: '#FFFFFF',
+    color: COLORS.TEXT.PRIMARY,
     fontSize: 16,
     fontWeight: '500',
     marginBottom: 4,
   },
   songArtist: {
-    color: '#CCCCCC',
+    color: COLORS.TEXT.SECONDARY,
     fontSize: 14,
     marginBottom: 2,
   },
   songAlbum: {
-    color: '#888',
+    color: COLORS.TEXT.TERTIARY,
     fontSize: 12,
   },
   songTime: {
-    color: '#888',
+    color: COLORS.TEXT.TERTIARY,
     fontSize: 12,
     fontWeight: '500',
   },
@@ -533,7 +534,7 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
   },
   loadingText: {
-    color: '#888',
+    color: COLORS.TEXT.TERTIARY,
     marginTop: 16,
     fontSize: 16,
   },
@@ -542,7 +543,7 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
   },
   errorText: {
-    color: '#FF4444',
+    color: COLORS.TEXT.ERROR,
     textAlign: 'center',
     fontSize: 16,
     marginBottom: 20,
@@ -562,7 +563,7 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
   },
   emptyText: {
-    color: '#888',
+    color: COLORS.TEXT.TERTIARY,
     fontSize: 16,
   },
   bottomPadding: {
@@ -614,7 +615,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   timeText: {
-    color: '#CCCCCC',
+    color: COLORS.TEXT.SECONDARY,
     fontSize: 12,
     fontWeight: '500',
   },

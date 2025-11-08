@@ -513,91 +513,14 @@ export default function RecentlyPlayed({ refreshKey }: RecentlyPlayedProps = {})
     </>
   );
 }
+
 const styles = StyleSheet.create({
-  overlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: COLORS.BACKGROUND.PRIMARY,
-    zIndex: 998,
-  },
-  handle: {
-    width: 40,
-    height: 4,
-    backgroundColor: '#666',
-    borderRadius: 2,
-    alignSelf: 'center',
-    marginTop: 8,
-    marginBottom: 8,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: COLORS.TEXT.PRIMARY,
-  },
-  headerActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  refreshButton: {
-    padding: 8,
-  },
-  refreshButtonText: {
-    fontSize: 20,
-    color: CORE_COLORS.WMBR_GREEN,
-  },
-  dragHint: {
-    fontSize: 16,
-    color: '#888',
-    fontWeight: 'bold',
-  },
   scrollView: {
     flex: 1,
     backgroundColor: COLORS.BACKGROUND.SECONDARY,
   },
   showGroup: {
     marginBottom: 20,
-  },
-  stickyHeader: {
-    backgroundColor: COLORS.BACKGROUND.ELEVATED,
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: '#333',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  showTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: CORE_COLORS.WMBR_GREEN,
-    flex: 1,
-  },
-  headerRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  songCount: {
-    fontSize: 12,
-    color: COLORS.TEXT.TERTIARY,
-  },
-  chevron: {
-    fontSize: 16,
-    color: '#888',
-    fontWeight: 'bold',
   },
   songItem: {
     flexDirection: 'row',

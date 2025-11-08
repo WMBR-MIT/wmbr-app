@@ -17,7 +17,7 @@ import { ScheduleService } from '../services/ScheduleService';
 import { RecentlyPlayedService } from '../services/RecentlyPlayedService';
 import CircularProgress from './CircularProgress';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import { getDateISO, parsePlaylistTimestamp } from '../utils/DateTime';
+import { getDateYMD, parsePlaylistTimestamp } from '../utils/DateTime';
 import { WmbrRouteName } from '../types/Navigation';
 import { DEFAULT_NAME } from '../types/Playlist';
 import { WMBR_GREEN } from '../utils/Colors';
@@ -84,7 +84,7 @@ export default function RecentlyPlayed({ refreshKey }: RecentlyPlayedProps = {})
 }, [recentlyPlayedService]);
 
   const fetchShowPlaylist = useCallback(async (showName: string, date: Date): Promise<ProcessedSong[]> => {
-    const dateStr = getDateISO(date);
+    const dateStr = getDateYMD(date);
     const encodedShowName = encodeURIComponent(showName);
     const url = `https://wmbr.alexandersimoes.com/get_playlist?show_name=${encodedShowName}&date=${dateStr}`;
     

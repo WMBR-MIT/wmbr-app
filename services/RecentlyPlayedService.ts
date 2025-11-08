@@ -3,7 +3,7 @@ import { ScheduleService } from './ScheduleService';
 import { ScheduleShow } from '../types/Schedule';
 import { parseString } from 'react-native-xml2js';
 import { debugLog, debugError } from '../utils/Debug';
-import { getDateISO, parsePlaylistTimestamp } from '../utils/DateTime';
+import { getDateYMD, parsePlaylistTimestamp } from '../utils/DateTime';
 import { PlaylistSong, PlaylistResponse } from '../types/Playlist';
 
 export class RecentlyPlayedService {
@@ -290,7 +290,7 @@ export class RecentlyPlayedService {
 
   private async fetchPlaylistForShow(showName: string, date: Date): Promise<PlaylistResponse | null> {
     try {
-      const dateStr = getDateISO(date);
+      const dateStr = getDateYMD(date);
       const encodedShowName = encodeURIComponent(showName);
       const url = `https://wmbr.alexandersimoes.com/get_playlist?show_name=${encodedShowName}&date=${dateStr}`;
       
@@ -312,7 +312,7 @@ export class RecentlyPlayedService {
         debugLog(`No playlist found for "${showName}" (${data.error}), treating as empty`);
         return {
           show_name: showName,
-          date: getDateISO(date),
+          date: getDateYMD(date),
           playlist_id: '',
           songs: []
         };

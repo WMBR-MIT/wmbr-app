@@ -1,6 +1,6 @@
 import { PlaylistResponse } from '../types/Playlist';
 import { debugLog, debugError } from '../utils/Debug';
-import { getDateISO } from '../utils/DateTime';
+import { getDateYMD } from '../utils/DateTime';
 
 export class PlaylistService {
   private static instance: PlaylistService;
@@ -23,7 +23,7 @@ export class PlaylistService {
 
     try {
       // Convert date from "Wed, 06 Aug 2025 20:00:00 GMT" format to "2025-08-06"
-      const formattedDate = getDateISO(date);
+      const formattedDate = getDateYMD(date);
       const encodedShowName = encodeURIComponent(showName);
       
       const url = `https://wmbr.alexandersimoes.com/get_playlist?show_name=${encodedShowName}&date=${formattedDate}`;

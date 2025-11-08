@@ -1,6 +1,7 @@
 import { parseString } from 'react-native-xml2js';
 import { ScheduleShow, ScheduleResponse } from '../types/Schedule';
 import { debugLog, debugError } from '../utils/Debug';
+import { getDateISO } from '../utils/DateTime';
 
 export class ScheduleService {
   private static instance: ScheduleService;
@@ -191,10 +192,7 @@ export class ScheduleService {
       
       if (currentShowIndex > 0) {
         const previousShow = showsWithTime[currentShowIndex - 1];
-        const year = easternNow.getFullYear();
-        const month = String(easternNow.getMonth() + 1).padStart(2, "0");
-        const day = String(easternNow.getDate()).padStart(2, "0");
-        const todayDateStr = `${year}-${month}-${day}`;
+        const todayDateStr = getDateISO(easternNow);
         debugLog(`Previous show found: "${previousShow.name}" at ${previousShow.time_str}`);
         return { show: previousShow, date: todayDateStr };
       }
@@ -218,14 +216,7 @@ export class ScheduleService {
         const currentIndex = showsWithTime.indexOf(currentShow);
         if (currentIndex > 0) {
           const previousByTime = showsWithTime[currentIndex - 1];
-          // const todayDateStr = easternNow.toISOString().split('T')[0];
-          // const easternDate = new Date(today.toLocaleString("en-US", { timeZone: "America/New_York" }));
-
-          const year = easternNow.getFullYear();
-          const month = String(easternNow.getMonth() + 1).padStart(2, "0");
-          const day = String(easternNow.getDate()).padStart(2, "0");
-    
-          const todayDateStr = `${year}-${month}-${day}`;
+          const todayDateStr = getDateISO(easternNow);
           debugLog(`Previous show by time: "${previousByTime.name}" at ${previousByTime.time_str}`);
           return { show: previousByTime, date: todayDateStr };
         }

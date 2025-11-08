@@ -101,9 +101,11 @@ export default function RecentlyPlayed({ refreshKey }: RecentlyPlayedProps = {})
     }
   };
 
-  const fetchShowPlaylist = useCallback(async (showName: string, date: string): Promise<ProcessedSong[]> => {
+  // Takes date as a string in YYYY-MM-DD format
+  const fetchShowPlaylist = useCallback(async (showName: string, date: Date): Promise<ProcessedSong[]> => {
+    const dateStr = getDateISO(date);
     const encodedShowName = encodeURIComponent(showName);
-    const url = `https://wmbr.alexandersimoes.com/get_playlist?show_name=${encodedShowName}&date=${date}`;
+    const url = `https://wmbr.alexandersimoes.com/get_playlist?show_name=${encodedShowName}&date=${dateStr}`;
     
     const response = await fetch(url, {
       headers: { 'Cache-Control': 'no-cache' }
@@ -167,7 +169,7 @@ export default function RecentlyPlayed({ refreshKey }: RecentlyPlayedProps = {})
     let shouldTriggerAutoLoad = false;
 
     try {
-      const songs = await fetchShowPlaylist(currentShow, getDateISO());
+      const songs = await fetchShowPlaylist(currentShow, new Date());
       setShowPlaylists([{ showName: currentShow, songs }]);
 
       // If current show has no songs, mark for auto-load of previous show
@@ -220,7 +222,7 @@ export default function RecentlyPlayed({ refreshKey }: RecentlyPlayedProps = {})
       }
 
       try {
-  const songs = await fetchShowPlaylist(previousShow.show.name, previousShow.date);
+  const songs = await fetchShowPlaylist(previousShow.show.name, new Date(previousShow.date));
 
         setShowPlaylists(prev => [...prev, {
           showName: previousShow.show.name,

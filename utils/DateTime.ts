@@ -98,7 +98,7 @@ export const formatShowTime = (show: Show) => {
   return `${plural} at ${show.time_str}`;
 };
 
-/* Get current date in ISO format (YYYY-MM-DD) in Eastern Time
+/* Get date in ISO format (YYYY-MM-DD) in Eastern Time
 */
 export const getDateISO = (date: Date = new Date()): string => {
   const year = date.getFullYear();

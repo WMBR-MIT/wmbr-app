@@ -98,8 +98,14 @@ export const formatShowTime = (show: Show) => {
   return `${plural} at ${show.time_str}`;
 };
 
-/* Get date in ISO format (YYYY-MM-DD) in Eastern Time
-*/
+/**
+ * Get date in ISO format (YYYY-MM-DD) in Eastern Time
+ * Use today's date if none provided
+ *
+ * @param date Optional Date object
+ *
+ * @returns Date string in YYYY-MM-DD format
+ */
 export const getDateYMD = (date: Date = new Date()): string => {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');

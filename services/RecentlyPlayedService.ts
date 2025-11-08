@@ -3,6 +3,7 @@ import { ScheduleService } from './ScheduleService';
 import { ScheduleShow } from '../types/Schedule';
 import { parseString } from 'react-native-xml2js';
 import { debugLog, debugError } from '../utils/Debug';
+import { parsePlaylistTimestamp } from '../utils/DateTime';
 
 interface PlaylistSong {
   time: string; // Format: YYYY/MM/DD HH:MM:SS
@@ -95,7 +96,7 @@ export class RecentlyPlayedService {
         album: song.album?.trim() || undefined,
         released: undefined,
         appleStreamLink: '',
-        playedAt: this.parsePlaylistTimestamp(song.time),
+        playedAt: parsePlaylistTimestamp(song.time),
         showName: playlist.show_name,
         showId: `${playlist.show_name}-${playlist.date}`,
       }));
@@ -346,7 +347,7 @@ export class RecentlyPlayedService {
     
     return playlist.songs.map(song => {
       // Parse time in format: YYYY/MM/DD HH:MM:SS
-      const playedAt = this.parsePlaylistTimestamp(song.time);
+      const playedAt = parsePlaylistTimestamp(song.time);
       
       return {
         title: song.song.trim(),
@@ -359,32 +360,6 @@ export class RecentlyPlayedService {
         showId: scheduleShow.id
       };
     });
-  }
-
-  private parsePlaylistTimestamp(timeStr: string): Date {
-    try {
-      // Format: YYYY/MM/DD HH:MM:SS
-      const [datePart, timePart] = timeStr.split(' ');
-      
-      if (!datePart || !timePart) {
-        debugError('Invalid playlist timestamp format:', timeStr);
-        return new Date();
-      }
-      
-      const [year, month, day] = datePart.split('/').map(Number);
-      const [hour, minute, second] = timePart.split(':').map(Number);
-      
-      if (isNaN(year) || isNaN(month) || isNaN(day) || isNaN(hour) || isNaN(minute) || isNaN(second)) {
-        debugError('Invalid date components in playlist timestamp:', timeStr);
-        return new Date();
-      }
-      
-      // Create date object (month is 0-based in JS Date constructor)
-      return new Date(year, month - 1, day, hour, minute, second);
-    } catch (error) {
-      debugError('Error parsing playlist timestamp:', timeStr, error);
-      return new Date();
-    }
   }
 
   private deduplicateAndSortSongs(songs: ProcessedSong[]): ProcessedSong[] {

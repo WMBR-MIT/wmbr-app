@@ -29,7 +29,7 @@ import { PlaylistResponse, PlaylistSong } from '../types/Playlist';
 import { PlaylistService } from '../services/PlaylistService';
 import { ArchiveService } from '../services/ArchiveService';
 import { getWMBRLogoSVG } from '../utils/WMBRLogo';
-import { formatDate, formatDuration, formatTime } from '../utils/DateTime';
+import { formatDate, secondsToTime, formatTime } from '../utils/DateTime';
 import { COLORS } from '../utils/Colors';
 import { generateDarkGradientColors, generateGradientColors } from '../utils/GradientColors';
 
@@ -309,9 +309,9 @@ export default function ArchivedShowView({ show, archive, isVisible, onClose }: 
                   </GestureDetector>
                   <View style={styles.timeContainer}>
                     <Text style={styles.timeText}>
-                      {formatDuration(isDragging ? scrubPosition : progress.position)}
+                      {secondsToTime(isDragging ? scrubPosition : progress.position)}
                     </Text>
-                    <Text style={styles.timeText}>{formatDuration(progress.duration)}</Text>
+                    <Text style={styles.timeText}>{secondsToTime(progress.duration)}</Text>
                   </View>
                 </View>
               </View>

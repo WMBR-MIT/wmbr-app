@@ -39,6 +39,7 @@ export const COLORS = {
     ACCENT: {
       BACKGROUND: CORE_COLORS.WMBR_GREEN,
       TEXT: CORE_COLORS.WHITE,
+      SHADOW: CORE_COLORS.WMBR_GREEN,
     },
   },
 } as const;

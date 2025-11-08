@@ -520,7 +520,7 @@ const styles = StyleSheet.create({
     color: COLORS.TEXT.PRIMARY,
   },
   showFrequency: {
-    color: '#999',
+    color: COLORS.TEXT.META,
     fontSize: 11,
     fontStyle: 'italic',
     marginBottom: 4,

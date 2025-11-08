@@ -294,7 +294,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: CORE_COLORS.WMBR_GREEN,
+    backgroundColor: COLORS.BUTTON.ACCENT.BACKGROUND,
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
@@ -319,7 +319,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   previewButtonText: {
-    color: '#FFFFFF',
+    color: COLORS.BUTTON.ACCENT.TEXT,
     fontSize: 18,
     fontWeight: 'bold',
   },
@@ -359,13 +359,13 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   retryButton: {
-    backgroundColor: CORE_COLORS.WMBR_GREEN,
+    backgroundColor: COLORS.BUTTON.ACCENT.BACKGROUND,
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 8,
   },
   retryButtonText: {
-    color: '#FFFFFF',
+    color: COLORS.BUTTON.ACCENT.TEXT,
     fontWeight: '600',
   },
   emptyContainer: {

@@ -20,6 +20,8 @@ export const COLORS = {
     PRIMARY: CORE_COLORS.WHITE,           // #FFFFFF - Main headings, primary text (86 uses)
     SECONDARY: CORE_COLORS.GRAY_200,      // #CCCCCC - Subtitles, descriptions (16 uses)  
     TERTIARY: CORE_COLORS.GRAY_600,       // #888888 - Placeholder, disabled text (15 uses)
+    ACTIVE: CORE_COLORS.GRAY_100,         // #E0E0E0 - Active/highlighted text states (3 uses)
+    META: CORE_COLORS.GRAY_500,           // #999999 - Metadata, footnotes (2 uses)
     ERROR: CORE_COLORS.RED_500,
     LINK: CORE_COLORS.GREEN_500,
   },
@@ -27,6 +29,12 @@ export const COLORS = {
     PRIMARY: CORE_COLORS.BLACK,           // #000000 - Main app background
     SECONDARY: CORE_COLORS.GRAY_975,      // #1a1a1a - Drawer, card backgrounds (7 uses)
     ELEVATED: CORE_COLORS.GRAY_950,       // #2a2a2a - Headers, elevated sections (4 uses)
+  },
+  BUTTON: {
+    ACCENT: {
+      BACKGROUND: CORE_COLORS.WMBR_GREEN,
+      TEXT: CORE_COLORS.WHITE,
+    },
   },
 } as const;
 

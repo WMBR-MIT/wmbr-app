@@ -16,16 +16,31 @@ import LinearGradient from 'react-native-linear-gradient';
 import { debugLog, debugError } from '../utils/Debug';
 import { RefreshControl } from 'react-native';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SvgXml } from 'react-native-svg';
+import ArchivedShowView, { ArchivedShowViewProps } from '../components/ArchivedShowView';
 import { ScheduleShow, ScheduleResponse } from '../types/Schedule';
 import { ScheduleService } from '../services/ScheduleService';
 import { getWMBRLogoSVG } from '../utils/WMBRLogo';
 import { RecentlyPlayedService } from '../services/RecentlyPlayedService';
 import { WmbrRouteName } from '../types/Navigation';
+import ShowDetailsPage from './ShowDetailsPage';
 import { WMBR_GREEN } from '../utils/Colors';
 
 interface SchedulePageProps {
   currentShow?: string;
+}
+
+const Stack = createNativeStackNavigator();
+
+export const ScheduleStack = () => {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: true, title: 'Schedule' }}>
+      <Stack.Screen name="ScheduleMain" component={SchedulePage} />
+      <Stack.Screen name="ShowDetails" component={ShowDetailsPage} />
+      <Stack.Screen name="ArchivedShowView" component={ArchivedShowView} />
+    </Stack.Navigator>
+  );
 }
 
 export default function SchedulePage({ currentShow }: SchedulePageProps) { 

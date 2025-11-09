@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import React, { useCallback, useState, useEffect, useRef, useMemo } from 'react';
+import { useRoute, RouteProp, NavigationProp, useNavigation } from '@react-navigation/native';
 import {
   View,
   Text,
@@ -22,11 +22,11 @@ import Animated, {
 } from 'react-native-reanimated';
 import { SvgXml } from 'react-native-svg';
 import { Show, Archive } from '../types/RecentlyPlayed';
+import { WmbrRouteName } from '../types/Navigation';
 import { ArchiveService } from '../services/ArchiveService';
 import { useProgress, usePlaybackState, State } from 'react-native-track-player';
 import TrackPlayer from 'react-native-track-player';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import ArchivedShowView from '../components/ArchivedShowView';
 import { getWMBRLogoSVG } from '../utils/WMBRLogo';
 import { formatDate, getDurationFromSize, formatShowTime, secondsToTime } from '../utils/DateTime';
 import { generateDarkGradientColors, generateGradientColors } from '../utils/GradientColors';
@@ -41,7 +41,7 @@ export type ShowDetailsPageRouteParams = {
 };
 
 export default function ShowDetailsPage() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<Record<WmbrRouteName, object | undefined>>>();
   const route = useRoute<RouteProp<Record<string, ShowDetailsPageRouteParams>, string>>();
   const show: Show = route.params!.show;
 
@@ -58,8 +58,6 @@ export default function ShowDetailsPage() {
   const [previewTime, setPreviewTime] = useState(0);
   const [progressBarWidth, setProgressBarWidth] = useState(0);
   const [progressBarX, setProgressBarX] = useState(0);
-  const [selectedArchive, setSelectedArchive] = useState<Archive | null>(null);
-  const [archivedShowViewVisible, setArchivedShowViewVisible] = useState(false);
   
   // Ref for measuring progress bar position
   const progressBarRef = useRef<View>(null);
@@ -93,11 +91,6 @@ export default function ShowDetailsPage() {
       dragX.value = (progressPercentage * maxMovement) + 32;
     }
   }, [progress.position, progress.duration, isScrubbing, progressBarWidth, dragX, progress]);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: translateX.value }],
-    opacity: opacity.value,
-  }));
 
   // Animate in on mount (slide from right → left) and animate out on unmount
   useEffect(() => {
@@ -142,10 +135,12 @@ export default function ShowDetailsPage() {
     }
   };
 
-  const handleArchiveRowPress = (archive: Archive) => {
-    setSelectedArchive(archive);
-    setArchivedShowViewVisible(true);
-  };
+  const handleArchiveRowPress = useCallback((archive: Archive) => {
+    navigation.navigate('ArchivedShowView', {
+      show,
+      archive,
+    });
+  }, [navigation, show]);
 
   const handlePlayButtonPress = (archive: Archive, isCurrentlyPlaying: boolean) => {
     if (isCurrentlyPlaying) {
@@ -155,11 +150,6 @@ export default function ShowDetailsPage() {
       // If not currently playing, navigate to the archive page
       handleArchiveRowPress(archive);
     }
-  };
-
-  const handleCloseArchivedShowView = () => {
-    setArchivedShowViewVisible(false);
-    setSelectedArchive(null);
   };
 
   const handleProgressPress = async (event: any) => {
@@ -218,7 +208,7 @@ export default function ShowDetailsPage() {
     });
 
   return (
-    <Animated.View style={[styles.container, animatedStyle]}>
+    <>
       <StatusBar barStyle="light-content" backgroundColor={gradientStart} />
       
       <LinearGradient
@@ -227,15 +217,6 @@ export default function ShowDetailsPage() {
         style={styles.gradient}
       >
         <SafeAreaView style={styles.safeArea}>
-          {/* Header */}
-          <View style={styles.header}>
-            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-              <Text style={styles.backButtonText}>←</Text>
-              <Text style={styles.headerTitle}>Back</Text>
-              <View style={styles.headerSpacer} />
-            </TouchableOpacity>
-          </View>
-
           <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
             {/* Album Cover Section */}
             <View style={styles.albumSection}>
@@ -392,17 +373,7 @@ export default function ShowDetailsPage() {
           </ScrollView>
         </SafeAreaView>
       </LinearGradient>
-
-      {/* Archived Show Detail View */}
-      {archivedShowViewVisible && selectedArchive && (
-        <ArchivedShowView
-          show={show}
-          archive={selectedArchive}
-          isVisible={archivedShowViewVisible}
-          onClose={handleCloseArchivedShowView}
-        />
-      )}
-    </Animated.View>
+      </>
   );
 }
 

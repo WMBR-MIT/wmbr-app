@@ -2,7 +2,7 @@ import React, { useCallback, useRef, useEffect } from 'react';
 import { View, TouchableOpacity, StyleSheet, Animated } from 'react-native';
 import { SvgXml } from 'react-native-svg';
 import { State, usePlaybackState } from 'react-native-track-player';
-import { WMBR_GREEN } from '../utils/Colors';
+import { CORE_COLORS } from '../utils/Colors';
 
 interface PlayButtonProps {
   onPress: () => void;
@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
     height: 280,
     borderRadius: 140,
     borderWidth: 2,
-    borderColor: WMBR_GREEN,
+    borderColor: CORE_COLORS.WMBR_GREEN,
     justifyContent: 'center',
     alignItems: 'center',
     opacity: 0.3
@@ -100,7 +100,7 @@ const styles = StyleSheet.create({
     height: 240,
     borderRadius: 120,
     borderWidth: 3,
-    borderColor: WMBR_GREEN,
+    borderColor: CORE_COLORS.WMBR_GREEN,
     justifyContent: 'center',
     alignItems: 'center',
     opacity: 0.6
@@ -109,10 +109,10 @@ const styles = StyleSheet.create({
     width: 180,
     height: 180,
     borderRadius: 90,
-    backgroundColor: WMBR_GREEN,
+    backgroundColor: CORE_COLORS.WMBR_GREEN,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: WMBR_GREEN,
+    shadowColor: CORE_COLORS.WMBR_GREEN,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.4,
     shadowRadius: 16,
@@ -144,6 +144,6 @@ const styles = StyleSheet.create({
     borderRadius: 2
   },
   pauseBarActive: {
-    backgroundColor: WMBR_GREEN
+    backgroundColor: CORE_COLORS.WMBR_GREEN
   },
 });

@@ -23,7 +23,7 @@ import { getWMBRLogoSVG } from '../utils/WMBRLogo';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { WmbrRouteName } from '../types/Navigation';
 import { DEFAULT_NAME } from '../types/Playlist';
-import { WMBR_GREEN } from '../utils/Colors';
+import { COLORS, CORE_COLORS } from '../utils/Colors';
 
 import HomeNowPlaying from '../components/HomeNowPlaying';
 
@@ -194,12 +194,12 @@ export default function HomeScreen() {
 
   return (
     <GestureHandlerRootView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={isPlaying ? WMBR_GREEN : '#000000'} translucent={false} />
-      <LinearGradient colors={isPlaying ? [WMBR_GREEN, '#006B31', WMBR_GREEN] : ['#000000', '#1a1a1a', '#000000']} style={styles.fullScreenGradient}>
+      <StatusBar barStyle="light-content" backgroundColor={isPlaying ? CORE_COLORS.WMBR_GREEN : COLORS.BACKGROUND.PRIMARY} translucent={false} />
+      <LinearGradient colors={isPlaying ? [CORE_COLORS.WMBR_GREEN, '#006B31', CORE_COLORS.WMBR_GREEN] : ['#000000', '#1a1a1a', '#000000']} style={styles.fullScreenGradient}>
         <SafeAreaView style={styles.safeContainer}>
           <View style={styles.content}>
             <View style={styles.logoContainer}>
-              <SvgXml xml={getWMBRLogoSVG(isPlaying ? "#000000" : WMBR_GREEN)} width={80} height={17} />
+              <SvgXml xml={getWMBRLogoSVG(isPlaying ? "#000000" : CORE_COLORS.WMBR_GREEN)} width={80} height={17} />
             </View>
             <View style={styles.showInfo}>
               {archiveState.isPlayingArchive ? (
@@ -241,7 +241,7 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000000' },
+  container: { flex: 1, backgroundColor: COLORS.BACKGROUND.PRIMARY },
   fullScreenGradient: { flex: 1 },
   safeContainer: { flex: 1 },
   content: {
@@ -255,36 +255,36 @@ const styles = StyleSheet.create({
   showTitle: {
     fontSize: 24,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: COLORS.TEXT.PRIMARY,
     textAlign: 'center',
     marginBottom: 8,
   },
   clickableTitle: { textDecorationLine: 'underline' },
   archiveInfo: {
     fontSize: 14,
-    color: '#CCCCCC',
+    color: COLORS.TEXT.SECONDARY,
     textAlign: 'center',
     marginBottom: 8,
   },
-  archiveInfoActive: { color: '#E0E0E0' },
+  archiveInfoActive: { color: COLORS.TEXT.ACTIVE },
   hosts: {
     fontSize: 16,
-    color: '#CCCCCC',
+    color: COLORS.TEXT.SECONDARY,
     textAlign: 'center',
     marginBottom: 8,
   },
-  hostsActive: { color: '#E0E0E0' },
+  hostsActive: { color: COLORS.TEXT.ACTIVE },
   bottomInfo: { alignItems: 'center', paddingHorizontal: 20, marginTop: 20 },
   showDescription: {
     fontSize: 12,
-    color: '#CCCCCC',
+    color: COLORS.TEXT.SECONDARY,
     textAlign: 'center',
     marginBottom: 12,
     lineHeight: 16,
   },
   showDescriptionActive: { color: '#D0D0D0' },
-  streamingText: { color: WMBR_GREEN, fontSize: 14, fontWeight: '500' },
-  streamingTextActive: { color: '#FFFFFF' },
+  streamingText: { color: CORE_COLORS.WMBR_GREEN, fontSize: 14, fontWeight: '500' },
+  streamingTextActive: { color: COLORS.TEXT.PRIMARY },
   bottomSpace: { height: 100 },
   liveButton: {
     marginTop: 16,

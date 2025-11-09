@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 
 import { ShowInfo } from '../services/MetadataService';
+import { COLORS } from '../utils/Colors';
 
 export default function HomeNowPlaying ({
   showInfo
@@ -140,7 +141,7 @@ const styles = StyleSheet.create({
   nowPlayingContainer: { alignItems: 'center', marginTop: 4 },
   nowPlayingLabel: {
     fontSize: 10,
-    color: '#999999',
+    color: COLORS.TEXT.META,
     fontWeight: '500',
     marginBottom: 2,
     textTransform: 'uppercase',
@@ -149,9 +150,9 @@ const styles = StyleSheet.create({
   nowPlayingLabelActive: { color: '#BBBBBB' },
   currentSongText: {
     fontSize: 12,
-    color: '#CCCCCC',
+    color: COLORS.TEXT.SECONDARY,
     textAlign: 'center',
     fontStyle: 'italic',
   },
-  currentSongTextActive: { color: '#E0E0E0' },
+  currentSongTextActive: { color: COLORS.TEXT.ACTIVE },
 });

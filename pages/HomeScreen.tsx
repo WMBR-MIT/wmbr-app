@@ -13,7 +13,6 @@ import TrackPlayer, { Capability, State, usePlaybackState } from 'react-native-t
 import LinearGradient from 'react-native-linear-gradient';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SvgXml } from 'react-native-svg';
-import RecentlyPlayedDrawer from '../components/RecentlyPlayedDrawer';
 import PlayButton from '../components/PlayButton';
 import SplashScreen from '../components/SplashScreen';
 import MetadataService, { ShowInfo, Song } from '../services/MetadataService';
@@ -336,7 +335,6 @@ export default function HomeScreen() {
             <View style={bottomSpacerStyle} />
           </View>
         </SafeAreaView>
-        <RecentlyPlayedDrawer />
       </LinearGradient>
     </GestureHandlerRootView>
   );

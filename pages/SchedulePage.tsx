@@ -18,7 +18,7 @@ import { RefreshControl } from 'react-native';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SvgXml } from 'react-native-svg';
-import ArchivedShowView, { ArchivedShowViewProps } from '../components/ArchivedShowView';
+import ArchivedShowView from '../components/ArchivedShowView';
 import { ScheduleShow, ScheduleResponse } from '../types/Schedule';
 import { ScheduleService } from '../services/ScheduleService';
 import { getWMBRLogoSVG } from '../utils/WMBRLogo';

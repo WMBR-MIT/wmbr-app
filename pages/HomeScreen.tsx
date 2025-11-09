@@ -279,7 +279,10 @@ export default function HomeScreen() {
   const handleOpenShowDetails = useCallback(() => {
     const show = archiveState.currentShow;
     if (!show) return;
-    navigation.navigate('ShowDetails' as WmbrRouteName, { show });
+    navigation.navigate('Schedule' as WmbrRouteName, {
+      screen: 'ShowDetails',
+      params: { show }
+    });
   }, [navigation, archiveState.currentShow]);
 
   if (showSplash) return <SplashScreen onAnimationEnd={handleSplashEnd} />;

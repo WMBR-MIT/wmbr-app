@@ -49,7 +49,12 @@ export const ScheduleStack = () => {
   });
 
   return (
-    <Stack.Navigator screenOptions={{ headerShown: true, title: 'Schedule' }}>
+    <Stack.Navigator screenOptions={{
+      headerShown: true,
+      headerTransparent: true,
+      title: 'Schedule',
+      headerTintColor: '#ffffff'
+    }}>
       <Stack.Screen name="ScheduleMain" component={SchedulePage} />
       <Stack.Screen name="ShowDetails" component={ShowDetailsPage}
         options={getShowDetailsOptions}

@@ -294,7 +294,7 @@ export default function SchedulePage({ currentShow }: SchedulePageProps) {
 
 
   return (
-    <View style={styles.container}>
+    <>
       <StatusBar barStyle="light-content" backgroundColor="#000000" />
       
       <LinearGradient
@@ -360,19 +360,11 @@ export default function SchedulePage({ currentShow }: SchedulePageProps) {
           </ScrollView>
         </SafeAreaView>
       </LinearGradient>
-    </View>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: 1002,
-  },
   gradient: {
     flex: 1,
   },

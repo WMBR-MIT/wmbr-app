@@ -228,7 +228,7 @@ export default function HomeScreen() {
                   <Text style={[styles.liveButtonText, isPlaying && styles.liveButtonTextActive]}>← Switch to LIVE</Text>
                 </TouchableOpacity>
               ) : (
-                <HomeNowPlaying {...{showInfo}} />
+                <HomeNowPlaying showInfo={showInfo} />
               )}
             </View>
             <View style={bottomSpacerStyle} />

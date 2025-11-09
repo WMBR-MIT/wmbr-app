@@ -2102,8 +2102,6 @@ PODS:
     - React-perflogger (= 0.80.1)
     - React-utils (= 0.80.1)
     - SocketRocket
-  - RNCMaskedView (0.1.11):
-    - React
   - RNGestureHandler (2.28.0):
     - boost
     - DoubleConversion
@@ -2499,7 +2497,6 @@ DEPENDENCIES:
   - ReactAppDependencyProvider (from `build/generated/ios`)
   - ReactCodegen (from `build/generated/ios`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
-  - "RNCMaskedView (from `../node_modules/@react-native-community/masked-view`)"
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNScreens (from `../node_modules/react-native-screens`)
@@ -2658,8 +2655,6 @@ EXTERNAL SOURCES:
     :path: build/generated/ios
   ReactCommon:
     :path: "../node_modules/react-native/ReactCommon"
-  RNCMaskedView:
-    :path: "../node_modules/@react-native-community/masked-view"
   RNGestureHandler:
     :path: "../node_modules/react-native-gesture-handler"
   RNReanimated:
@@ -2746,7 +2741,6 @@ SPEC CHECKSUMS:
   ReactAppDependencyProvider: afd905e84ee36e1678016ae04d7370c75ed539be
   ReactCodegen: cbe81c2a57b146be99212d9cfb2081cfdcfd2133
   ReactCommon: 832545e6bc03f7b2d02216e626f871532ec8da4f
-  RNCMaskedView: 4c5ee1c8667d56077246cc6d1977f77393923560
   RNGestureHandler: 6f443b059572ab9b5444df158c0de8bda98aec2c
   RNReanimated: 4cca00b0eb435c34a7a9701377fe3e059d09f822
   RNScreens: 9f416f37789697573826bb9bf7d50f19f0e8f1c5

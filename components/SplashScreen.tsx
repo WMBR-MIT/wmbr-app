@@ -16,7 +16,7 @@ import Animated, {
 import LinearGradient from 'react-native-linear-gradient';
 import { SvgXml } from 'react-native-svg';
 import { getWMBRLogoSVG } from '../utils/WMBRLogo';
-import { WMBR_GREEN } from '../utils/Colors';
+import { CORE_COLORS } from '../utils/Colors';
 
 interface SplashScreenProps {
   onAnimationEnd: () => void;
@@ -99,7 +99,7 @@ export default function SplashScreen({ onAnimationEnd }: SplashScreenProps) {
           <Animated.View style={[styles.circleBackground, circleAnimatedStyle]} />
           
           <Animated.View style={[styles.logoContainer, logoAnimatedStyle]}>
-            <SvgXml xml={getWMBRLogoSVG(WMBR_GREEN)} width={200} height={43} />
+            <SvgXml xml={getWMBRLogoSVG(CORE_COLORS.WMBR_GREEN)} width={200} height={43} />
           </Animated.View>
         </View>
       </LinearGradient>
@@ -130,7 +130,7 @@ const styles = StyleSheet.create({
     height: 300,
     borderRadius: 150,
     borderWidth: 2,
-    borderColor: WMBR_GREEN,
+    borderColor: CORE_COLORS.WMBR_GREEN,
   },
   logoContainer: {
     alignItems: 'center',

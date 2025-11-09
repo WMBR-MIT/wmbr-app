@@ -24,7 +24,7 @@ import { getWMBRLogoSVG } from '../utils/WMBRLogo';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { WmbrRouteName } from '../types/Navigation';
 import { DEFAULT_NAME } from '../types/Playlist';
-import { WMBR_GREEN } from '../utils/Colors';
+import { COLORS, CORE_COLORS } from '../utils/Colors';
 
 const streamUrl = 'https://wmbr.org:8002/hi';
 
@@ -286,12 +286,12 @@ export default function HomeScreen() {
 
   return (
     <GestureHandlerRootView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={isPlaying ? WMBR_GREEN : '#000000'} translucent={false} />
-      <LinearGradient colors={isPlaying ? [WMBR_GREEN, '#006B31', WMBR_GREEN] : ['#000000', '#1a1a1a', '#000000']} style={styles.fullScreenGradient}>
+      <StatusBar barStyle="light-content" backgroundColor={isPlaying ? CORE_COLORS.WMBR_GREEN : COLORS.BACKGROUND.PRIMARY} translucent={false} />
+      <LinearGradient colors={isPlaying ? [CORE_COLORS.WMBR_GREEN, '#006B31', CORE_COLORS.WMBR_GREEN] : ['#000000', '#1a1a1a', '#000000']} style={styles.fullScreenGradient}>
         <SafeAreaView style={styles.safeContainer}>
           <View style={styles.content}>
             <View style={styles.logoContainer}>
-              <SvgXml xml={getWMBRLogoSVG(isPlaying ? "#000000" : WMBR_GREEN)} width={80} height={17} />
+              <SvgXml xml={getWMBRLogoSVG(isPlaying ? "#000000" : CORE_COLORS.WMBR_GREEN)} width={80} height={17} />
             </View>
             <View style={styles.showInfo}>
               {archiveState.isPlayingArchive ? (
@@ -343,29 +343,29 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000000' },
+  container: { flex: 1, backgroundColor: COLORS.BACKGROUND.PRIMARY },
   fullScreenGradient: { flex: 1 },
   safeContainer: { flex: 1 },
   content: { flex: 1, justifyContent: 'space-between', alignItems: 'center', paddingVertical: 60 },
   logoContainer: { alignItems: 'center', marginTop: 10, marginBottom: 5 },
   showInfo: { alignItems: 'center', marginTop: 20 },
-  showTitle: { fontSize: 24, fontWeight: '600', color: '#FFFFFF', textAlign: 'center', marginBottom: 8 },
+  showTitle: { fontSize: 24, fontWeight: '600', color: COLORS.TEXT.PRIMARY, textAlign: 'center', marginBottom: 8 },
   clickableTitle: { textDecorationLine: 'underline' },
-  archiveInfo: { fontSize: 14, color: '#CCCCCC', textAlign: 'center', marginBottom: 8 },
-  archiveInfoActive: { color: '#E0E0E0' },
-  hosts: { fontSize: 16, color: '#CCCCCC', textAlign: 'center', marginBottom: 8 },
-  hostsActive: { color: '#E0E0E0' },
+  archiveInfo: { fontSize: 14, color: COLORS.TEXT.SECONDARY, textAlign: 'center', marginBottom: 8 },
+  archiveInfoActive: { color: COLORS.TEXT.ACTIVE },
+  hosts: { fontSize: 16, color: COLORS.TEXT.SECONDARY, textAlign: 'center', marginBottom: 8 },
+  hostsActive: { color: COLORS.TEXT.ACTIVE },
   bottomInfo: { alignItems: 'center', paddingHorizontal: 20, marginTop: 20 },
-  showDescription: { fontSize: 12, color: '#CCCCCC', textAlign: 'center', marginBottom: 12, lineHeight: 16 },
+  showDescription: { fontSize: 12, color: COLORS.TEXT.SECONDARY, textAlign: 'center', marginBottom: 12, lineHeight: 16 },
   showDescriptionActive: { color: '#D0D0D0' },
   liveText: { fontSize: 14, color: '#FF4444', fontWeight: '500', marginBottom: 8 },
   nowPlayingContainer: { alignItems: 'center', marginTop: 4 },
-  nowPlayingLabel: { fontSize: 10, color: '#999999', fontWeight: '500', marginBottom: 2, textTransform: 'uppercase', letterSpacing: 0.5 },
+  nowPlayingLabel: { fontSize: 10, color: COLORS.TEXT.META, fontWeight: '500', marginBottom: 2, textTransform: 'uppercase', letterSpacing: 0.5 },
   nowPlayingLabelActive: { color: '#BBBBBB' },
-  currentSongText: { fontSize: 12, color: '#CCCCCC', textAlign: 'center', fontStyle: 'italic' },
-  currentSongTextActive: { color: '#E0E0E0' },
-  streamingText: { color: WMBR_GREEN, fontSize: 14, fontWeight: '500' },
-  streamingTextActive: { color: '#FFFFFF' },
+  currentSongText: { fontSize: 12, color: COLORS.TEXT.SECONDARY, textAlign: 'center', fontStyle: 'italic' },
+  currentSongTextActive: { color: COLORS.TEXT.ACTIVE },
+  streamingText: { color: CORE_COLORS.WMBR_GREEN, fontSize: 14, fontWeight: '500' },
+  streamingTextActive: { color: COLORS.TEXT.PRIMARY },
   bottomSpace: { height: 100 },
   liveButton: { marginTop: 16, paddingHorizontal: 20, paddingVertical: 12, backgroundColor: 'rgba(255, 68, 68, 0.2)', borderRadius: 20, borderWidth: 1, borderColor: '#FF4444' },
   liveButtonActive: { backgroundColor: 'rgba(255, 255, 255, 0.2)', borderColor: '#FFFFFF' },

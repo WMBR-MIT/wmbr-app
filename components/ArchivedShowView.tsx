@@ -4,7 +4,6 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  Dimensions,
   ScrollView,
   SafeAreaView,
   StatusBar,
@@ -20,18 +19,15 @@ import Animated, {
   runOnJS,
 } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import { SvgXml } from 'react-native-svg';
 import TrackPlayer, { useProgress, usePlaybackState, State } from 'react-native-track-player';
 import { Show, Archive } from '../types/RecentlyPlayed';
 import { PlaylistResponse, PlaylistSong } from '../types/Playlist';
 import { PlaylistService } from '../services/PlaylistService';
 import { ArchiveService } from '../services/ArchiveService';
-import { getWMBRLogoSVG } from '../utils/WMBRLogo';
-import { formatDate, secondsToTime, formatTime } from '../utils/DateTime';
+import { secondsToTime, formatTime } from '../utils/DateTime';
+import { COLORS } from '../utils/Colors';
 import { generateDarkGradientColors, generateGradientColors } from '../utils/GradientColors';
-
-const { width } = Dimensions.get('window');
-const ALBUM_SIZE = width * 0.6;
+import { ShowImage } from './ShowImage';
 
 interface ArchivedShowViewProps {
   show: Show;
@@ -117,7 +113,7 @@ export default function ArchivedShowView() {
     return 0;
   }, [dragPercentage, isDragging, progress.duration, progress.position]);
 
-  const [gradientStart, gradientEnd] = generateGradientColors(show.name);
+  const [gradientStart] = generateGradientColors(show.name);
   const [darkGradientStart, darkGradientEnd] = generateDarkGradientColors(show.name);
 
   const updateScrubPosition = (position: number, percentage: number) => {
@@ -195,34 +191,7 @@ export default function ArchivedShowView() {
       >
         <SafeAreaView style={styles.safeArea}>
           <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-            {/* Album Cover Section */}
-            <View style={styles.albumSection}>
-              <View style={[styles.albumCover, { backgroundColor: gradientStart }]}>
-                <LinearGradient
-                  colors={[gradientStart, gradientEnd, 'rgba(0,0,0,0.3)']}
-                  locations={[0, 0.6, 1]}
-                  style={styles.albumGradient}
-                >
-                  <View style={styles.albumContent}>
-                    {/* Centered logo at top */}
-                    <View style={styles.albumLogoContainer}>
-                      <SvgXml xml={getWMBRLogoSVG('#FFFFFF')} width={60} height={13} />
-                    </View>
-                    
-                    {/* Left-aligned content area */}
-                    <View style={styles.albumTextContainer}>
-                      <Text style={styles.albumShowName} numberOfLines={2}>
-                        {show.name}
-                      </Text>
-                      <Text style={styles.albumArchiveLabel}>ARCHIVE</Text>
-                      <Text style={styles.albumDate}>
-                        {formatDate(archive.date)}
-                      </Text>
-                    </View>
-                  </View>
-                </LinearGradient>
-              </View>
-            </View>
+            <ShowImage showName={show.name} archiveDate={archive.date} />
 
 
             {/* Play/Pause Button */}
@@ -339,73 +308,6 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
   },
-  albumSection: {
-    alignItems: 'center',
-    paddingVertical: 30,
-  },
-  albumCover: {
-    width: ALBUM_SIZE,
-    height: ALBUM_SIZE,
-    borderRadius: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 16,
-  },
-  albumGradient: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'stretch',
-    padding: 0,
-  },
-  albumContent: {
-    flex: 1,
-    justifyContent: 'space-between',
-    paddingVertical: 20,
-    paddingHorizontal: 0,
-  },
-  albumLogoContainer: {
-    alignItems: 'center',
-  },
-  albumTextContainer: {
-    alignItems: 'flex-start',
-    flex: 1,
-    justifyContent: 'flex-end',
-    paddingLeft: 20,
-  },
-  albumShowName: {
-    color: '#FFFFFF',
-    fontSize: 22,
-    fontWeight: 'bold',
-    textAlign: 'left',
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 3,
-    marginBottom: 4,
-  },
-  albumArchiveLabel: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '600',
-    letterSpacing: 1,
-    opacity: 0.8,
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 3,
-    marginBottom: 4,
-  },
-  albumDate: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    opacity: 0.8,
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 3,
-    textAlign: 'left',
-  },
   playSection: {
     alignItems: 'center',
     paddingVertical: 20,
@@ -418,7 +320,7 @@ const styles = StyleSheet.create({
     paddingTop: 20,
   },
   sectionTitle: {
-    color: '#FFFFFF',
+    color: COLORS.TEXT.PRIMARY,
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 16,
@@ -438,22 +340,22 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   songTitle: {
-    color: '#FFFFFF',
+    color: COLORS.TEXT.PRIMARY,
     fontSize: 16,
     fontWeight: '500',
     marginBottom: 4,
   },
   songArtist: {
-    color: '#CCCCCC',
+    color: COLORS.TEXT.SECONDARY,
     fontSize: 14,
     marginBottom: 2,
   },
   songAlbum: {
-    color: '#888',
+    color: COLORS.TEXT.TERTIARY,
     fontSize: 12,
   },
   songTime: {
-    color: '#888',
+    color: COLORS.TEXT.TERTIARY,
     fontSize: 12,
     fontWeight: '500',
   },
@@ -462,7 +364,7 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
   },
   loadingText: {
-    color: '#888',
+    color: COLORS.TEXT.TERTIARY,
     marginTop: 16,
     fontSize: 16,
   },
@@ -471,7 +373,7 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
   },
   errorText: {
-    color: '#FF4444',
+    color: COLORS.TEXT.ERROR,
     textAlign: 'center',
     fontSize: 16,
     marginBottom: 20,
@@ -491,7 +393,7 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
   },
   emptyText: {
-    color: '#888',
+    color: COLORS.TEXT.TERTIARY,
     fontSize: 16,
   },
   bottomPadding: {
@@ -543,7 +445,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   timeText: {
-    color: '#CCCCCC',
+    color: COLORS.TEXT.SECONDARY,
     fontSize: 12,
     fontWeight: '500',
   },

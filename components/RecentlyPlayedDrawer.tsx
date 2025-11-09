@@ -17,7 +17,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import RecentlyPlayed from './RecentlyPlayed';
-import { WMBR_GREEN } from '../utils/Colors';
+import { COLORS, CORE_COLORS } from '../utils/Colors';
 
 const { height: screenHeight } = Dimensions.get('window');
 const DRAWER_HEIGHT = screenHeight * 0.8;
@@ -145,7 +145,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: '#000000',
+    backgroundColor: COLORS.BACKGROUND.PRIMARY,
     zIndex: 998,
   },
   drawer: {
@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: DRAWER_HEIGHT,
-    backgroundColor: '#1a1a1a',
+    backgroundColor: COLORS.BACKGROUND.SECONDARY,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     zIndex: 999,
@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
   peekHeaderTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: COLORS.TEXT.PRIMARY,
   },
   headerActions: {
     flexDirection: 'row',
@@ -192,7 +192,7 @@ const styles = StyleSheet.create({
   },
   refreshButtonText: {
     fontSize: 20,
-    color: WMBR_GREEN,
+    color: CORE_COLORS.WMBR_GREEN,
   },
   dragHint: {
     fontSize: 16,

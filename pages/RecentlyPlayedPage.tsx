@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { View, SafeAreaView, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import RecentlyPlayed from '../components/RecentlyPlayed';
+import { COLORS } from '../utils/Colors';
 
 export default function RecentlyPlayedPage() {
   const [refreshKey, setRefreshKey] = useState(0);
@@ -21,7 +22,7 @@ export default function RecentlyPlayedPage() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#1a1a1a' },
+  container: { flex: 1, backgroundColor: COLORS.BACKGROUND.SECONDARY },
   header: {
     height: 96,
     flexDirection: 'row',
@@ -31,8 +32,8 @@ const styles = StyleSheet.create({
     paddingTop: 55,
     paddingBottom: 15,
   },
-  title: { flex: 1, textAlign: 'center', color: '#fff', fontSize: 18, fontWeight: '700' },
+  title: { flex: 1, textAlign: 'center', color: COLORS.TEXT.PRIMARY, fontSize: 18, fontWeight: '700' },
   spacer: { width: 40 },
   refreshButton: { width: 40, alignItems: 'center', justifyContent: 'center' },
-  refreshText: { color: '#fff', fontSize: 18 },
+  refreshText: { color: COLORS.TEXT.PRIMARY, fontSize: 18 },
 });

@@ -28,6 +28,7 @@ import { PlaylistResponse, PlaylistSong } from '../types/Playlist';
 import { PlaylistService } from '../services/PlaylistService';
 import { ArchiveService } from '../services/ArchiveService';
 import { secondsToTime, formatTime } from '../utils/DateTime';
+import { COLORS } from '../utils/Colors';
 import { generateDarkGradientColors, generateGradientColors } from '../utils/GradientColors';
 import { ShowImage } from './ShowImage';
 
@@ -373,7 +374,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   headerTitle: {
-    color: '#FFFFFF',
+    color: COLORS.TEXT.PRIMARY,
     fontSize: 16,
     fontWeight: '600',
     marginLeft: 8,
@@ -393,7 +394,7 @@ const styles = StyleSheet.create({
     paddingTop: 20,
   },
   sectionTitle: {
-    color: '#FFFFFF',
+    color: COLORS.TEXT.PRIMARY,
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 16,
@@ -413,22 +414,22 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   songTitle: {
-    color: '#FFFFFF',
+    color: COLORS.TEXT.PRIMARY,
     fontSize: 16,
     fontWeight: '500',
     marginBottom: 4,
   },
   songArtist: {
-    color: '#CCCCCC',
+    color: COLORS.TEXT.SECONDARY,
     fontSize: 14,
     marginBottom: 2,
   },
   songAlbum: {
-    color: '#888',
+    color: COLORS.TEXT.TERTIARY,
     fontSize: 12,
   },
   songTime: {
-    color: '#888',
+    color: COLORS.TEXT.TERTIARY,
     fontSize: 12,
     fontWeight: '500',
   },
@@ -437,7 +438,7 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
   },
   loadingText: {
-    color: '#888',
+    color: COLORS.TEXT.TERTIARY,
     marginTop: 16,
     fontSize: 16,
   },
@@ -446,7 +447,7 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
   },
   errorText: {
-    color: '#FF4444',
+    color: COLORS.TEXT.ERROR,
     textAlign: 'center',
     fontSize: 16,
     marginBottom: 20,
@@ -466,7 +467,7 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
   },
   emptyText: {
-    color: '#888',
+    color: COLORS.TEXT.TERTIARY,
     fontSize: 16,
   },
   bottomPadding: {
@@ -518,7 +519,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   timeText: {
-    color: '#CCCCCC',
+    color: COLORS.TEXT.SECONDARY,
     fontSize: 12,
     fontWeight: '500',
   },

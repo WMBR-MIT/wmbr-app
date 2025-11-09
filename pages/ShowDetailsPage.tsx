@@ -28,6 +28,7 @@ import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import ArchivedShowView from '../components/ArchivedShowView';
 import { ShowImage } from '../components/ShowImage';
 import { formatDate, getDurationFromSize, formatShowTime, secondsToTime } from '../utils/DateTime';
+import { COLORS } from '../utils/Colors';
 import { generateDarkGradientColors, generateGradientColors } from '../utils/GradientColors';
 
 const { width } = Dimensions.get('window');
@@ -413,7 +414,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   headerTitle: {
-    color: '#FFFFFF',
+    color: COLORS.TEXT.PRIMARY,
     fontSize: 16,
     fontWeight: '600',
     marginLeft: 8,
@@ -429,23 +430,23 @@ const styles = StyleSheet.create({
     paddingBottom: 30,
   },
   showTitle: {
-    color: '#FFFFFF',
+    color: COLORS.TEXT.PRIMARY,
     fontSize: 32,
     fontWeight: 'bold',
     marginBottom: 8,
   },
   showSchedule: {
-    color: '#CCCCCC',
+    color: COLORS.TEXT.SECONDARY,
     fontSize: 16,
     marginBottom: 4,
   },
   showHosts: {
-    color: '#CCCCCC',
+    color: COLORS.TEXT.SECONDARY,
     fontSize: 16,
     marginBottom: 8,
   },
   archiveCount: {
-    color: '#CCCCCC',
+    color: COLORS.TEXT.SECONDARY,
     fontSize: 14,
     fontWeight: '500',
   },
@@ -453,7 +454,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   sectionTitle: {
-    color: '#FFFFFF',
+    color: COLORS.TEXT.PRIMARY,
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 16,
@@ -481,21 +482,21 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   archiveDate: {
-    color: '#FFFFFF',
+    color: COLORS.TEXT.PRIMARY,
     fontSize: 16,
     fontWeight: '500',
   },
   archiveDatePlaying: {
-    color: '#FFFFFF',
+    color: COLORS.TEXT.PRIMARY,
     fontWeight: '600',
   },
   archiveSize: {
-    color: '#CCCCCC',
+    color: COLORS.TEXT.SECONDARY,
     fontSize: 14,
     marginTop: 2,
   },
   archiveSizePlaying: {
-    color: '#CCCCCC',
+    color: COLORS.TEXT.SECONDARY,
   },
   playIconContainer: {
     padding: 8,
@@ -553,7 +554,7 @@ const styles = StyleSheet.create({
     marginLeft: -20,
   },
   previewTimeText: {
-    color: '#FFFFFF',
+    color: COLORS.TEXT.PRIMARY,
     fontSize: 12,
     fontWeight: '500',
   },
@@ -562,7 +563,7 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
   },
   noArchivesText: {
-    color: '#888',
+    color: COLORS.TEXT.TERTIARY,
     fontSize: 16,
     fontStyle: 'italic',
   },

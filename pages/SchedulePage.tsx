@@ -15,7 +15,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
 import { debugLog, debugError } from '../utils/Debug';
 import { RefreshControl } from 'react-native';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { NavigationProp, useNavigation, RouteProp } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SvgXml } from 'react-native-svg';
 import ArchivedShowView from '../components/ArchivedShowView';
@@ -34,11 +34,29 @@ interface SchedulePageProps {
 const Stack = createNativeStackNavigator();
 
 export const ScheduleStack = () => {
+  const getShowDetailsOptions = ({ route }: { route: RouteProp<Record<string, any>, 'ShowDetails'> }) => ({
+    title: route.params?.show?.name || 'Show Details',
+  });
+
+  const getArchivedShowViewOptions = ({ route }: { route: RouteProp<Record<string, any>, 'ArchivedShowView'> }) => ({
+    title: route.params?.archive?.date
+      ? new Date(route.params.archive.date).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      })
+        : 'Archived Show',
+  });
+
   return (
     <Stack.Navigator screenOptions={{ headerShown: true, title: 'Schedule' }}>
       <Stack.Screen name="ScheduleMain" component={SchedulePage} />
-      <Stack.Screen name="ShowDetails" component={ShowDetailsPage} />
-      <Stack.Screen name="ArchivedShowView" component={ArchivedShowView} />
+      <Stack.Screen name="ShowDetails" component={ShowDetailsPage}
+        options={getShowDetailsOptions}
+      />
+      <Stack.Screen name="ArchivedShowView" component={ArchivedShowView} 
+        options={getArchivedShowViewOptions}
+      />
     </Stack.Navigator>
   );
 }

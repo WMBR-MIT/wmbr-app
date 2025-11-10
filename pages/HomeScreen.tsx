@@ -276,28 +276,17 @@ export default function HomeScreen() {
     const show = archiveState.currentShow;
     if (!show) return;
 
-    // Use the parent navigator to reset the Schedule tab's stack
-    navigation.dispatch(
-      CommonActions.reset({
-        index: 2, // Schedule tab index
+    // Navigate to Schedule tab with complete stack state
+    navigation.navigate('Schedule' as WmbrRouteName, {
+      // Specify the complete stack path
+      state: {
         routes: [
-          { name: 'Home' },
-          { name: 'Recently Played' },
-          {
-            name: 'Schedule',
-            state: {
-              index: 2,
-              routes: [
-                { name: 'ScheduleMain' },
-                { name: 'ShowDetails', params: { show } },
-                { name: 'ArchivedShowView', params: { show, archive: archiveState.currentArchive } }
-              ],
-            }
-          },
-          { name: 'About' }
-        ],
-      })
-    );
+          { name: 'ScheduleMain' },
+          { name: 'ShowDetails', params: { show } },
+          { name: 'ArchivedShowView', params: { show, archive: archiveState.currentArchive } }
+        ]
+      }
+    });
   }, [archiveState.currentShow, archiveState.currentArchive, navigation]);
 
   if (showSplash) return <SplashScreen onAnimationEnd={handleSplashEnd} />;

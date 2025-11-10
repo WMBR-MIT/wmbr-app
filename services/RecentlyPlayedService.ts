@@ -294,7 +294,7 @@ export class RecentlyPlayedService {
       const encodedShowName = encodeURIComponent(showName);
       const url = `https://wmbr.alexandersimoes.com/get_playlist?show_name=${encodedShowName}&date=${dateStr}`;
       
-      debugLog(`Fetching playlist for "${showName}" on ${date}`);
+      debugLog(`Fetching playlist for "${showName}" on ${dateStr}`);
       
       const response = await fetch(url, {
         headers: { 'Cache-Control': 'no-cache' }

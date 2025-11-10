@@ -13,6 +13,7 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
 import { useRoute, RouteProp } from '@react-navigation/native';
+import { useHeaderHeight } from '@react-navigation/elements';
 import { debugError } from '../utils/Debug';
 import Animated, {
   useSharedValue,
@@ -36,8 +37,9 @@ interface ArchivedShowViewProps {
 
 export default function ArchivedShowView() {
   const route = useRoute<RouteProp<Record<string, ArchivedShowViewProps>, string>>();
-
   const { show, archive } = route.params;
+
+  const headerHeight = useHeaderHeight();
 
   const progress = useProgress();
   const playbackState = usePlaybackState();
@@ -187,7 +189,7 @@ export default function ArchivedShowView() {
       <LinearGradient
         colors={[darkGradientStart, darkGradientEnd, '#000000']}
         locations={[0, 0.3, 1]}
-        style={styles.gradient}
+        style={[styles.gradient, { paddingTop: headerHeight }]}
       >
         <SafeAreaView style={styles.safeArea}>
           <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>

@@ -17,6 +17,7 @@ import { debugLog, debugError } from '../utils/Debug';
 import { RefreshControl } from 'react-native';
 import { NavigationProp, useNavigation, RouteProp } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { useHeaderHeight } from '@react-navigation/elements';
 import { SvgXml } from 'react-native-svg';
 import ArchivedShowView from '../components/ArchivedShowView';
 import { ScheduleShow, ScheduleResponse } from '../types/Schedule';
@@ -67,8 +68,9 @@ export const ScheduleStack = () => {
 }
 
 export default function SchedulePage({ currentShow }: SchedulePageProps) { 
-
   const navigation = useNavigation<NavigationProp<Record<WmbrRouteName, object | undefined>>>();
+
+  const headerHeight = useHeaderHeight();
 
   const [schedule, setSchedule] = useState<ScheduleResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -300,7 +302,7 @@ export default function SchedulePage({ currentShow }: SchedulePageProps) {
       <LinearGradient
         colors={['#1a1a1a', '#0a0a0a', '#000000']}
         locations={[0, 0.5, 1]}
-        style={styles.gradient}
+        style={[styles.gradient, { paddingTop: headerHeight }]}
       >
         <SafeAreaView style={styles.safeArea}>
           {/* Logo */}

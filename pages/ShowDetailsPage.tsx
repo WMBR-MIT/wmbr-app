@@ -1,5 +1,6 @@
 import React, { useCallback, useState, useEffect, useRef, useMemo } from 'react';
 import { useRoute, RouteProp, NavigationProp, useNavigation } from '@react-navigation/native';
+import { useHeaderHeight } from '@react-navigation/elements';
 import {
   View,
   Text,
@@ -41,8 +42,11 @@ export type ShowDetailsPageRouteParams = {
 
 export default function ShowDetailsPage() {
   const navigation = useNavigation<NavigationProp<Record<WmbrRouteName, object | undefined>>>();
+
   const route = useRoute<RouteProp<Record<string, ShowDetailsPageRouteParams>, string>>();
   const show: Show = route.params!.show;
+
+  const headerHeight = useHeaderHeight();
 
   // Always call hooks at the top level, never conditionally
   // Slide horizontally: start offscreen to the right (translateX = width)
@@ -213,7 +217,7 @@ export default function ShowDetailsPage() {
       <LinearGradient
         colors={[darkGradientStart, darkGradientEnd, '#000000']}
         locations={[0, 0.3, 1]}
-        style={styles.gradient}
+        style={[styles.gradient, { paddingTop: headerHeight }]}
       >
         <SafeAreaView style={styles.safeArea}>
           <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>

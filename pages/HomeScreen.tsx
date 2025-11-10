@@ -21,7 +21,7 @@ import { RecentlyPlayedService } from '../services/RecentlyPlayedService';
 import { ArchiveService, ArchivePlaybackState } from '../services/ArchiveService';
 import { AudioPreviewService } from '../services/AudioPreviewService';
 import { getWMBRLogoSVG } from '../utils/WMBRLogo';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { NavigationProp, useNavigation, CommonActions } from '@react-navigation/native';
 import { WmbrRouteName } from '../types/Navigation';
 import { DEFAULT_NAME } from '../types/Playlist';
 import { COLORS, CORE_COLORS } from '../utils/Colors';
@@ -275,11 +275,30 @@ export default function HomeScreen() {
   const handleOpenShowDetails = useCallback(() => {
     const show = archiveState.currentShow;
     if (!show) return;
-    navigation.navigate('Schedule' as WmbrRouteName, {
-      screen: 'ShowDetails',
-      params: { show }
-    });
-  }, [navigation, archiveState.currentShow]);
+
+    // Use the parent navigator to reset the Schedule tab's stack
+    navigation.dispatch(
+      CommonActions.reset({
+        index: 2, // Schedule tab index
+        routes: [
+          { name: 'Home' },
+          { name: 'Recently Played' },
+          {
+            name: 'Schedule',
+            state: {
+              index: 2,
+              routes: [
+                { name: 'ScheduleMain' },
+                { name: 'ShowDetails', params: { show } },
+                { name: 'ArchivedShowView', params: { show, archive: archiveState.currentArchive } }
+              ],
+            }
+          },
+          { name: 'About' }
+        ],
+      })
+    );
+  }, [archiveState.currentShow, archiveState.currentArchive, navigation]);
 
   if (showSplash) return <SplashScreen onAnimationEnd={handleSplashEnd} />;
 

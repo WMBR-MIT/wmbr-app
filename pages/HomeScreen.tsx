@@ -21,7 +21,7 @@ import { RecentlyPlayedService } from '../services/RecentlyPlayedService';
 import { ArchiveService, ArchivePlaybackState } from '../services/ArchiveService';
 import { AudioPreviewService } from '../services/AudioPreviewService';
 import { getWMBRLogoSVG } from '../utils/WMBRLogo';
-import { NavigationProp, useNavigation, CommonActions } from '@react-navigation/native';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { WmbrRouteName } from '../types/Navigation';
 import { DEFAULT_NAME } from '../types/Playlist';
 import { COLORS, CORE_COLORS } from '../utils/Colors';

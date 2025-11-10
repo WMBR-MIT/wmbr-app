@@ -278,6 +278,7 @@ export default function HomeScreen() {
 
     // Navigate to Schedule tab with complete stack state
     navigation.navigate('Schedule' as WmbrRouteName, {
+      screen: 'ArchivedShowView',
       // Specify the complete stack path
       state: {
         routes: [

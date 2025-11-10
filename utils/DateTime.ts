@@ -99,7 +99,7 @@ export const formatShowTime = (show: Show) => {
 };
 
 /**
- * Get date in ISO format (YYYY-MM-DD) in Eastern Time
+ * Get date in ISO format (YYYY-MM-DD)
  * Use today's date if none provided
  *
  * @param date Optional Date object

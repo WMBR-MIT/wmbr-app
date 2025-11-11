@@ -12,7 +12,6 @@ import TrackPlayer, { Capability, State, usePlaybackState } from 'react-native-t
 import LinearGradient from 'react-native-linear-gradient';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SvgXml } from 'react-native-svg';
-import RecentlyPlayedDrawer from '../components/RecentlyPlayedDrawer';
 import PlayButton from '../components/PlayButton';
 import SplashScreen from '../components/SplashScreen';
 import MetadataService, { ShowInfo, Song } from '../services/MetadataService';
@@ -24,6 +23,7 @@ import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { WmbrRouteName } from '../types/Navigation';
 import { DEFAULT_NAME } from '../types/Playlist';
 import { COLORS, CORE_COLORS } from '../utils/Colors';
+import { formatArchiveDate } from '../utils/DateTime';
 
 import HomeNowPlaying from '../components/HomeNowPlaying';
 
@@ -177,11 +177,6 @@ export default function HomeScreen() {
   const handleSplashEnd = () => setShowSplash(false);
   const handleSwitchToLive = useCallback(async () => { try { await ArchiveService.getInstance().switchToLive(currentShow); } catch (e) { debugError('Error switching to live:', e); } }, [currentShow]);
 
-  const formatArchiveDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
-  };
-
   const bottomSpacerStyle = useMemo(() => ({ height: Math.max(insets.bottom + 56, 56)}), [insets.bottom]);
 
   const handleOpenShowDetails = useCallback(() => {
@@ -234,7 +229,6 @@ export default function HomeScreen() {
             <View style={bottomSpacerStyle} />
           </View>
         </SafeAreaView>
-        <RecentlyPlayedDrawer />
       </LinearGradient>
     </GestureHandlerRootView>
   );

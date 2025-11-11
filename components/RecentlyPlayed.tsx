@@ -20,7 +20,7 @@ import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { getDateYMD, parsePlaylistTimestamp } from '../utils/DateTime';
 import { WmbrRouteName } from '../types/Navigation';
 import { DEFAULT_NAME } from '../types/Playlist';
-import { WMBR_GREEN } from '../utils/Colors';
+import { COLORS, CORE_COLORS } from '../utils/Colors';
 
 interface RecentlyPlayedProps {
   refreshKey?: number;
@@ -467,7 +467,7 @@ export default function RecentlyPlayed({ refreshKey }: RecentlyPlayedProps = {})
                 refreshing={refreshing}
                 onRefresh={handleRefresh}
                 tintColor="#FFFFFF"
-                colors={[WMBR_GREEN, '#FFFFFF']}
+                colors={[CORE_COLORS.WMBR_GREEN, '#FFFFFF']}
                 progressBackgroundColor="#000000"
                 titleColor="#FFFFFF"
                 title=""
@@ -514,91 +514,14 @@ export default function RecentlyPlayed({ refreshKey }: RecentlyPlayedProps = {})
     </>
   );
 }
+
 const styles = StyleSheet.create({
-  overlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: '#000000',
-    zIndex: 998,
-  },
-  handle: {
-    width: 40,
-    height: 4,
-    backgroundColor: '#666',
-    borderRadius: 2,
-    alignSelf: 'center',
-    marginTop: 8,
-    marginBottom: 8,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#FFFFFF',
-  },
-  headerActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  refreshButton: {
-    padding: 8,
-  },
-  refreshButtonText: {
-    fontSize: 20,
-    color: WMBR_GREEN,
-  },
-  dragHint: {
-    fontSize: 16,
-    color: '#888',
-    fontWeight: 'bold',
-  },
   scrollView: {
     flex: 1,
-    backgroundColor: '#1a1a1a',
+    backgroundColor: COLORS.BACKGROUND.SECONDARY,
   },
   showGroup: {
     marginBottom: 20,
-  },
-  stickyHeader: {
-    backgroundColor: '#2a2a2a',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: '#333',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  showTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: WMBR_GREEN,
-    flex: 1,
-  },
-  headerRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  songCount: {
-    fontSize: 12,
-    color: '#888',
-  },
-  chevron: {
-    fontSize: 16,
-    color: '#888',
-    fontWeight: 'bold',
   },
   songItem: {
     flexDirection: 'row',
@@ -615,17 +538,17 @@ const styles = StyleSheet.create({
   songTitle: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#FFFFFF',
+    color: COLORS.TEXT.PRIMARY,
     marginBottom: 4,
   },
   songArtist: {
     fontSize: 14,
-    color: '#CCCCCC',
+    color: COLORS.TEXT.SECONDARY,
     marginBottom: 2,
   },
   songAlbum: {
     fontSize: 12,
-    color: '#888',
+    color: COLORS.TEXT.TERTIARY,
     marginBottom: 4,
   },
   playedTime: {
@@ -636,7 +559,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: WMBR_GREEN,
+    backgroundColor: COLORS.BUTTON.ACCENT.BACKGROUND,
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
@@ -661,7 +584,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   previewButtonText: {
-    color: '#FFFFFF',
+    color: COLORS.BUTTON.ACCENT.TEXT,
     fontSize: 18,
     fontWeight: 'bold',
   },
@@ -683,7 +606,7 @@ const styles = StyleSheet.create({
     paddingVertical: 60,
   },
   loadingText: {
-    color: '#888',
+    color: COLORS.TEXT.TERTIARY,
     marginTop: 16,
     fontSize: 16,
   },
@@ -695,19 +618,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   errorText: {
-    color: '#FF4444',
+    color: COLORS.TEXT.ERROR,
     textAlign: 'center',
     fontSize: 16,
     marginBottom: 20,
   },
   retryButton: {
-    backgroundColor: WMBR_GREEN,
+    backgroundColor: COLORS.BUTTON.ACCENT.BACKGROUND,
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 8,
   },
   retryButtonText: {
-    color: '#FFFFFF',
+    color: COLORS.BUTTON.ACCENT.TEXT,
     fontWeight: '600',
   },
   emptyContainer: {
@@ -717,7 +640,7 @@ const styles = StyleSheet.create({
     paddingVertical: 60,
   },
   emptyText: {
-    color: '#888',
+    color: COLORS.TEXT.TERTIARY,
     fontSize: 16,
     textAlign: 'center',
   },
@@ -725,7 +648,7 @@ const styles = StyleSheet.create({
     height: 100,
   },
   currentShowHeader: {
-    backgroundColor: '#2a2a2a',
+    backgroundColor: COLORS.BACKGROUND.ELEVATED,
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
@@ -734,15 +657,15 @@ const styles = StyleSheet.create({
   currentShowTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: WMBR_GREEN,
+    color: CORE_COLORS.WMBR_GREEN,
     marginBottom: 4,
   },
   currentShowSubtitle: {
     fontSize: 14,
-    color: '#888',
+    color: COLORS.TEXT.TERTIARY,
   },
   showHeader: {
-    backgroundColor: '#2a2a2a',
+    backgroundColor: COLORS.BACKGROUND.ELEVATED,
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderBottomWidth: 1,
@@ -752,12 +675,12 @@ const styles = StyleSheet.create({
   showHeaderTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: WMBR_GREEN,
+    color: CORE_COLORS.WMBR_GREEN,
     marginBottom: 2,
   },
   showHeaderSubtitle: {
     fontSize: 12,
-    color: '#888',
+    color: COLORS.TEXT.TERTIARY,
   },
   loadingMoreContainer: {
     paddingVertical: 20,
@@ -765,7 +688,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   loadingMoreText: {
-    color: '#888',
+    color: COLORS.TEXT.TERTIARY,
     fontSize: 14,
     marginTop: 8,
   },
@@ -794,18 +717,18 @@ const styles = StyleSheet.create({
     borderColor: '#444',
   },
   endOfDayText: {
-    color: '#CCCCCC',
+    color: COLORS.TEXT.SECONDARY,
     fontSize: 16,
     textAlign: 'center',
     marginBottom: 16,
     fontWeight: '500',
   },
   scheduleButton: {
-    backgroundColor: WMBR_GREEN,
+    backgroundColor: COLORS.BUTTON.ACCENT.BACKGROUND,
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 8,
-    shadowColor: WMBR_GREEN,
+    shadowColor: COLORS.BUTTON.ACCENT.SHADOW,
     shadowOffset: {
       width: 0,
       height: 2,
@@ -815,7 +738,7 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   scheduleButtonText: {
-    color: '#FFFFFF',
+    color: COLORS.BUTTON.ACCENT.TEXT,
     fontSize: 14,
     fontWeight: '600',
     textAlign: 'center',

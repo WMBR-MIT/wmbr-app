@@ -15,7 +15,7 @@ import {
   Gesture,
   GestureDetector,
 } from 'react-native-gesture-handler';
-import { WMBR_GREEN } from '../utils/Colors';
+import { COLORS, CORE_COLORS } from '../utils/Colors';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const DRAWER_HEIGHT = SCREEN_HEIGHT * 0.7;
@@ -134,14 +134,14 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: DRAWER_HEIGHT,
-    backgroundColor: '#1a1a1a',
+    backgroundColor: COLORS.BACKGROUND.SECONDARY,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     borderTopWidth: 1,
     borderLeftWidth: 1,
     borderRightWidth: 1,
-    borderColor: WMBR_GREEN,
-    shadowColor: WMBR_GREEN,
+    borderColor: CORE_COLORS.WMBR_GREEN,
+    shadowColor: CORE_COLORS.WMBR_GREEN,
     shadowOffset: {
       width: 0,
       height: -4,
@@ -153,7 +153,7 @@ const styles = StyleSheet.create({
   handle: {
     width: 40,
     height: 4,
-    backgroundColor: WMBR_GREEN,
+    backgroundColor: CORE_COLORS.WMBR_GREEN,
     borderRadius: 2,
     alignSelf: 'center',
     marginTop: 12,
@@ -168,12 +168,12 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: COLORS.TEXT.PRIMARY,
     marginBottom: 4,
   },
   headerSubtitle: {
     fontSize: 14,
-    color: '#888',
+    color: COLORS.TEXT.TERTIARY,
   },
   scrollView: {
     flex: 1,
@@ -193,16 +193,16 @@ const styles = StyleSheet.create({
   songTitle: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#FFFFFF',
+    color: COLORS.TEXT.PRIMARY,
     marginBottom: 4,
   },
   songArtist: {
     fontSize: 14,
-    color: '#888',
+    color: COLORS.TEXT.TERTIARY,
   },
   songTime: {
     fontSize: 12,
-    color: WMBR_GREEN,
+    color: CORE_COLORS.WMBR_GREEN,
     fontWeight: '500',
   },
   emptyState: {

@@ -196,7 +196,7 @@ export default function SchedulePage({ currentShow }: SchedulePageProps) {
       return null;
     }
 
-    const filteredShows = filterShows(schedule.shows, searchQuery);
+    const filteredShows = filterShows(schedule?.shows, searchQuery);
     const groupedShows = scheduleService.groupShowsByDay(filteredShows);
     const daysOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
     
@@ -279,7 +279,7 @@ export default function SchedulePage({ currentShow }: SchedulePageProps) {
 
   const filterShows = (shows: ScheduleShow[], query: string): ScheduleShow[] => {
     // First filter out TBA shows
-    const nonTBAShows = shows.filter(show => 
+    const nonTBAShows = shows?.filter(show => 
       show.name.toLowerCase() !== 'tba'
     );
     
@@ -351,7 +351,7 @@ export default function SchedulePage({ currentShow }: SchedulePageProps) {
               </View>
             ) : (
               <View style={styles.scheduleContainer}>
-                {schedule?.shows.length === 0 ? (
+                {schedule?.shows?.length === 0 ? (
                   <Text style={styles.debugText}>No shows were parsed from XML</Text>
                 ) : null}
                 {renderShowsByDay()}

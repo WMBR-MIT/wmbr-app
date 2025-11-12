@@ -6,8 +6,11 @@ import { jest } from '@jest/globals'
  * This needs to go before any imports.
  *
  * https://stackoverflow.com/questions/50793885/referenceerror-you-are-trying-to-import-a-file-after-the-jest-environment-has
+ *
+ * Actually this might not be necessary?
  */
-jest.useFakeTimers()
+
+// jest.useFakeTimers()
 
 import { mockShowPosttentious } from './__mocks__/MockShowData';
 
@@ -46,8 +49,8 @@ global.fetch = jest.fn((url: string) => {
   }));
 }) as jest.MockedFunction<typeof fetch>;
 
-// Silence debug logs
-jest.mock('./utils/Debug.ts', () => ({
-  debugLog: jest.fn(),
-  debugError: jest.fn(),
-}));
+// // Silence debug logs
+// jest.mock('./utils/Debug.ts', () => ({
+//   debugLog: jest.fn(),
+//   debugError: jest.fn(),
+// }));

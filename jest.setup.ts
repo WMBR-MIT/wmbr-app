@@ -1,22 +1,22 @@
 import { jest } from '@jest/globals'
 
-/**
- * jest.useFakeTimers()
- * Prevent weird timing issues.
- * This needs to go before any imports.
- *
- * https://stackoverflow.com/questions/50793885/referenceerror-you-are-trying-to-import-a-file-after-the-jest-environment-has
- *
- * Actually this might not be necessary?
- */
-
-// jest.useFakeTimers()
-
 import { mockShowPosttentious } from './__mocks__/MockShowData';
 
-jest.mock('react-native-gesture-handler', () =>
-  jest.fn()
-);
+jest.mock('react-native-gesture-handler', () => {
+  const View = require('react-native').View;
+  return {
+    Gesture: {
+      Pan: jest.fn().mockReturnValue({
+        onStart: jest.fn().mockReturnThis(),
+        onUpdate: jest.fn().mockReturnThis(),
+        onEnd: jest.fn().mockReturnThis(),
+        runOnJS: jest.fn().mockReturnThis(),
+      }),
+    },
+    GestureDetector: ({ children }: { children: React.ReactNode }) => children || View,
+    GestureHandlerRootView: ({ children }: { children: React.ReactNode }) => children || View,
+  };
+});
 
 jest.mock('react-native-track-player', () => ({
   usePlaybackState: jest.fn(() => Promise.resolve()),
@@ -49,8 +49,8 @@ global.fetch = jest.fn((url: string) => {
   }));
 }) as jest.MockedFunction<typeof fetch>;
 
-// // Silence debug logs
-// jest.mock('./utils/Debug.ts', () => ({
-//   debugLog: jest.fn(),
-//   debugError: jest.fn(),
-// }));
+// Silence debug logs
+jest.mock('./utils/Debug.ts', () => ({
+  debugLog: jest.fn(),
+  debugError: jest.fn(),
+}));

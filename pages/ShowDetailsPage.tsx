@@ -217,9 +217,9 @@ export default function ShowDetailsPage() {
       <LinearGradient
         colors={[darkGradientStart, darkGradientEnd, '#000000']}
         locations={[0, 0.3, 1]}
-        style={[styles.gradient, { paddingTop: headerHeight }]}
+        style={styles.gradient}
       >
-        <SafeAreaView style={styles.safeArea}>
+        <SafeAreaView style={[styles.safeArea, { paddingTop: headerHeight }]}>
           <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
             <ShowImage showName={show.name} />
 

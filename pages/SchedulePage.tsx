@@ -302,9 +302,9 @@ export default function SchedulePage({ currentShow }: SchedulePageProps) {
       <LinearGradient
         colors={['#1a1a1a', '#0a0a0a', '#000000']}
         locations={[0, 0.5, 1]}
-        style={[styles.gradient, { paddingTop: headerHeight }]}
+        style={styles.gradient}
       >
-        <SafeAreaView style={styles.safeArea}>
+        <SafeAreaView style={[styles.safeArea, { paddingTop: headerHeight }]}>
           {/* Logo */}
           <View style={styles.logoContainer}>
             <SvgXml xml={getWMBRLogoSVG('#FFFFFF')} width={60} height={13} />

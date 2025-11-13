@@ -182,8 +182,19 @@ export default function HomeScreen() {
   const handleOpenShowDetails = useCallback(() => {
     const show = archiveState.currentShow;
     if (!show) return;
-    navigation.navigate('ShowDetails' as WmbrRouteName, { show });
-  }, [navigation, archiveState.currentShow]);
+
+    // Navigate to Schedule tab with complete stack state
+    navigation.navigate('Schedule' as WmbrRouteName, {
+      // Specify the complete stack path
+      state: {
+        routes: [
+          { name: 'ScheduleMain' },
+          { name: 'ShowDetails', params: { show } },
+          { name: 'ArchivedShowView', params: { show, archive: archiveState.currentArchive } }
+        ]
+      }
+    });
+  }, [archiveState.currentShow, archiveState.currentArchive, navigation]);
 
   if (showSplash) return <SplashScreen onAnimationEnd={handleSplashEnd} />;
 

@@ -4,21 +4,19 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  Dimensions,
   ScrollView,
   SafeAreaView,
   StatusBar,
   ActivityIndicator,
   Alert,
-  BackHandler,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
+import { useRoute, RouteProp } from '@react-navigation/native';
+import { useHeaderHeight } from '@react-navigation/elements';
 import { debugError } from '../utils/Debug';
 import Animated, {
   useSharedValue,
-  useAnimatedStyle,
-  withSpring,
   runOnJS,
 } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
@@ -32,18 +30,17 @@ import { COLORS } from '../utils/Colors';
 import { generateDarkGradientColors, generateGradientColors } from '../utils/GradientColors';
 import { ShowImage } from './ShowImage';
 
-const { height } = Dimensions.get('window');
-
 interface ArchivedShowViewProps {
   show: Show;
   archive: Archive;
-  isVisible: boolean;
-  onClose: () => void;
 }
 
-export default function ArchivedShowView({ show, archive, isVisible, onClose }: ArchivedShowViewProps) {
-  const translateY = useSharedValue(height);
-  const opacity = useSharedValue(0);
+export default function ArchivedShowView() {
+  const route = useRoute<RouteProp<Record<string, ArchivedShowViewProps>, string>>();
+  const { show, archive } = route.params;
+
+  const headerHeight = useHeaderHeight();
+
   const progress = useProgress();
   const playbackState = usePlaybackState();
   
@@ -62,7 +59,7 @@ export default function ArchivedShowView({ show, archive, isVisible, onClose }: 
   const playlistService = PlaylistService.getInstance();
   const archiveService = ArchiveService.getInstance();
 
-  const fetchPlaylist = async () => {
+  const fetchPlaylist = useCallback(async () => {
     setLoading(true);
     setError(null);
     
@@ -75,7 +72,7 @@ export default function ArchivedShowView({ show, archive, isVisible, onClose }: 
     } finally {
       setLoading(false);
     }
-  };
+  }, [archive.date, playlistService, show.name]);
 
   useEffect(() => {
     const fp = async () => {
@@ -92,33 +89,8 @@ export default function ArchivedShowView({ show, archive, isVisible, onClose }: 
         setLoading(false);
       }
     };
-    if (isVisible) {
-      translateY.value = withSpring(0);
-      opacity.value = withSpring(1);
-      fp();
-    } else {
-      translateY.value = withSpring(height);
-      opacity.value = withSpring(0);
-    }
-  }, [isVisible, opacity, translateY, archive.date, playlistService, show.name]);
-
-  useEffect(() => {
-    if (!isVisible) return;
-
-    const onBackPress = () => {
-      try {
-        onClose();
-      } catch (e) {
-        debugError('Error during back handler onClose:', e);
-      }
-      return true;
-    };
-
-    const sub = BackHandler.addEventListener('hardwareBackPress', onBackPress);
-    return () => {
-      sub.remove();
-    };
-  }, [isVisible, onClose]);
+    fp();
+  }, [archive.date, playlistService, show.name]);
 
   useEffect(() => {
     // Subscribe to archive service state changes
@@ -130,11 +102,6 @@ export default function ArchivedShowView({ show, archive, isVisible, onClose }: 
 
     return unsubscribe;
   }, [archive.url, archiveService]);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: translateY.value }],
-    opacity: opacity.value,
-  }));
 
   // Calculate current progress percentage
   const getCurrentPercentage = useCallback(() => {
@@ -216,7 +183,7 @@ export default function ArchivedShowView({ show, archive, isVisible, onClose }: 
   };
 
   return (
-    <Animated.View style={[styles.container, animatedStyle]}>
+    <>
       <StatusBar barStyle="light-content" backgroundColor={gradientStart} />
       
       <LinearGradient
@@ -224,17 +191,10 @@ export default function ArchivedShowView({ show, archive, isVisible, onClose }: 
         locations={[0, 0.3, 1]}
         style={styles.gradient}
       >
-        <SafeAreaView style={styles.safeArea}>
-          {/* Header */}
-          <View style={styles.header}>
-            <TouchableOpacity onPress={onClose} style={styles.backButton}>
-              <Text style={styles.backButtonText}>←</Text>
-              <Text style={styles.headerTitle}>Show Details</Text>
-            </TouchableOpacity>
-          </View>
-
+        <SafeAreaView style={[styles.safeArea, { paddingTop: headerHeight }]}>
           <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
             <ShowImage showName={show.name} archiveDate={archive.date} />
+
 
             {/* Play/Pause Button */}
             <View style={styles.playSection}>
@@ -336,48 +296,16 @@ export default function ArchivedShowView({ show, archive, isVisible, onClose }: 
           </ScrollView>
         </SafeAreaView>
       </LinearGradient>
-    </Animated.View>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: 1001,
-  },
   gradient: {
     flex: 1,
   },
   safeArea: {
     flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    paddingHorizontal: 16,
-    paddingTop: 10,
-    paddingBottom: 10,
-  },
-  backButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-    paddingTop:20,
-  },
-  backButtonText: {
-    color: '#FFFFFF',
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
-  headerTitle: {
-    color: COLORS.TEXT.PRIMARY,
-    fontSize: 16,
-    fontWeight: '600',
-    marginLeft: 8,
   },
   scrollView: {
     flex: 1,

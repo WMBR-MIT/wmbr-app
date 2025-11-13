@@ -5,6 +5,7 @@ export const AllRouteNames = [
   'Schedule',
   'About',
   'ShowDetails',
+  'ArchivedShowView',
 ] as const;
 
 export type WmbrRouteName = typeof AllRouteNames[number];

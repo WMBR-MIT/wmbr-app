@@ -15,22 +15,62 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
 import { debugLog, debugError } from '../utils/Debug';
 import { RefreshControl } from 'react-native';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { NavigationProp, useNavigation, RouteProp } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { useHeaderHeight } from '@react-navigation/elements';
 import { SvgXml } from 'react-native-svg';
+import ArchivedShowView from '../components/ArchivedShowView';
 import { ScheduleShow, ScheduleResponse } from '../types/Schedule';
 import { ScheduleService } from '../services/ScheduleService';
 import { getWMBRLogoSVG } from '../utils/WMBRLogo';
 import { RecentlyPlayedService } from '../services/RecentlyPlayedService';
 import { WmbrRouteName } from '../types/Navigation';
+import ShowDetailsPage from './ShowDetailsPage';
 import { COLORS, CORE_COLORS } from '../utils/Colors';
 
 interface SchedulePageProps {
   currentShow?: string;
 }
 
-export default function SchedulePage({ currentShow }: SchedulePageProps) { 
+const Stack = createNativeStackNavigator();
 
+export const ScheduleStack = () => {
+  const getShowDetailsOptions = ({ route }: { route: RouteProp<Record<string, any>, 'ShowDetails'> }) => ({
+    title: route.params?.show?.name || 'Show Details',
+  });
+
+  const getArchivedShowViewOptions = ({ route }: { route: RouteProp<Record<string, any>, 'ArchivedShowView'> }) => ({
+    title: route.params?.archive?.date
+      ? new Date(route.params.archive.date).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      })
+        : 'Archived Show',
+  });
+
+  return (
+    <Stack.Navigator screenOptions={{
+      headerShown: true,
+      headerTransparent: true,
+      title: 'Schedule',
+      headerTintColor: '#ffffff'
+    }}>
+      <Stack.Screen name="ScheduleMain" component={SchedulePage} />
+      <Stack.Screen name="ShowDetails" component={ShowDetailsPage}
+        options={getShowDetailsOptions}
+      />
+      <Stack.Screen name="ArchivedShowView" component={ArchivedShowView} 
+        options={getArchivedShowViewOptions}
+      />
+    </Stack.Navigator>
+  );
+}
+
+export default function SchedulePage({ currentShow }: SchedulePageProps) { 
   const navigation = useNavigation<NavigationProp<Record<WmbrRouteName, object | undefined>>>();
+
+  const headerHeight = useHeaderHeight();
 
   const [schedule, setSchedule] = useState<ScheduleResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -156,7 +196,7 @@ export default function SchedulePage({ currentShow }: SchedulePageProps) {
       return null;
     }
 
-    const filteredShows = filterShows(schedule.shows, searchQuery);
+    const filteredShows = filterShows(schedule?.shows, searchQuery);
     const groupedShows = scheduleService.groupShowsByDay(filteredShows);
     const daysOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
     
@@ -239,7 +279,7 @@ export default function SchedulePage({ currentShow }: SchedulePageProps) {
 
   const filterShows = (shows: ScheduleShow[], query: string): ScheduleShow[] => {
     // First filter out TBA shows
-    const nonTBAShows = shows.filter(show => 
+    const nonTBAShows = shows?.filter(show => 
       show.name.toLowerCase() !== 'tba'
     );
     
@@ -256,7 +296,7 @@ export default function SchedulePage({ currentShow }: SchedulePageProps) {
 
 
   return (
-    <View style={styles.container}>
+    <>
       <StatusBar barStyle="light-content" backgroundColor={COLORS.BACKGROUND.PRIMARY} />
       
       <LinearGradient
@@ -264,7 +304,7 @@ export default function SchedulePage({ currentShow }: SchedulePageProps) {
         locations={[0, 0.5, 1]}
         style={styles.gradient}
       >
-        <SafeAreaView style={styles.safeArea}>
+        <SafeAreaView style={[styles.safeArea, { paddingTop: headerHeight }]}>
           {/* Logo */}
           <View style={styles.logoContainer}>
             <SvgXml xml={getWMBRLogoSVG('#FFFFFF')} width={60} height={13} />
@@ -311,7 +351,7 @@ export default function SchedulePage({ currentShow }: SchedulePageProps) {
               </View>
             ) : (
               <View style={styles.scheduleContainer}>
-                {schedule?.shows.length === 0 ? (
+                {schedule?.shows?.length === 0 ? (
                   <Text style={styles.debugText}>No shows were parsed from XML</Text>
                 ) : null}
                 {renderShowsByDay()}
@@ -322,51 +362,20 @@ export default function SchedulePage({ currentShow }: SchedulePageProps) {
           </ScrollView>
         </SafeAreaView>
       </LinearGradient>
-    </View>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: 1002,
-  },
   gradient: {
     flex: 1,
   },
   safeArea: {
     flex: 1,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    paddingHorizontal: 16,
-    paddingTop: 10,
-    paddingBottom: 10,
-  },
-  backButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  backButtonText: {
-    color: '#FFFFFF',
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
-  headerTitle: {
-    color: COLORS.TEXT.PRIMARY,
-    fontSize: 16,
-    fontWeight: '600',
-    marginLeft: 8,
-  },
   logoContainer: {
     alignItems: 'center',
-    paddingTop: 60,
+    paddingTop: 20,
     paddingBottom: 20,
   },
   searchContainer: {

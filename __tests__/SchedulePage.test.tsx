@@ -1,18 +1,11 @@
-import React from 'react';
 import { renderAsync, screen, userEvent } from '@testing-library/react-native';
-import { NavigationContainer } from '@react-navigation/native';
-import { ScheduleStack } from '../pages/SchedulePage';
-import { mockScheduleService, mockRecentlyPlayedService } from '../utils/TestUtils';
 
-const Wrapper = ({ children }: { children: React.ReactNode }) => (
-  <NavigationContainer>
-    {children}
-  </NavigationContainer>
-);
+import { ScheduleStack } from '../pages/SchedulePage';
+import { mockScheduleService, mockRecentlyPlayedService, TestWrapper } from '../utils/TestUtils';
 
 describe('SchedulePage', () => {
   test('displays shows after loading', async () => {
-    await renderAsync(<ScheduleStack />, { wrapper: Wrapper });
+    await renderAsync(<ScheduleStack />, { wrapper: TestWrapper });
 
     expect(await screen.findByText('Africa Kabisa')).toBeTruthy();
 
@@ -21,7 +14,7 @@ describe('SchedulePage', () => {
 
   test('navigates to ShowDetails when tapping a show with archives', async () => {
     const user = userEvent.setup();
-    await renderAsync(<ScheduleStack />, { wrapper: Wrapper });
+    await renderAsync(<ScheduleStack />, { wrapper: TestWrapper });
 
     expect(await screen.findByText('Post-tentious')).toBeTruthy();
 

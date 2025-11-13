@@ -1,6 +1,5 @@
 import { jest } from '@jest/globals'
-
-import { mockScheduleService, mockRecentlyPlayedService } from './utils/TestUtils';
+import { createMockFetch } from './__mocks__/MockNetworkResponses';
 
 jest.mock('react-native-gesture-handler', () => {
   const View = require('react-native').View;
@@ -32,16 +31,6 @@ jest.mock('./utils/Debug.ts', () => ({
   debugError: jest.fn(),
 }));
 
-// Mock ScheduleService
-jest.mock('./services/ScheduleService', () => ({
-  ScheduleService: {
-    getInstance: jest.fn(() => mockScheduleService),
-  },
-}));
-
-// Mock RecentlyPlayedService
-jest.mock('./services/RecentlyPlayedService', () => ({
-  RecentlyPlayedService: {
-    getInstance: jest.fn(() => mockRecentlyPlayedService),
-  },
-}));
+// Mock fetch at the network boundary instead of mocking services
+// This allows real service code to run in tests
+global.fetch = createMockFetch() as any;

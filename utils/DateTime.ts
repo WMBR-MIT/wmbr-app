@@ -6,7 +6,8 @@ export const formatDate = (dateString: string) => {
   return date.toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
-    day: 'numeric'
+    day: 'numeric',
+    timeZone: 'America/New_York'
   });
 };
 
@@ -92,16 +93,19 @@ export const formatShowTime = (show: Show) => {
   return `${plural} at ${show.time_str}`;
 };
 
-/* Get current date in ISO format (YYYY-MM-DD) in Eastern Time
-*/
-export const getDateISO = (): string => {
-  let dateStr: string;
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  dateStr = `${year}-${month}-${day}`;
-  return dateStr;
+/**
+ * Get date in ISO format (YYYY-MM-DD)
+ * Use today's date if none provided
+ *
+ * @param date Optional Date object
+ *
+ * @returns Date string in YYYY-MM-DD format
+ */
+export const getDateYMD = (date: Date = new Date()): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 };
 
 export const formatArchiveDate = (dateString: string) => {

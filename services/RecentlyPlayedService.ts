@@ -3,21 +3,8 @@ import { ScheduleService } from './ScheduleService';
 import { ScheduleShow } from '../types/Schedule';
 import { parseString } from 'react-native-xml2js';
 import { debugLog, debugError } from '../utils/Debug';
-import { parsePlaylistTimestamp } from '../utils/DateTime';
-
-interface PlaylistSong {
-  time: string; // Format: YYYY/MM/DD HH:MM:SS
-  artist: string;
-  song: string;
-  album?: string | null;
-}
-
-interface PlaylistResponse {
-  show_name: string;
-  date: string; // Format: YYYY-MM-DD
-  playlist_id: string | number;
-  songs: PlaylistSong[];
-}
+import { getDateYMD, parsePlaylistTimestamp } from '../utils/DateTime';
+import { PlaylistSong, PlaylistResponse } from '../types/Playlist';
 
 export class RecentlyPlayedService {
   private static instance: RecentlyPlayedService;
@@ -148,7 +135,7 @@ export class RecentlyPlayedService {
       // Fetch playlist data for each show playing today
       const allSongs: ProcessedSong[] = [];
       const playlistPromises = todayShows.map(show => 
-        this.fetchPlaylistForShow(show.name, dateStr)
+        this.fetchPlaylistForShow(show.name, new Date(dateStr))
       );
       
       const playlistResponses = await Promise.allSettled(playlistPromises);
@@ -301,12 +288,13 @@ export class RecentlyPlayedService {
     });
   }
 
-  private async fetchPlaylistForShow(showName: string, date: string): Promise<PlaylistResponse | null> {
+  private async fetchPlaylistForShow(showName: string, date: Date): Promise<PlaylistResponse | null> {
     try {
+      const dateStr = getDateYMD(date);
       const encodedShowName = encodeURIComponent(showName);
-      const url = `https://wmbr.alexandersimoes.com/get_playlist?show_name=${encodedShowName}&date=${date}`;
+      const url = `https://wmbr.alexandersimoes.com/get_playlist?show_name=${encodedShowName}&date=${dateStr}`;
       
-      debugLog(`Fetching playlist for "${showName}" on ${date}`);
+      debugLog(`Fetching playlist for "${showName}" on ${dateStr}`);
       
       const response = await fetch(url, {
         headers: { 'Cache-Control': 'no-cache' }
@@ -324,7 +312,7 @@ export class RecentlyPlayedService {
         debugLog(`No playlist found for "${showName}" (${data.error}), treating as empty`);
         return {
           show_name: showName,
-          date: date,
+          date: getDateYMD(date),
           playlist_id: '',
           songs: []
         };

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { debugError } from '../utils/Debug';
 import {
   View,
@@ -6,14 +6,12 @@ import {
   TouchableOpacity,
   StyleSheet,
   StatusBar,
-  Animated,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import TrackPlayer, { Capability, State, usePlaybackState } from 'react-native-track-player';
 import LinearGradient from 'react-native-linear-gradient';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SvgXml } from 'react-native-svg';
-import RecentlyPlayedDrawer from '../components/RecentlyPlayedDrawer';
 import PlayButton from '../components/PlayButton';
 import SplashScreen from '../components/SplashScreen';
 import MetadataService, { ShowInfo, Song } from '../services/MetadataService';
@@ -27,6 +25,8 @@ import { DEFAULT_NAME } from '../types/Playlist';
 import { COLORS, CORE_COLORS } from '../utils/Colors';
 import { formatArchiveDate } from '../utils/DateTime';
 
+import HomeNowPlaying from '../components/HomeNowPlaying';
+
 const streamUrl = 'https://wmbr.org:8002/hi';
 
 export default function HomeScreen() {
@@ -36,11 +36,9 @@ export default function HomeScreen() {
   const [, setSongHistory] = useState<Song[]>([]);
   const [hosts, setHosts] = useState<string | undefined>();
   const [showDescription, setShowDescription] = useState<string | undefined>();
-  const [currentSong, setCurrentSong] = useState<string | undefined>();
-  const [currentArtist, setCurrentArtist] = useState<string | undefined>();
   const [showSplash, setShowSplash] = useState(true);
-  const [previousSong, setPreviousSong] = useState<string>('');
   const [isPlayerInitialized, setIsPlayerInitialized] = useState(false);
+  const [showInfo, setShowInfo] = useState<ShowInfo>();
   const [archiveState, setArchiveState] = useState<ArchivePlaybackState>({
     isPlayingArchive: false,
     currentArchive: null,
@@ -48,10 +46,6 @@ export default function HomeScreen() {
     liveStreamUrl: streamUrl,
   });
   
-  const songChangeScale = useRef(new Animated.Value(1)).current;
-  const songChangeRotate = useRef(new Animated.Value(0)).current;
-  const songChangeOpacity = useRef(new Animated.Value(1)).current;
-
   const isPlaying = playbackState?.state === State.Playing;
 
   const navigation = useNavigation<NavigationProp<Record<WmbrRouteName, object | undefined>>>();
@@ -62,11 +56,10 @@ export default function HomeScreen() {
     const metadataService = MetadataService.getInstance();
     
     const unsubscribeMetadata = metadataService.subscribe((data: ShowInfo) => {
+      setShowInfo(data);
       setCurrentShow(data.showTitle);
       setHosts(data.hosts);
       setShowDescription(data.description);
-      setCurrentSong(data.currentSong);
-      setCurrentArtist(data.currentArtist);
 
       try {
         RecentlyPlayedService.getInstance().setCurrentShow(data.showTitle);
@@ -114,91 +107,6 @@ export default function HomeScreen() {
 
     updateLiveTrackMetadata();
   }, [currentShow, archiveState.isPlayingArchive, isPlayerInitialized]);
-
-  const startSongChangeAnimation = useCallback(() => {
-    // Reset animation values
-    songChangeScale.setValue(1);
-    songChangeRotate.setValue(0);
-    songChangeOpacity.setValue(1);
-
-    // Create a fun bouncy scale + rotate + opacity animation
-    Animated.sequence([
-      // Phase 1: Bounce up with rotation and opacity flash
-      Animated.parallel([
-        Animated.timing(songChangeScale, {
-          toValue: 1.3,
-          duration: 200,
-          useNativeDriver: true,
-        }),
-        Animated.timing(songChangeRotate, {
-          toValue: 0.25, // 90 degrees
-          duration: 200,
-          useNativeDriver: true,
-        }),
-        Animated.timing(songChangeOpacity, {
-          toValue: 0.3,
-          duration: 100,
-          useNativeDriver: true,
-        }),
-      ]),
-      // Phase 2: Bounce down slightly with opacity return
-      Animated.parallel([
-        Animated.timing(songChangeScale, {
-          toValue: 0.9,
-          duration: 150,
-          useNativeDriver: true,
-        }),
-        Animated.timing(songChangeRotate, {
-          toValue: -0.1, // -36 degrees
-          duration: 150,
-          useNativeDriver: true,
-        }),
-        Animated.timing(songChangeOpacity, {
-          toValue: 1,
-          duration: 150,
-          useNativeDriver: true,
-        }),
-      ]),
-      // Phase 3: Settle to normal with slight overshoot
-      Animated.parallel([
-        Animated.timing(songChangeScale, {
-          toValue: 1.05,
-          duration: 100,
-          useNativeDriver: true,
-        }),
-        Animated.timing(songChangeRotate, {
-          toValue: 0.05, // 18 degrees
-          duration: 100,
-          useNativeDriver: true,
-        }),
-      ]),
-      // Phase 4: Return to normal
-      Animated.parallel([
-        Animated.timing(songChangeScale, {
-          toValue: 1,
-          duration: 150,
-          useNativeDriver: true,
-        }),
-        Animated.timing(songChangeRotate, {
-          toValue: 0,
-          duration: 150,
-          useNativeDriver: true,
-        }),
-      ]),
-    ]).start();
-  }, [songChangeOpacity, songChangeRotate, songChangeScale]);
-
-  // Trigger animation when song changes
-  useEffect(() => {
-    if (currentSong && currentArtist && !archiveState.isPlayingArchive) {
-      const newSongKey = `${currentArtist}-${currentSong}`;
-      if (previousSong && previousSong !== newSongKey) {
-        // Song changed! Trigger fun animation
-        startSongChangeAnimation();
-      }
-      setPreviousSong(newSongKey);
-    }
-  }, [currentSong, currentArtist, archiveState.isPlayingArchive, previousSong, startSongChangeAnimation]);
 
   const setupPlayer = async () => {
     try {
@@ -265,7 +173,6 @@ export default function HomeScreen() {
     }
   }, [currentShow, isPlayerInitialized, isPlaying]);
 
-  const songRotation = songChangeRotate.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });
 
   const handleSplashEnd = () => setShowSplash(false);
   const handleSwitchToLive = useCallback(async () => { try { await ArchiveService.getInstance().switchToLive(currentShow); } catch (e) { debugError('Error switching to live:', e); } }, [currentShow]);
@@ -275,8 +182,19 @@ export default function HomeScreen() {
   const handleOpenShowDetails = useCallback(() => {
     const show = archiveState.currentShow;
     if (!show) return;
-    navigation.navigate('ShowDetails' as WmbrRouteName, { show });
-  }, [navigation, archiveState.currentShow]);
+
+    // Navigate to Schedule tab with complete stack state
+    navigation.navigate('Schedule' as WmbrRouteName, {
+      // Specify the complete stack path
+      state: {
+        routes: [
+          { name: 'ScheduleMain' },
+          { name: 'ShowDetails', params: { show } },
+          { name: 'ArchivedShowView', params: { show, archive: archiveState.currentArchive } }
+        ]
+      }
+    });
+  }, [archiveState.currentShow, archiveState.currentArchive, navigation]);
 
   if (showSplash) return <SplashScreen onAnimationEnd={handleSplashEnd} />;
 
@@ -316,23 +234,12 @@ export default function HomeScreen() {
                   <Text style={[styles.liveButtonText, isPlaying && styles.liveButtonTextActive]}>← Switch to LIVE</Text>
                 </TouchableOpacity>
               ) : (
-                <>
-                  <Text style={styles.liveText}>● LIVE</Text>
-                  {currentSong && currentArtist && (
-                    <View style={styles.nowPlayingContainer}>
-                      <Text style={[styles.nowPlayingLabel, isPlaying && styles.nowPlayingLabelActive]}>Now playing:</Text>
-                      <Animated.Text style={[styles.currentSongText, isPlaying && styles.currentSongTextActive, { transform: [{ scale: songChangeScale }, { rotate: songRotation }], opacity: songChangeOpacity }]}>
-                        {currentArtist}: {currentSong}
-                      </Animated.Text>
-                    </View>
-                  )}
-                </>
+                <HomeNowPlaying showInfo={showInfo} />
               )}
             </View>
             <View style={bottomSpacerStyle} />
           </View>
         </SafeAreaView>
-        <RecentlyPlayedDrawer />
       </LinearGradient>
     </GestureHandlerRootView>
   );
@@ -342,29 +249,66 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.BACKGROUND.PRIMARY },
   fullScreenGradient: { flex: 1 },
   safeContainer: { flex: 1 },
-  content: { flex: 1, justifyContent: 'space-between', alignItems: 'center', paddingVertical: 60 },
+  content: {
+    flex: 1,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 60,
+  },
   logoContainer: { alignItems: 'center', marginTop: 10, marginBottom: 5 },
   showInfo: { alignItems: 'center', marginTop: 20 },
-  showTitle: { fontSize: 24, fontWeight: '600', color: COLORS.TEXT.PRIMARY, textAlign: 'center', marginBottom: 8 },
+  showTitle: {
+    fontSize: 24,
+    fontWeight: '600',
+    color: COLORS.TEXT.PRIMARY,
+    textAlign: 'center',
+    marginBottom: 8,
+  },
   clickableTitle: { textDecorationLine: 'underline' },
-  archiveInfo: { fontSize: 14, color: COLORS.TEXT.SECONDARY, textAlign: 'center', marginBottom: 8 },
+  archiveInfo: {
+    fontSize: 14,
+    color: COLORS.TEXT.SECONDARY,
+    textAlign: 'center',
+    marginBottom: 8,
+  },
   archiveInfoActive: { color: COLORS.TEXT.ACTIVE },
-  hosts: { fontSize: 16, color: COLORS.TEXT.SECONDARY, textAlign: 'center', marginBottom: 8 },
+  hosts: {
+    fontSize: 16,
+    color: COLORS.TEXT.SECONDARY,
+    textAlign: 'center',
+    marginBottom: 8,
+  },
   hostsActive: { color: COLORS.TEXT.ACTIVE },
   bottomInfo: { alignItems: 'center', paddingHorizontal: 20, marginTop: 20 },
-  showDescription: { fontSize: 12, color: COLORS.TEXT.SECONDARY, textAlign: 'center', marginBottom: 12, lineHeight: 16 },
+  showDescription: {
+    fontSize: 12,
+    color: COLORS.TEXT.SECONDARY,
+    textAlign: 'center',
+    marginBottom: 12,
+    lineHeight: 16,
+  },
   showDescriptionActive: { color: '#D0D0D0' },
-  liveText: { fontSize: 14, color: '#FF4444', fontWeight: '500', marginBottom: 8 },
-  nowPlayingContainer: { alignItems: 'center', marginTop: 4 },
-  nowPlayingLabel: { fontSize: 10, color: COLORS.TEXT.META, fontWeight: '500', marginBottom: 2, textTransform: 'uppercase', letterSpacing: 0.5 },
-  nowPlayingLabelActive: { color: '#BBBBBB' },
-  currentSongText: { fontSize: 12, color: COLORS.TEXT.SECONDARY, textAlign: 'center', fontStyle: 'italic' },
-  currentSongTextActive: { color: COLORS.TEXT.ACTIVE },
   streamingText: { color: CORE_COLORS.WMBR_GREEN, fontSize: 14, fontWeight: '500' },
   streamingTextActive: { color: COLORS.TEXT.PRIMARY },
   bottomSpace: { height: 100 },
-  liveButton: { marginTop: 16, paddingHorizontal: 20, paddingVertical: 12, backgroundColor: 'rgba(255, 68, 68, 0.2)', borderRadius: 20, borderWidth: 1, borderColor: '#FF4444' },
-  liveButtonActive: { backgroundColor: 'rgba(255, 255, 255, 0.2)', borderColor: '#FFFFFF' },
-  liveButtonText: { color: '#FF4444', fontSize: 14, fontWeight: '600', textAlign: 'center' },
+  liveButton: {
+    marginTop: 16,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    backgroundColor: 'rgba(255, 68, 68, 0.2)',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#FF4444',
+  },
+  liveButtonActive: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderColor: '#FFFFFF',
+  },
+  liveButtonText: {
+    color: '#FF4444',
+    fontSize: 14,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
   liveButtonTextActive: { color: '#FFFFFF' },
 });

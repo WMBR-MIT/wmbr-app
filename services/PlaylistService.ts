@@ -1,5 +1,6 @@
 import { PlaylistResponse } from '../types/Playlist';
 import { debugLog, debugError } from '../utils/Debug';
+import { getDateYMD } from '../utils/DateTime';
 
 export class PlaylistService {
   private static instance: PlaylistService;
@@ -12,8 +13,8 @@ export class PlaylistService {
     return PlaylistService.instance;
   }
 
-  async fetchPlaylist(showName: string, date: string): Promise<PlaylistResponse> {
-    const cacheKey = `${showName}-${date}`;
+  async fetchPlaylist(showName: string, date: Date): Promise<PlaylistResponse> {
+    const cacheKey = `${showName}-${date.toISOString()}`;
     
     // Check cache first
     if (this.cache.has(cacheKey)) {
@@ -22,7 +23,7 @@ export class PlaylistService {
 
     try {
       // Convert date from "Wed, 06 Aug 2025 20:00:00 GMT" format to "2025-08-06"
-      const formattedDate = this.formatDateForAPI(date);
+      const formattedDate = getDateYMD(date);
       const encodedShowName = encodeURIComponent(showName);
       
       const url = `https://wmbr.alexandersimoes.com/get_playlist?show_name=${encodedShowName}&date=${formattedDate}`;
@@ -45,25 +46,6 @@ export class PlaylistService {
     } catch (error) {
       debugError('Error fetching playlist:', error);
       throw error;
-    }
-  }
-
-  private formatDateForAPI(dateString: string): string {
-    try {
-      // Parse the GMT date string and format as YYYY-MM-DD
-      const date = new Date(dateString);
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      return `${year}-${month}-${day}`;
-    } catch (error) {
-      debugError('Error formatting date:', dateString, error);
-      // Fallback: try to extract date parts if it's already in YYYY-MM-DD format
-      const match = dateString.match(/(\d{4})-(\d{2})-(\d{2})/);
-      if (match) {
-        return `${match[1]}-${match[2]}-${match[3]}`;
-      }
-      throw new Error(`Unable to format date: ${dateString}`);
     }
   }
 

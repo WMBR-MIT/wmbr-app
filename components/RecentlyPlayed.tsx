@@ -17,7 +17,7 @@ import { ScheduleService } from '../services/ScheduleService';
 import { RecentlyPlayedService } from '../services/RecentlyPlayedService';
 import CircularProgress from './CircularProgress';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import { getDateISO, parsePlaylistTimestamp } from '../utils/DateTime';
+import { getDateYMD, parsePlaylistTimestamp } from '../utils/DateTime';
 import { WmbrRouteName } from '../types/Navigation';
 import { DEFAULT_NAME } from '../types/Playlist';
 import { COLORS, CORE_COLORS } from '../utils/Colors';
@@ -83,9 +83,10 @@ export default function RecentlyPlayed({ refreshKey }: RecentlyPlayedProps = {})
   return unsubscribe;
 }, [recentlyPlayedService]);
 
-  const fetchShowPlaylist = useCallback(async (showName: string, date: string): Promise<ProcessedSong[]> => {
+  const fetchShowPlaylist = useCallback(async (showName: string, date: Date): Promise<ProcessedSong[]> => {
+    const dateStr = getDateYMD(date);
     const encodedShowName = encodeURIComponent(showName);
-    const url = `https://wmbr.alexandersimoes.com/get_playlist?show_name=${encodedShowName}&date=${date}`;
+    const url = `https://wmbr.alexandersimoes.com/get_playlist?show_name=${encodedShowName}&date=${dateStr}`;
     
     const response = await fetch(url, {
       headers: { 'Cache-Control': 'no-cache' }
@@ -149,7 +150,7 @@ export default function RecentlyPlayed({ refreshKey }: RecentlyPlayedProps = {})
     let shouldTriggerAutoLoad = false;
 
     try {
-      const songs = await fetchShowPlaylist(currentShow, getDateISO());
+      const songs = await fetchShowPlaylist(currentShow, new Date());
       setShowPlaylists([{ showName: currentShow, songs }]);
 
       // If current show has no songs, mark for auto-load of previous show
@@ -202,7 +203,7 @@ export default function RecentlyPlayed({ refreshKey }: RecentlyPlayedProps = {})
       }
 
       try {
-  const songs = await fetchShowPlaylist(previousShow.show.name, previousShow.date);
+  const songs = await fetchShowPlaylist(previousShow.show.name, new Date(previousShow.date));
 
         setShowPlaylists(prev => [...prev, {
           showName: previousShow.show.name,

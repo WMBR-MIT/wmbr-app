@@ -143,7 +143,7 @@ export class ScheduleService {
   }
 
   // Helper method to find the previous show based on current time
-  async findPreviousShow(currentShowName: string): Promise<{show: ScheduleShow, date: string} | null> {
+  async findPreviousShow(currentShowName: string): Promise<{show: ScheduleShow, date: Date} | null> {
     try {
       const scheduleData = await this.fetchSchedule();
       const now = new Date();
@@ -191,12 +191,8 @@ export class ScheduleService {
       
       if (currentShowIndex > 0) {
         const previousShow = showsWithTime[currentShowIndex - 1];
-        const year = easternNow.getFullYear();
-        const month = String(easternNow.getMonth() + 1).padStart(2, "0");
-        const day = String(easternNow.getDate()).padStart(2, "0");
-        const todayDateStr = `${year}-${month}-${day}`;
         debugLog(`Previous show found: "${previousShow.name}" at ${previousShow.time_str}`);
-        return { show: previousShow, date: todayDateStr };
+        return { show: previousShow, date: easternNow };
       }
 
       // If current show is the first show of the day, we've reached the beginning
@@ -218,16 +214,8 @@ export class ScheduleService {
         const currentIndex = showsWithTime.indexOf(currentShow);
         if (currentIndex > 0) {
           const previousByTime = showsWithTime[currentIndex - 1];
-          // const todayDateStr = easternNow.toISOString().split('T')[0];
-          // const easternDate = new Date(today.toLocaleString("en-US", { timeZone: "America/New_York" }));
-
-          const year = easternNow.getFullYear();
-          const month = String(easternNow.getMonth() + 1).padStart(2, "0");
-          const day = String(easternNow.getDate()).padStart(2, "0");
-    
-          const todayDateStr = `${year}-${month}-${day}`;
           debugLog(`Previous show by time: "${previousByTime.name}" at ${previousByTime.time_str}`);
-          return { show: previousByTime, date: todayDateStr };
+          return { show: previousByTime, date: easternNow };
         }
       }
 

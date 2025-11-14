@@ -7,8 +7,8 @@ import {
   View,
 } from 'react-native';
 
-import { ShowInfo } from '../services/MetadataService';
-import { COLORS } from '../utils/Colors';
+import { ShowInfo } from '../../services/MetadataService';
+import { COLORS } from '../../utils/Colors';
 
 export default function HomeNowPlaying ({
   showInfo

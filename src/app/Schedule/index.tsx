@@ -13,20 +13,20 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
-import { debugLog, debugError } from '../utils/Debug';
+import { debugLog, debugError } from '../../utils/Debug';
 import { RefreshControl } from 'react-native';
 import { NavigationProp, useNavigation, RouteProp } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useHeaderHeight } from '@react-navigation/elements';
 import { SvgXml } from 'react-native-svg';
-import ArchivedShowView from '../components/ArchivedShowView';
-import { ScheduleShow, ScheduleResponse } from '../types/Schedule';
-import { ScheduleService } from '../services/ScheduleService';
-import { getWMBRLogoSVG } from '../utils/WMBRLogo';
-import { RecentlyPlayedService } from '../services/RecentlyPlayedService';
-import { WmbrRouteName } from '../types/Navigation';
+import ArchivedShowView from './ArchivedShowView';
+import { ScheduleShow, ScheduleResponse } from '../../types/Schedule';
+import { ScheduleService } from '../../services/ScheduleService';
+import { getWMBRLogoSVG } from '../../utils/WMBRLogo';
+import { RecentlyPlayedService } from '../../services/RecentlyPlayedService';
+import { WmbrRouteName } from '../../types/Navigation';
 import ShowDetailsPage from './ShowDetailsPage';
-import { COLORS, CORE_COLORS } from '../utils/Colors';
+import { COLORS, CORE_COLORS } from '../../utils/Colors';
 
 interface SchedulePageProps {
   currentShow?: string;

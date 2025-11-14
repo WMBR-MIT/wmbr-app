@@ -1,8 +1,8 @@
 import { render, screen } from '@testing-library/react-native';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 
-import { TestWrapper } from '../utils/TestUtils';
-import BottomMenuBar from '../components/BottomMenuBar';
+import { TestWrapper } from '../src/utils/TestUtils';
+import BottomMenuBar from '../src/app/_BottomMenuBar';
 
 // Simple mock props
 const mockProps: BottomTabBarProps = {

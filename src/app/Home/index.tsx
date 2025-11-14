@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
-import { debugError } from '../utils/Debug';
+import { debugError } from '../../utils/Debug';
 import {
   View,
   Text,
@@ -12,20 +12,20 @@ import TrackPlayer, { Capability, State, usePlaybackState } from 'react-native-t
 import LinearGradient from 'react-native-linear-gradient';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SvgXml } from 'react-native-svg';
-import PlayButton from '../components/PlayButton';
-import SplashScreen from '../components/SplashScreen';
-import MetadataService, { ShowInfo, Song } from '../services/MetadataService';
-import { RecentlyPlayedService } from '../services/RecentlyPlayedService';
-import { ArchiveService, ArchivePlaybackState } from '../services/ArchiveService';
-import { AudioPreviewService } from '../services/AudioPreviewService';
-import { getWMBRLogoSVG } from '../utils/WMBRLogo';
+import PlayButton from './PlayButton';
+import SplashScreen from './SplashScreen';
+import MetadataService, { ShowInfo, Song } from '../../services/MetadataService';
+import { RecentlyPlayedService } from '../../services/RecentlyPlayedService';
+import { ArchiveService, ArchivePlaybackState } from '../../services/ArchiveService';
+import { AudioPreviewService } from '../../services/AudioPreviewService';
+import { getWMBRLogoSVG } from '../../utils/WMBRLogo';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import { WmbrRouteName } from '../types/Navigation';
-import { DEFAULT_NAME } from '../types/Playlist';
-import { COLORS, CORE_COLORS } from '../utils/Colors';
-import { formatArchiveDate } from '../utils/DateTime';
+import { WmbrRouteName } from '../../types/Navigation';
+import { DEFAULT_NAME } from '../../types/Playlist';
+import { COLORS, CORE_COLORS } from '../../utils/Colors';
+import { formatArchiveDate } from '../../utils/DateTime';
 
-import HomeNowPlaying from '../components/HomeNowPlaying';
+import HomeNowPlaying from './HomeNowPlaying';
 
 const streamUrl = 'https://wmbr.org:8002/hi';
 
@@ -130,7 +130,7 @@ export default function HomeScreen() {
         url: streamUrl,
         title: DEFAULT_NAME,
         artist: 'Live Radio',
-        artwork: require('../assets/cover.png'),
+        artwork: require('../../../assets/cover.png'),
       });
 
       setIsPlayerInitialized(true);
@@ -162,7 +162,7 @@ export default function HomeScreen() {
               url: streamUrl,
               title: DEFAULT_NAME,
               artist: currentShow || 'Live Radio',
-              artwork: require('../assets/cover.png'),
+              artwork: require('../../../assets/cover.png'),
             });
           }
         }

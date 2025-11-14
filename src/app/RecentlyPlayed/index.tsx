@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { View, SafeAreaView, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import RecentlyPlayed from '../components/RecentlyPlayed';
-import { COLORS } from '../utils/Colors';
+import RecentlyPlayed from './RecentlyPlayed';
+import { COLORS } from '../../utils/Colors';
 
 export default function RecentlyPlayedPage() {
   const [refreshKey, setRefreshKey] = useState(0);

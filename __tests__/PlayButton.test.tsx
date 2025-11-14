@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen, userEvent } from '@testing-library/react-native';
 import PlayButton from '../components/PlayButton';
 

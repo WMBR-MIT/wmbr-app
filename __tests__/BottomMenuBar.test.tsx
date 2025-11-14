@@ -1,8 +1,8 @@
-import React from 'react';
 import { render, screen } from '@testing-library/react-native';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
-import BottomMenuBar from '../components/BottomMenuBar';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
+
+import { TestWrapper } from '../utils/TestUtils';
+import BottomMenuBar from '../components/BottomMenuBar';
 
 // Simple mock props
 const mockProps: BottomTabBarProps = {
@@ -35,14 +35,7 @@ describe('BottomMenuBar', () => {
 
   test('renders four navigation buttons', async () => {
      render(
-      <SafeAreaProvider
-        initialMetrics={{
-          insets: { top: 0, left: 0, right: 0, bottom: 0 },
-          frame: { x: 0, y: 0, width: 0, height: 0 },
-        }}
-      >
-        <BottomMenuBar {...mockProps} />
-      </SafeAreaProvider>
+       <BottomMenuBar {...mockProps} />, { wrapper: TestWrapper }
     );
     
     // Check that all four route names appear in the rendered output

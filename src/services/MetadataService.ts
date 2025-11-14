@@ -42,7 +42,7 @@ class MetadataService {
       const response = await fetch('https://wmbr.org/dynamic.xml', {
         method: 'GET',
         headers: {
-          'Accept': 'application/xml, text/xml',
+          Accept: 'application/xml, text/xml',
         },
       });
 
@@ -63,7 +63,7 @@ class MetadataService {
     try {
       debugLog('=== Raw XML received ===');
       debugLog(xmlText.substring(0, 500) + '...');
-      
+
       // Extract wmbr_show content
       const showMatch = xmlText.match(/<wmbr_show>(.*?)<\/wmbr_show>/s);
       if (!showMatch) {
@@ -74,12 +74,12 @@ class MetadataService {
       const showContent = showMatch[1];
       debugLog('=== Show content extracted ===');
       debugLog(showContent);
-      
+
       // First decode HTML entities to get actual HTML
       const decodedContent = this.decodeHTMLEntities(showContent);
       debugLog('=== Decoded content ===');
       debugLog(decodedContent);
-      
+
       // Extract show title (first <b> tag)
       const titleMatch = decodedContent.match(/<b>(.*?)<\/b>/);
       debugLog('=== Title match ===', titleMatch);
@@ -89,14 +89,18 @@ class MetadataService {
       debugLog('Show title after stripping:', showTitle);
 
       // Extract hosts (content within div with margin-bottom: 4px)
-      const hostsMatch = decodedContent.match(/<div[^>]*margin-bottom:\s*4px[^>]*>(.*?)<\/div>/s);
+      const hostsMatch = decodedContent.match(
+        /<div[^>]*margin-bottom:\s*4px[^>]*>(.*?)<\/div>/s,
+      );
       debugLog('=== Hosts match ===', hostsMatch);
       let hosts = '';
       if (hostsMatch) {
         const hostsContent = hostsMatch[1];
         debugLog('Raw hosts content:', hostsContent);
         // Remove <br> and extract text after "with"
-        const cleanHosts = this.stripHTML(hostsContent).replace(/^\s*with\s*/i, '').trim();
+        const cleanHosts = this.stripHTML(hostsContent)
+          .replace(/^\s*with\s*/i, '')
+          .trim();
         debugLog('Clean hosts after processing:', cleanHosts);
         hosts = cleanHosts;
       }
@@ -109,7 +113,10 @@ class MetadataService {
       description = description.replace(/<b>.*?<\/b>\s*/, '');
       debugLog('After removing title:', description);
       // Remove the hosts div
-      description = description.replace(/<div[^>]*margin-bottom:\s*4px[^>]*>.*?<\/div>\s*/s, '');
+      description = description.replace(
+        /<div[^>]*margin-bottom:\s*4px[^>]*>.*?<\/div>\s*/s,
+        '',
+      );
       debugLog('After removing hosts div:', description);
       // Clean up HTML and trim
       description = this.stripHTML(description).trim();
@@ -118,19 +125,23 @@ class MetadataService {
       // Extract current song from wmbr_plays section (most recent entry)
       let currentSong = '';
       let currentArtist = '';
-      
+
       try {
         const playsMatch = xmlText.match(/<wmbr_plays>(.*?)<\/wmbr_plays>/s);
         if (playsMatch) {
           const playsContent = playsMatch[1];
           const decodedPlaysContent = this.decodeHTMLEntities(playsContent);
-          
+
           // Get the first (most recent) song entry
-          const firstSongMatch = decodedPlaysContent.match(/<p class="recent">(.*?)<\/p>/);
+          const firstSongMatch = decodedPlaysContent.match(
+            /<p class="recent">(.*?)<\/p>/,
+          );
           if (firstSongMatch) {
             const songContent = firstSongMatch[1];
             // Parse format: "7:59p&nbsp;<b>Earl Grant</b>: Dreamy"
-            const songMatch = songContent.match(/\d+:\d+[ap].*?<b>(.*?)<\/b>:\s*(.*)/);
+            const songMatch = songContent.match(
+              /\d+:\d+[ap].*?<b>(.*?)<\/b>:\s*(.*)/,
+            );
             if (songMatch) {
               currentArtist = this.stripHTML(songMatch[1]).trim();
               currentSong = this.stripHTML(songMatch[2]).trim();
@@ -148,7 +159,7 @@ class MetadataService {
         currentSong: currentSong || undefined,
         currentArtist: currentArtist || undefined,
       };
-      
+
       debugLog('=== Final parsed result ===', result);
       return result;
     } catch (error) {
@@ -159,7 +170,7 @@ class MetadataService {
 
   private decodeHTMLEntities(text: string): string {
     debugLog('decodeHTMLEntities input:', text);
-    
+
     const result = text
       .replace(/&lt;/g, '<')
       .replace(/&gt;/g, '>')
@@ -167,20 +178,20 @@ class MetadataService {
       .replace(/&apos;/g, "'")
       .replace(/&nbsp;/g, ' ')
       .replace(/&amp;/g, '&'); // Do this last since other entities contain &
-    
+
     debugLog('decodeHTMLEntities output:', result);
     return result;
   }
 
   private stripHTML(html: string): string {
     debugLog('stripHTML input:', html);
-    
+
     const result = html
       .replace(/<[^>]*>/g, '') // Remove HTML tags
       .replace(/&nbsp;/g, ' ') // Replace any remaining &nbsp; with space
       .replace(/\s+/g, ' ') // Replace multiple spaces with single space
       .trim();
-    
+
     debugLog('stripHTML output:', result);
     return result;
   }
@@ -205,36 +216,40 @@ class MetadataService {
 
       const playsContent = playsMatch[1];
       debugLog('Plays content:', playsContent);
-      
+
       // Decode HTML entities first
       const decodedPlaysContent = this.decodeHTMLEntities(playsContent);
       debugLog('Decoded plays content:', decodedPlaysContent);
-      
+
       // Extract individual song entries
-      const songMatches = Array.from(decodedPlaysContent.matchAll(/<p class="recent">(.*?)<\/p>/g));
+      const songMatches = Array.from(
+        decodedPlaysContent.matchAll(/<p class="recent">(.*?)<\/p>/g),
+      );
       debugLog('Found', songMatches.length, 'song matches');
       const songs: Song[] = [];
 
       for (const match of songMatches) {
         const songContent = match[1];
         debugLog('Raw song content:', songContent);
-        
+
         // Parse time, artist, and title
         // Format: "7:59p&nbsp;<b>Earl Grant</b>: Dreamy"
-        const songMatch = songContent.match(/(\d+:\d+[ap]).*?<b>(.*?)<\/b>:\s*(.*)/);
+        const songMatch = songContent.match(
+          /(\d+:\d+[ap]).*?<b>(.*?)<\/b>:\s*(.*)/,
+        );
         debugLog('Song regex match:', songMatch);
-        
+
         if (songMatch) {
           const [, time, artist, title] = songMatch;
           debugLog('Parsed - Time:', time, 'Artist:', artist, 'Title:', title);
-          
+
           const processedSong = {
             id: `song-${Date.now()}-${songs.length}`,
             title: this.stripHTML(title).trim(),
             artist: this.stripHTML(artist).trim(),
             timestamp: this.stripHTML(time).trim(),
           };
-          
+
           debugLog('Processed song:', processedSong);
           songs.push(processedSong);
         }
@@ -262,40 +277,46 @@ class MetadataService {
     ];
 
     const now = new Date();
-    return mockSongs.slice(0, Math.floor(Math.random() * 6) + 2).map((song, index) => {
-      const timestamp = new Date(now.getTime() - (index * 15 * 60 * 1000));
-      return {
-        id: `song-${Date.now()}-${index}`,
-        title: song.title,
-        artist: song.artist,
-        timestamp: this.formatTime(timestamp),
-      };
-    });
+    return mockSongs
+      .slice(0, Math.floor(Math.random() * 6) + 2)
+      .map((song, index) => {
+        const timestamp = new Date(now.getTime() - index * 15 * 60 * 1000);
+        return {
+          id: `song-${Date.now()}-${index}`,
+          title: song.title,
+          artist: song.artist,
+          timestamp: this.formatTime(timestamp),
+        };
+      });
   }
 
   startPolling(intervalMs: number = 15000): void {
     this.stopPolling();
-    
+
     const poll = async () => {
       try {
         const response = await fetch('https://wmbr.org/dynamic.xml', {
           method: 'GET',
           headers: {
-            'Accept': 'application/xml, text/xml',
+            Accept: 'application/xml, text/xml',
           },
         });
 
         if (response.ok) {
           const xmlText = await response.text();
-          
+
           // Parse show metadata
           const metadata = this.parseWMBRXML(xmlText);
           this.notifyListeners(metadata);
-          
+
           // Parse song history
           debugLog('About to parse song history...');
           const songHistory = this.parseSongHistory(xmlText);
-          debugLog('Song history parsing complete, got:', songHistory.length, 'songs');
+          debugLog(
+            'Song history parsing complete, got:',
+            songHistory.length,
+            'songs',
+          );
           this.notifySongHistoryListeners(songHistory);
         } else {
           // Fallback to default data
@@ -303,7 +324,7 @@ class MetadataService {
           if (metadata) {
             this.notifyListeners(metadata);
           }
-          
+
           const mockHistory = this.generateMockSongHistory();
           this.notifySongHistoryListeners(mockHistory);
         }
@@ -311,7 +332,7 @@ class MetadataService {
         debugError('Error in polling:', error);
         const metadata = this.getFallbackData();
         this.notifyListeners(metadata);
-        
+
         const mockHistory = this.generateMockSongHistory();
         this.notifySongHistoryListeners(mockHistory);
       }
@@ -339,7 +360,7 @@ class MetadataService {
     this.songHistoryListeners.push(callback);
     return () => {
       this.songHistoryListeners = this.songHistoryListeners.filter(
-        listener => listener !== callback
+        listener => listener !== callback,
       );
     };
   }

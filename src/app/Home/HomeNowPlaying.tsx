@@ -1,20 +1,11 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { State, usePlaybackState } from 'react-native-track-player';
-import {
-  Animated,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Animated, StyleSheet, Text, View } from 'react-native';
 
 import { ShowInfo } from '../../services/MetadataService';
 import { COLORS } from '../../utils/Colors';
 
-export default function HomeNowPlaying ({
-  showInfo
-}: {
-  showInfo?: ShowInfo,
-})  {
+export default function HomeNowPlaying({ showInfo }: { showInfo?: ShowInfo }) {
   const { currentSong, currentArtist } = showInfo || {};
 
   const [previousSong, setPreviousSong] = useState<string>('');
@@ -27,7 +18,10 @@ export default function HomeNowPlaying ({
   const songChangeRotate = useRef(new Animated.Value(0)).current;
   const songChangeOpacity = useRef(new Animated.Value(1)).current;
 
-  const songRotation = songChangeRotate.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });
+  const songRotation = songChangeRotate.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
+  });
 
   const startSongChangeAnimation = useCallback(() => {
     // Reset animation values
@@ -121,11 +115,30 @@ export default function HomeNowPlaying ({
 
       {currentSong && currentArtist && (
         <View style={styles.nowPlayingContainer}>
-          <Text style={[styles.nowPlayingLabel, isPlaying && styles.nowPlayingLabelActive]}>Now playing:</Text>
-          <Animated.Text style={[styles.currentSongText, isPlaying && styles.currentSongTextActive, { transform: [{ scale: songChangeScale }, { rotate: songRotation }], opacity: songChangeOpacity }]}>
+          <Text
+            style={[
+              styles.nowPlayingLabel,
+              isPlaying && styles.nowPlayingLabelActive,
+            ]}
+          >
+            Now playing:
+          </Text>
+          <Animated.Text
+            style={[
+              styles.currentSongText,
+              isPlaying && styles.currentSongTextActive,
+              {
+                transform: [
+                  { scale: songChangeScale },
+                  { rotate: songRotation },
+                ],
+                opacity: songChangeOpacity,
+              },
+            ]}
+          >
             {currentArtist}: {currentSong}
           </Animated.Text>
-          </View>
+        </View>
       )}
     </>
   );

@@ -8,14 +8,24 @@ export const AllRouteNames = [
   'ArchivedShowView',
 ] as const;
 
-export type WmbrRouteName = typeof AllRouteNames[number];
+export type WmbrRouteName = (typeof AllRouteNames)[number];
 
 export function isWmbrRouteName(input: any): input is WmbrRouteName {
-  return typeof input === 'string' && (AllRouteNames as readonly string[]).includes(input);
+  return (
+    typeof input === 'string' &&
+    (AllRouteNames as readonly string[]).includes(input)
+  );
 }
 
-export function assertWmbrRouteName(input: any): asserts input is WmbrRouteName {
+export function assertWmbrRouteName(
+  input: any,
+): asserts input is WmbrRouteName {
   if (!isWmbrRouteName(input)) {
-    throw new Error('Invalid route name: ' + String(input) + '. Must be one of: ' + AllRouteNames.join(', '));
+    throw new Error(
+      'Invalid route name: ' +
+        String(input) +
+        '. Must be one of: ' +
+        AllRouteNames.join(', '),
+    );
   }
 }

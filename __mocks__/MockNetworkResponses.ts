@@ -263,15 +263,15 @@ const mockPlaylistResponse = {
       time: '2024/11/05 21:30:00',
       artist: 'Fugazi',
       song: 'Waiting Room',
-      album: '13 Songs'
+      album: '13 Songs',
     },
     {
       time: '2024/11/05 21:33:00',
       artist: 'Slint',
       song: 'Breadcrumb Trail',
-      album: 'Spiderland'
-    }
-  ]
+      album: 'Spiderland',
+    },
+  ],
 };
 
 /**
@@ -280,7 +280,7 @@ const mockPlaylistResponse = {
 export function createMockFetch(): jest.Mock {
   return jest.fn((url: string) => {
     const urlStr = url.toString();
-    
+
     // Schedule endpoint
     if (urlStr.includes('wmbr.org/cgi-bin/xmlsched')) {
       return Promise.resolve({
@@ -289,7 +289,7 @@ export function createMockFetch(): jest.Mock {
         text: () => Promise.resolve(scheduleXml),
       } as Response);
     }
-    
+
     // Archives endpoint
     if (urlStr.includes('wmbr.org/cgi-bin/xmlarch')) {
       return Promise.resolve({
@@ -298,7 +298,7 @@ export function createMockFetch(): jest.Mock {
         text: () => Promise.resolve(archivesXml),
       } as Response);
     }
-    
+
     // Playlist endpoint
     if (urlStr.includes('alexandersimoes.com/get_playlist')) {
       // Check if the show name in the URL is one we have mock data for
@@ -309,7 +309,7 @@ export function createMockFetch(): jest.Mock {
           json: () => Promise.resolve(mockPlaylistResponse),
         } as Response);
       }
-      
+
       // Return empty playlist for other shows
       return Promise.resolve({
         ok: true,
@@ -317,7 +317,7 @@ export function createMockFetch(): jest.Mock {
         json: () => Promise.resolve({ error: 'No playlist found' }),
       } as Response);
     }
-    
+
     // Default: return 404
     return Promise.resolve({
       ok: false,

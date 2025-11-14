@@ -9,7 +9,10 @@ interface PlayButtonProps {
   isPlayerInitialized: boolean;
 }
 
-export default function PlayButton({ onPress, isPlayerInitialized: _isPlayerInitialized }: PlayButtonProps) {
+export default function PlayButton({
+  onPress,
+  isPlayerInitialized: _isPlayerInitialized,
+}: PlayButtonProps) {
   const playbackState = usePlaybackState();
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const rotateAnim = useRef(new Animated.Value(0)).current;
@@ -19,22 +22,38 @@ export default function PlayButton({ onPress, isPlayerInitialized: _isPlayerInit
   const startPulseAnimation = useCallback(() => {
     Animated.loop(
       Animated.sequence([
-        Animated.timing(pulseAnim, { toValue: 1.1, duration: 1000, useNativeDriver: true }),
-        Animated.timing(pulseAnim, { toValue: 1, duration: 1000, useNativeDriver: true }),
-      ])
+        Animated.timing(pulseAnim, {
+          toValue: 1.1,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+      ]),
     ).start();
   }, [pulseAnim]);
 
   const startRotateAnimation = useCallback(() => {
     Animated.loop(
-      Animated.timing(rotateAnim, { toValue: 1, duration: 10000, useNativeDriver: true })
+      Animated.timing(rotateAnim, {
+        toValue: 1,
+        duration: 10000,
+        useNativeDriver: true,
+      }),
     ).start();
   }, [rotateAnim]);
 
   const stopAnimations = useCallback(() => {
     pulseAnim.stopAnimation();
     rotateAnim.stopAnimation();
-    Animated.timing(pulseAnim, { toValue: 1, duration: 300, useNativeDriver: true }).start();
+    Animated.timing(pulseAnim, {
+      toValue: 1,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
   }, [pulseAnim, rotateAnim]);
 
   useEffect(() => {
@@ -44,11 +63,20 @@ export default function PlayButton({ onPress, isPlayerInitialized: _isPlayerInit
     } else {
       stopAnimations();
     }
-  }, [playbackState, rotateAnim, pulseAnim, startPulseAnimation, startRotateAnimation, stopAnimations]);
+  }, [
+    playbackState,
+    rotateAnim,
+    pulseAnim,
+    startPulseAnimation,
+    startRotateAnimation,
+    stopAnimations,
+  ]);
 
   return (
     <View style={styles.centerButton}>
-      <Animated.View style={[styles.outerRing, { transform: [{ scale: pulseAnim }] }]}>
+      <Animated.View
+        style={[styles.outerRing, { transform: [{ scale: pulseAnim }] }]}
+      >
         <View style={styles.middleRing}>
           <TouchableOpacity
             style={[styles.playButton, isPlaying && styles.playButtonActive]}
@@ -60,15 +88,29 @@ export default function PlayButton({ onPress, isPlayerInitialized: _isPlayerInit
               <View style={styles.iconContainer}>
                 {isPlaying ? (
                   <View style={styles.pauseIcon}>
-                    <View style={[styles.pauseBar, isPlaying && styles.pauseBarActive]} />
-                    <View style={[styles.pauseBar, isPlaying && styles.pauseBarActive]} />
+                    <View
+                      style={[
+                        styles.pauseBar,
+                        isPlaying && styles.pauseBarActive,
+                      ]}
+                    />
+                    <View
+                      style={[
+                        styles.pauseBar,
+                        isPlaying && styles.pauseBarActive,
+                      ]}
+                    />
                   </View>
                 ) : (
-                  <SvgXml xml={`
+                  <SvgXml
+                    xml={`
                       <svg viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
                         <polygon points="6,4 30,18 6,32" fill="#FFFFFF" />
                       </svg>
-                    `} width={40} height={40} />
+                    `}
+                    width={40}
+                    height={40}
+                  />
                 )}
               </View>
             </View>
@@ -83,7 +125,7 @@ const styles = StyleSheet.create({
   centerButton: {
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   outerRing: {
     width: 280,
@@ -93,7 +135,7 @@ const styles = StyleSheet.create({
     borderColor: CORE_COLORS.WMBR_GREEN,
     justifyContent: 'center',
     alignItems: 'center',
-    opacity: 0.3
+    opacity: 0.3,
   },
   middleRing: {
     width: 240,
@@ -103,7 +145,7 @@ const styles = StyleSheet.create({
     borderColor: CORE_COLORS.WMBR_GREEN,
     justifyContent: 'center',
     alignItems: 'center',
-    opacity: 0.6
+    opacity: 0.6,
   },
   playButton: {
     width: 180,
@@ -116,34 +158,34 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.4,
     shadowRadius: 16,
-    elevation: 12
+    elevation: 12,
   },
   playButtonActive: {
     backgroundColor: '#FFFFFF',
-    shadowColor: '#FFFFFF'
+    shadowColor: '#FFFFFF',
   },
   buttonContent: {
     width: '100%',
     height: '100%',
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   iconContainer: {
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   pauseIcon: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8
+    gap: 8,
   },
   pauseBar: {
     width: 8,
     height: 36,
     backgroundColor: '#FFFFFF',
-    borderRadius: 2
+    borderRadius: 2,
   },
   pauseBarActive: {
-    backgroundColor: CORE_COLORS.WMBR_GREEN
+    backgroundColor: CORE_COLORS.WMBR_GREEN,
   },
 });

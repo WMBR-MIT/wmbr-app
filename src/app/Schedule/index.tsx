@@ -15,7 +15,11 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
 import { debugLog, debugError } from '../../utils/Debug';
 import { RefreshControl } from 'react-native';
-import { NavigationProp, useNavigation, RouteProp } from '@react-navigation/native';
+import {
+  NavigationProp,
+  useNavigation,
+  RouteProp,
+} from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useHeaderHeight } from '@react-navigation/elements';
 import { SvgXml } from 'react-native-svg';
@@ -35,40 +39,55 @@ interface SchedulePageProps {
 const Stack = createNativeStackNavigator();
 
 export const ScheduleStack = () => {
-  const getShowDetailsOptions = ({ route }: { route: RouteProp<Record<string, any>, 'ShowDetails'> }) => ({
+  const getShowDetailsOptions = ({
+    route,
+  }: {
+    route: RouteProp<Record<string, any>, 'ShowDetails'>;
+  }) => ({
     title: route.params?.show?.name || 'Show Details',
   });
 
-  const getArchivedShowViewOptions = ({ route }: { route: RouteProp<Record<string, any>, 'ArchivedShowView'> }) => ({
+  const getArchivedShowViewOptions = ({
+    route,
+  }: {
+    route: RouteProp<Record<string, any>, 'ArchivedShowView'>;
+  }) => ({
     title: route.params?.archive?.date
       ? new Date(route.params.archive.date).toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-      })
-        : 'Archived Show',
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+        })
+      : 'Archived Show',
   });
 
   return (
-    <Stack.Navigator screenOptions={{
-      headerShown: true,
-      headerTransparent: true,
-      title: 'Schedule',
-      headerTintColor: '#ffffff'
-    }}>
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: true,
+        headerTransparent: true,
+        title: 'Schedule',
+        headerTintColor: '#ffffff',
+      }}
+    >
       <Stack.Screen name="ScheduleMain" component={SchedulePage} />
-      <Stack.Screen name="ShowDetails" component={ShowDetailsPage}
+      <Stack.Screen
+        name="ShowDetails"
+        component={ShowDetailsPage}
         options={getShowDetailsOptions}
       />
-      <Stack.Screen name="ArchivedShowView" component={ArchivedShowView} 
+      <Stack.Screen
+        name="ArchivedShowView"
+        component={ArchivedShowView}
         options={getArchivedShowViewOptions}
       />
     </Stack.Navigator>
   );
-}
+};
 
-export default function SchedulePage({ currentShow }: SchedulePageProps) { 
-  const navigation = useNavigation<NavigationProp<Record<WmbrRouteName, object | undefined>>>();
+export default function SchedulePage({ currentShow }: SchedulePageProps) {
+  const navigation =
+    useNavigation<NavigationProp<Record<WmbrRouteName, object | undefined>>>();
 
   const headerHeight = useHeaderHeight();
 
@@ -91,7 +110,9 @@ export default function SchedulePage({ currentShow }: SchedulePageProps) {
       setSchedule(scheduleData);
     } catch (err) {
       debugError('Error fetching schedule:', err);
-      setError(`Failed to load schedule: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      setError(
+        `Failed to load schedule: ${err instanceof Error ? err.message : 'Unknown error'}`,
+      );
     } finally {
       setLoading(false);
     }
@@ -125,16 +146,20 @@ export default function SchedulePage({ currentShow }: SchedulePageProps) {
       await recentlyPlayedService.fetchShowsCacheOnly();
 
       // find the show from the cache
-      const showWithArchiveData = recentlyPlayedService.getShowByName(show.name);
+      const showWithArchiveData = recentlyPlayedService.getShowByName(
+        show.name,
+      );
 
       if (showWithArchiveData && showWithArchiveData.archives.length > 0) {
-        navigation.navigate('ShowDetails' as WmbrRouteName, { show: showWithArchiveData });
+        navigation.navigate('ShowDetails' as WmbrRouteName, {
+          show: showWithArchiveData,
+        });
       } else {
         // If no archives found, show info message
         Alert.alert(
           show.name,
           `No archived episodes found for "${show.name}". This show may not have been archived yet or may use a different name in the archive system.`,
-          [{ text: 'OK' }]
+          [{ text: 'OK' }],
         );
       }
     } catch (err) {
@@ -142,23 +167,34 @@ export default function SchedulePage({ currentShow }: SchedulePageProps) {
       Alert.alert(
         'Error',
         'Unable to fetch archive data. Please try again later.',
-        [{ text: 'OK' }]
+        [{ text: 'OK' }],
       );
     }
   };
 
-  const isCurrentShowForDay = (show: ScheduleShow, dayName: string): boolean => {
+  const isCurrentShowForDay = (
+    show: ScheduleShow,
+    dayName: string,
+  ): boolean => {
     if (!currentShow) return false;
-    
+
     // Match by name (case insensitive)
     const isNameMatch = show.name.toLowerCase() === currentShow.toLowerCase();
     if (!isNameMatch) return false;
-    
+
     // Get current day info
     const now = new Date();
     const currentDay = now.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
-    const currentDayName = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][currentDay];
-    
+    const currentDayName = [
+      'Sunday',
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+    ][currentDay];
+
     // For weekday shows (day=7), only highlight if we're rendering the current day and it's a weekday
     if (show.day === 7) {
       const isWeekday = currentDay >= 1 && currentDay <= 5;
@@ -178,7 +214,9 @@ export default function SchedulePage({ currentShow }: SchedulePageProps) {
       case 1:
       case 2:
         // Every other week (alternating weeks)
-        return show.day === 7 ? 'Weekdays (Every Other Week)' : 'Every Other Week';
+        return show.day === 7
+          ? 'Weekdays (Every Other Week)'
+          : 'Every Other Week';
       case 5:
       case 6:
       case 7:
@@ -198,8 +236,16 @@ export default function SchedulePage({ currentShow }: SchedulePageProps) {
 
     const filteredShows = filterShows(schedule?.shows, searchQuery);
     const groupedShows = scheduleService.groupShowsByDay(filteredShows);
-    const daysOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-    
+    const daysOrder = [
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday',
+    ];
+
     return daysOrder.map(day => {
       const dayShows = groupedShows[day];
       if (!dayShows || dayShows.length === 0) return null;
@@ -212,61 +258,71 @@ export default function SchedulePage({ currentShow }: SchedulePageProps) {
             return (
               <TouchableOpacity
                 key={`${show.id}-${index}`}
-                style={[
-                  styles.showItem,
-                  isCurrent && styles.currentShowItem
-                ]}
+                style={[styles.showItem, isCurrent && styles.currentShowItem]}
                 onPress={() => handleShowPress(show)}
                 activeOpacity={0.7}
                 ref={isCurrent ? currentShowRef : null}
               >
                 <View style={styles.showContent}>
                   <View style={styles.showMainInfo}>
-                    <Text style={[
-                      styles.showName,
-                      isCurrent && styles.currentShowName
-                    ]} numberOfLines={1}>
+                    <Text
+                      style={[
+                        styles.showName,
+                        isCurrent && styles.currentShowName,
+                      ]}
+                      numberOfLines={1}
+                    >
                       {show.name}
                       {isCurrent && ' ● LIVE'}
                     </Text>
-                    <Text style={[
-                      styles.showTime,
-                      isCurrent && styles.currentShowTime
-                    ]}>
+                    <Text
+                      style={[
+                        styles.showTime,
+                        isCurrent && styles.currentShowTime,
+                      ]}
+                    >
                       {scheduleService.formatTime(show.time_str)}
                     </Text>
                   </View>
-                  
+
                   {show.hosts && (
-                    <Text style={[
-                      styles.showHosts,
-                      isCurrent && styles.currentShowHosts
-                    ]} numberOfLines={1}>
+                    <Text
+                      style={[
+                        styles.showHosts,
+                        isCurrent && styles.currentShowHosts,
+                      ]}
+                      numberOfLines={1}
+                    >
                       with {show.hosts}
                     </Text>
                   )}
-                  
-                  <Text style={[
-                    styles.showFrequency,
-                    isCurrent && styles.currentShowFrequency
-                  ]}>
+
+                  <Text
+                    style={[
+                      styles.showFrequency,
+                      isCurrent && styles.currentShowFrequency,
+                    ]}
+                  >
                     {getShowFrequency(show)}
                   </Text>
-                  
+
                   {show.description && (
-                    <Text style={[
-                      styles.showDescription,
-                      isCurrent && styles.currentShowDescription
-                    ]} numberOfLines={2}>
+                    <Text
+                      style={[
+                        styles.showDescription,
+                        isCurrent && styles.currentShowDescription,
+                      ]}
+                      numberOfLines={2}
+                    >
                       {show.description}
                     </Text>
                   )}
                 </View>
-                
-                <Icon 
-                  name="chevron-forward" 
-                  size={20} 
-                  color={isCurrent ? CORE_COLORS.WMBR_GREEN : "#888"} 
+
+                <Icon
+                  name="chevron-forward"
+                  size={20}
+                  color={isCurrent ? CORE_COLORS.WMBR_GREEN : '#888'}
                 />
               </TouchableOpacity>
             );
@@ -276,29 +332,34 @@ export default function SchedulePage({ currentShow }: SchedulePageProps) {
     });
   };
 
-
-  const filterShows = (shows: ScheduleShow[], query: string): ScheduleShow[] => {
+  const filterShows = (
+    shows: ScheduleShow[],
+    query: string,
+  ): ScheduleShow[] => {
     // First filter out TBA shows
-    const nonTBAShows = shows?.filter(show => 
-      show.name.toLowerCase() !== 'tba'
+    const nonTBAShows = shows?.filter(
+      show => show.name.toLowerCase() !== 'tba',
     );
-    
+
     // Then apply search filter if query exists
     if (!query.trim()) return nonTBAShows;
-    
+
     const lowercaseQuery = query.toLowerCase().trim();
-    return nonTBAShows.filter(show => 
-      show.name.toLowerCase().includes(lowercaseQuery) ||
-      show.hosts.toLowerCase().includes(lowercaseQuery) ||
-      show.description.toLowerCase().includes(lowercaseQuery)
+    return nonTBAShows.filter(
+      show =>
+        show.name.toLowerCase().includes(lowercaseQuery) ||
+        show.hosts.toLowerCase().includes(lowercaseQuery) ||
+        show.description.toLowerCase().includes(lowercaseQuery),
     );
   };
 
-
   return (
     <>
-      <StatusBar barStyle="light-content" backgroundColor={COLORS.BACKGROUND.PRIMARY} />
-      
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor={COLORS.BACKGROUND.PRIMARY}
+      />
+
       <LinearGradient
         colors={['#1a1a1a', '#0a0a0a', '#000000']}
         locations={[0, 0.5, 1]}
@@ -313,7 +374,12 @@ export default function SchedulePage({ currentShow }: SchedulePageProps) {
           {/* Search Box */}
           <View style={styles.searchContainer}>
             <View style={styles.searchInputContainer}>
-              <Icon name="search" size={16} color="#888" style={styles.searchIcon} />
+              <Icon
+                name="search"
+                size={16}
+                color="#888"
+                style={styles.searchIcon}
+              />
               <TextInput
                 style={styles.searchInput}
                 placeholder="Search shows, hosts, or keywords..."
@@ -324,18 +390,23 @@ export default function SchedulePage({ currentShow }: SchedulePageProps) {
                 autoCorrect={false}
               />
               {searchQuery.length > 0 && (
-                <TouchableOpacity onPress={() => setSearchQuery('')} style={styles.clearButton}>
+                <TouchableOpacity
+                  onPress={() => setSearchQuery('')}
+                  style={styles.clearButton}
+                >
                   <Icon name="close-circle" size={16} color="#888" />
                 </TouchableOpacity>
               )}
             </View>
           </View>
 
-          <ScrollView 
+          <ScrollView
             ref={scrollViewRef}
-            style={styles.scrollView} 
+            style={styles.scrollView}
             showsVerticalScrollIndicator={false}
-            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            }
           >
             {loading ? (
               <View style={styles.loadingContainer}>
@@ -345,14 +416,19 @@ export default function SchedulePage({ currentShow }: SchedulePageProps) {
             ) : error ? (
               <View style={styles.errorContainer}>
                 <Text style={styles.errorText}>{error}</Text>
-                <TouchableOpacity onPress={fetchSchedule} style={styles.retryButton}>
+                <TouchableOpacity
+                  onPress={fetchSchedule}
+                  style={styles.retryButton}
+                >
                   <Text style={styles.retryButtonText}>Retry</Text>
                 </TouchableOpacity>
               </View>
             ) : (
               <View style={styles.scheduleContainer}>
                 {schedule?.shows?.length === 0 ? (
-                  <Text style={styles.debugText}>No shows were parsed from XML</Text>
+                  <Text style={styles.debugText}>
+                    No shows were parsed from XML
+                  </Text>
                 ) : null}
                 {renderShowsByDay()}
               </View>
@@ -555,4 +631,3 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 });
-

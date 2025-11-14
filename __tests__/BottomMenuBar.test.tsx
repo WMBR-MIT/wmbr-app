@@ -34,10 +34,8 @@ describe('BottomMenuBar', () => {
   });
 
   test('renders four navigation buttons', async () => {
-     render(
-       <BottomMenuBar {...mockProps} />, { wrapper: TestWrapper }
-    );
-    
+    render(<BottomMenuBar {...mockProps} />, { wrapper: TestWrapper });
+
     // Check that all four route names appear in the rendered output
     expect(screen.getByText('Home')).toBeTruthy();
     expect(screen.getByText('Schedule')).toBeTruthy();

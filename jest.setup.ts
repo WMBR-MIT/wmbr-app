@@ -26,7 +26,7 @@ jest.mock('react-native-track-player', () => ({
 }));
 
 // Silence debug logs
-jest.mock('./utils/Debug.ts', () => ({
+jest.mock('./src/utils/Debug.ts', () => ({
   debugLog: jest.fn(),
   debugError: jest.fn(),
 }));

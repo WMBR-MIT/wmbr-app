@@ -6,7 +6,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
-import BottomMenuBar from '../components/BottomMenuBar';
+import BottomMenuBar from './_BottomMenuBar';
 
 import RecentlyPlayedPage from './RecentlyPlayed';
 import HomeScreen from './Home';

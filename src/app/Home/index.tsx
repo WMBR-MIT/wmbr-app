@@ -12,8 +12,8 @@ import TrackPlayer, { Capability, State, usePlaybackState } from 'react-native-t
 import LinearGradient from 'react-native-linear-gradient';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SvgXml } from 'react-native-svg';
-import PlayButton from '../../components/PlayButton';
-import SplashScreen from '../../components/SplashScreen';
+import PlayButton from './PlayButton';
+import SplashScreen from './SplashScreen';
 import MetadataService, { ShowInfo, Song } from '../../services/MetadataService';
 import { RecentlyPlayedService } from '../../services/RecentlyPlayedService';
 import { ArchiveService, ArchivePlaybackState } from '../../services/ArchiveService';
@@ -25,7 +25,7 @@ import { DEFAULT_NAME } from '../../types/Playlist';
 import { COLORS, CORE_COLORS } from '../../utils/Colors';
 import { formatArchiveDate } from '../../utils/DateTime';
 
-import HomeNowPlaying from '../../components/HomeNowPlaying';
+import HomeNowPlaying from './HomeNowPlaying';
 
 const streamUrl = 'https://wmbr.org:8002/hi';
 

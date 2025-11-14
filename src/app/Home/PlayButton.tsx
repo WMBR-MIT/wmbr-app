@@ -2,7 +2,7 @@ import React, { useCallback, useRef, useEffect } from 'react';
 import { View, TouchableOpacity, StyleSheet, Animated } from 'react-native';
 import { SvgXml } from 'react-native-svg';
 import { State, usePlaybackState } from 'react-native-track-player';
-import { CORE_COLORS } from '../utils/Colors';
+import { CORE_COLORS } from '../../utils/Colors';
 
 interface PlayButtonProps {
   onPress: () => void;

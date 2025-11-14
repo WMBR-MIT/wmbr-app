@@ -15,7 +15,7 @@ import { AudioPreviewService, PreviewState } from '../../services/AudioPreviewSe
 import { ProcessedSong } from '../../types/RecentlyPlayed';
 import { ScheduleService } from '../../services/ScheduleService';
 import { RecentlyPlayedService } from '../../services/RecentlyPlayedService';
-import CircularProgress from '../../components/CircularProgress';
+import CircularProgress from './CircularProgress';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { getDateYMD, parsePlaylistTimestamp } from '../../utils/DateTime';
 import { WmbrRouteName } from '../../types/Navigation';

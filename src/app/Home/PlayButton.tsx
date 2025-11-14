@@ -87,12 +87,7 @@ export default function PlayButton({
             <View style={styles.buttonContent}>
               <View style={styles.iconContainer}>
                 {isPlaying ? (
-                  <View
-                    style={[
-                      styles.stopSquare,
-                      isPlaying && styles.stopSquareActive,
-                    ]}
-                  />
+                  <View style={[styles.stopSquare]} />
                 ) : (
                   <SvgXml
                     xml={`
@@ -173,10 +168,7 @@ const styles = StyleSheet.create({
   stopSquare: {
     width: 36,
     height: 36,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 2,
-  },
-  stopSquareActive: {
     backgroundColor: CORE_COLORS.WMBR_GREEN,
+    borderRadius: 2,
   },
 });

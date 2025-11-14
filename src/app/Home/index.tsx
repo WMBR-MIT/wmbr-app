@@ -167,7 +167,7 @@ export default function HomeScreen() {
       const previewState = audioPreviewService.getCurrentState();
 
       if (isPlaying) {
-        await TrackPlayer.pause();
+        await TrackPlayer.stop();
       } else {
         if (previewState.url !== null) {
           await audioPreviewService.stop();

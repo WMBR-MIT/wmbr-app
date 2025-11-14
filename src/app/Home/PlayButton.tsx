@@ -82,25 +82,17 @@ export default function PlayButton({
             style={[styles.playButton, isPlaying && styles.playButtonActive]}
             onPress={onPress}
             activeOpacity={0.8}
-            aria-label={isPlaying ? 'Pause Button' : 'Play Button'}
+            aria-label={isPlaying ? 'Stop Button' : 'Play Button'}
           >
             <View style={styles.buttonContent}>
               <View style={styles.iconContainer}>
                 {isPlaying ? (
-                  <View style={styles.pauseIcon}>
-                    <View
-                      style={[
-                        styles.pauseBar,
-                        isPlaying && styles.pauseBarActive,
-                      ]}
-                    />
-                    <View
-                      style={[
-                        styles.pauseBar,
-                        isPlaying && styles.pauseBarActive,
-                      ]}
-                    />
-                  </View>
+                  <View
+                    style={[
+                      styles.stopSquare,
+                      isPlaying && styles.stopSquareActive,
+                    ]}
+                  />
                 ) : (
                   <SvgXml
                     xml={`
@@ -174,18 +166,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  pauseIcon: {
+  stopIcon: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
   },
-  pauseBar: {
-    width: 8,
+  stopSquare: {
+    width: 36,
     height: 36,
     backgroundColor: '#FFFFFF',
     borderRadius: 2,
   },
-  pauseBarActive: {
+  stopSquareActive: {
     backgroundColor: CORE_COLORS.WMBR_GREEN,
   },
 });

@@ -24,6 +24,7 @@ import { WmbrRouteName } from '../../types/Navigation';
 import { DEFAULT_NAME } from '../../types/Playlist';
 import { COLORS, CORE_COLORS } from '../../utils/Colors';
 import { formatArchiveDate } from '../../utils/DateTime';
+import { getUserAgent } from '../../utils/UserAgent';
 
 import HomeNowPlaying from './HomeNowPlaying';
 
@@ -131,6 +132,7 @@ export default function HomeScreen() {
         title: DEFAULT_NAME,
         artist: 'Live Radio',
         artwork: require('../../../assets/cover.png'),
+        userAgent: getUserAgent(),
       });
 
       setIsPlayerInitialized(true);
@@ -163,6 +165,7 @@ export default function HomeScreen() {
               title: DEFAULT_NAME,
               artist: currentShow || 'Live Radio',
               artwork: require('../../../assets/cover.png'),
+              userAgent: getUserAgent(),
             });
           }
         }

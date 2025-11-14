@@ -2,6 +2,7 @@ import TrackPlayer, { Track } from 'react-native-track-player';
 import { Show, Archive } from '../types/RecentlyPlayed';
 import { debugLog, debugError } from '../utils/Debug';
 import { DEFAULT_NAME } from '../types/Playlist';
+import { getUserAgent } from '../utils/UserAgent';
 
 export interface ArchivePlaybackState {
   isPlayingArchive: boolean;
@@ -59,6 +60,7 @@ export class ArchiveService {
         title: `${show.name} - Archive`,
         artist: `${DEFAULT_NAME} - ${archive.date}`,
         artwork: require('../../../assets/cover.png'),
+        userAgent: getUserAgent(),
       };
 
       // Add and play archive
@@ -95,6 +97,7 @@ export class ArchiveService {
         title: DEFAULT_NAME,
         artist: currentShowTitle || 'Live Radio',
         artwork: require('../../../assets/cover.png'),
+        userAgent: getUserAgent(),
       };
 
       // Add and play live stream

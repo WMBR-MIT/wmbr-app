@@ -1,5 +1,5 @@
 import { render, screen, userEvent } from '@testing-library/react-native';
-import PlayButton from '../src/app/Home/PlayButton';
+import PlayButton from '@app/Home/PlayButton';
 
 const mockOnPress = jest.fn();
 

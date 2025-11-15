@@ -1,7 +1,7 @@
 import { renderAsync, screen, userEvent } from '@testing-library/react-native';
 
-import { ScheduleStack } from '../src/app/Schedule';
-import { TestWrapper } from '../src/utils/TestUtils';
+import { ScheduleStack } from '@app/Schedule';
+import { TestWrapper } from '@utils/TestUtils';
 
 describe('SchedulePage', () => {
   test('displays shows after loading', async () => {

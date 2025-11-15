@@ -2,8 +2,8 @@ import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { State, usePlaybackState } from 'react-native-track-player';
 import { Animated, StyleSheet, Text, View } from 'react-native';
 
-import { ShowInfo } from '../../services/MetadataService';
-import { COLORS } from '../../utils/Colors';
+import { ShowInfo } from '@services/MetadataService';
+import { COLORS } from '@utils/Colors';
 
 export default function HomeNowPlaying({ showInfo }: { showInfo?: ShowInfo }) {
   const { currentSong, currentArtist } = showInfo || {};

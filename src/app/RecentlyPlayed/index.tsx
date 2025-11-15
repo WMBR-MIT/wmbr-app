@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import RecentlyPlayed from './RecentlyPlayed';
-import { COLORS } from '../../utils/Colors';
+import { COLORS } from '@utils/Colors';
 
 export default function RecentlyPlayedPage() {
   const [refreshKey, setRefreshKey] = useState(0);

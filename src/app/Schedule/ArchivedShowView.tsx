@@ -15,8 +15,6 @@ import LinearGradient from 'react-native-linear-gradient';
 import { useRoute, RouteProp } from '@react-navigation/native';
 import { useHeaderHeight } from '@react-navigation/elements';
 import { debugError } from '../../utils/Debug';
-import Animated, { useSharedValue, runOnJS } from 'react-native-reanimated';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import TrackPlayer, {
   useProgress,
   usePlaybackState,
@@ -33,6 +31,7 @@ import {
   generateGradientColors,
 } from '../../utils/GradientColors';
 import { ShowImage } from '../../components/ShowImage';
+import PlaybackSlider from '../../components/PlaybackSlider';
 
 interface ArchivedShowViewProps {
   show: Show;
@@ -53,13 +52,8 @@ export default function ArchivedShowView() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isArchivePlaying, setIsArchivePlaying] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
-  const [scrubPosition, setScrubPosition] = useState(0);
-  const [dragPercentage, setDragPercentage] = useState(0);
 
   // Shared values for gesture handling
-  const progressBarWidth = useSharedValue(0);
-  const dragPosition = useSharedValue(0);
 
   const playlistService = PlaylistService.getInstance();
   const archiveService = ArchiveService.getInstance();
@@ -115,75 +109,10 @@ export default function ArchivedShowView() {
   }, [archive.url, archiveService]);
 
   // Calculate current progress percentage
-  const getCurrentPercentage = useCallback(() => {
-    if (isDragging) {
-      // During dragging, clamp the visual percentage but allow the user to keep dragging
-      return Math.min(Math.max(dragPercentage, 0), 100);
-    }
-    if (progress.duration > 0) {
-      return Math.min(
-        Math.max((progress.position / progress.duration) * 100, 0),
-        100,
-      );
-    }
-    return 0;
-  }, [dragPercentage, isDragging, progress.duration, progress.position]);
-
   const [gradientStart] = generateGradientColors(show.name);
   const [darkGradientStart, darkGradientEnd] = generateDarkGradientColors(
     show.name,
   );
-
-  const updateScrubPosition = (position: number, percentage: number) => {
-    setScrubPosition(position);
-    setDragPercentage(percentage);
-  };
-
-  const seekToPosition = async (position: number) => {
-    try {
-      // Clamp position to avoid seeking to exact beginning or end
-      const clampedPosition = Math.max(
-        0.1,
-        Math.min(position, progress.duration - 0.1),
-      );
-      await TrackPlayer.seekTo(clampedPosition);
-    } catch (e) {
-      debugError('Error seeking:', e);
-    }
-  };
-
-  const panGesture = Gesture.Pan()
-    .onStart(event => {
-      runOnJS(setIsDragging)(true);
-      // Set initial drag position to the touch point - allow full range
-      dragPosition.value = event.x;
-    })
-    .onUpdate(event => {
-      // Allow dragging to full range without clamping during drag
-      dragPosition.value = event.x;
-
-      if (progressBarWidth.value > 0) {
-        // Clamp only for visual display and position calculation
-        const clampedX = Math.max(0, Math.min(event.x, progressBarWidth.value));
-        const percentage = (clampedX / progressBarWidth.value) * 100;
-        const newPosition =
-          (clampedX / progressBarWidth.value) * progress.duration;
-        runOnJS(updateScrubPosition)(newPosition, percentage);
-      }
-    })
-    .onEnd(() => {
-      if (progressBarWidth.value > 0) {
-        // Clamp the final position for seeking
-        const clampedX = Math.max(
-          0,
-          Math.min(dragPosition.value, progressBarWidth.value),
-        );
-        const percentage = clampedX / progressBarWidth.value;
-        const newPosition = percentage * progress.duration;
-        runOnJS(seekToPosition)(newPosition);
-      }
-      runOnJS(setIsDragging)(false);
-    });
 
   const handlePlayPause = async () => {
     try {
@@ -240,35 +169,11 @@ export default function ArchivedShowView() {
             {isArchivePlaying && progress.duration > 0 && (
               <View style={styles.progressSection}>
                 <View style={styles.progressContainer}>
-                  <GestureDetector gesture={panGesture}>
-                    <Animated.View style={styles.progressTouchArea}>
-                      <View
-                        style={styles.progressBar}
-                        onLayout={event => {
-                          progressBarWidth.value =
-                            event.nativeEvent.layout.width;
-                        }}
-                      >
-                        <View
-                          style={[
-                            styles.progressFill,
-                            { width: `${getCurrentPercentage()}%` },
-                          ]}
-                        />
-                        <View
-                          style={[
-                            styles.progressDot,
-                            { left: `${getCurrentPercentage()}%` },
-                          ]}
-                        />
-                      </View>
-                    </Animated.View>
-                  </GestureDetector>
+                  <PlaybackSlider styles={styles.slider} />
+
                   <View style={styles.timeContainer}>
                     <Text style={styles.timeText}>
-                      {secondsToTime(
-                        isDragging ? scrubPosition : progress.position,
-                      )}
+                      {secondsToTime(progress.position)}
                     </Text>
                     <Text style={styles.timeText}>
                       {secondsToTime(progress.duration)}
@@ -441,38 +346,8 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 300,
   },
-  progressTouchArea: {
-    paddingVertical: 12,
-    paddingHorizontal: 4,
-    marginBottom: 12,
-  },
-  progressBar: {
-    height: 4,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    borderRadius: 2,
-    position: 'relative',
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 2,
-    minWidth: 2,
-  },
-  progressDot: {
-    position: 'absolute',
-    top: -4,
-    width: 12,
-    height: 12,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 6,
-    marginLeft: -6,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 4,
-  },
   timeContainer: {
+    fontVariant: ['tabular-nums'],
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -481,5 +356,8 @@ const styles = StyleSheet.create({
     color: COLORS.TEXT.SECONDARY,
     fontSize: 12,
     fontWeight: '500',
+  },
+  slider: {
+    width: '100%',
   },
 });

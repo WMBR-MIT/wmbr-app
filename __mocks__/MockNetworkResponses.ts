@@ -284,11 +284,10 @@ export function createMockFetch(options?: {
     options?.playlistResponse || mockPlaylistResponse;
   const effectiveNowPlayingXml = options?.nowPlayingXml || nowPlayingXml;
 
-  // Allow callers to override the default schedule XML for deterministic tests
   return jest.fn((url: string) => {
     const urlStr = url.toString();
 
-    // Schedule endpoint - use the effective schedule XML (can be overridden by caller)
+    // Schedule endpoint
     if (urlStr.includes('wmbr.org/cgi-bin/xmlsched')) {
       return Promise.resolve({
         ok: true,
@@ -306,7 +305,7 @@ export function createMockFetch(options?: {
       } as Response);
     }
 
-    // Now playing metadata endpoint
+    // Now playing endpoint
     if (urlStr.includes('wmbr.org/dynamic.xml')) {
       return Promise.resolve({
         ok: true,

@@ -39,26 +39,26 @@ export class AudioPreviewService {
 
   subscribe(callback: PreviewCallback): () => void {
     this.callbacks.add(callback);
-    
+
     // Immediately call with current state
     callback(this.currentState);
-    
+
     return () => {
       this.callbacks.delete(callback);
     };
   }
 
   private setupEventListeners(): void {
-    TrackPlayer.addEventListener(Event.PlaybackState, (data) => {
+    TrackPlayer.addEventListener(Event.PlaybackState, data => {
       if (this.isPreviewMode) {
         this.updatePlaybackState(data.state);
       }
     });
 
-    TrackPlayer.addEventListener(Event.PlaybackProgressUpdated, (data) => {
+    TrackPlayer.addEventListener(Event.PlaybackProgressUpdated, data => {
       if (this.isPreviewMode) {
         const progress = data.duration > 0 ? data.position / data.duration : 0;
-        
+
         this.currentState = {
           ...this.currentState,
           currentTime: data.position,
@@ -107,7 +107,7 @@ export class AudioPreviewService {
             duration: duration,
             progress: progress,
           };
-          
+
           this.notifyCallbacks();
         } catch (error) {
           debugError('Error getting progress:', error);
@@ -148,7 +148,7 @@ export class AudioPreviewService {
       // Reset the queue with just the preview track
       await TrackPlayer.reset();
       await TrackPlayer.add(previewTrack);
-      
+
       // Update state
       this.currentState = {
         isPlaying: false, // Will be updated by event listener
@@ -157,15 +157,14 @@ export class AudioPreviewService {
         progress: 0,
         url,
       };
-      
+
       this.notifyCallbacks();
-      
+
       // Start playing
       await TrackPlayer.play();
-      
+
       // Start manual progress tracking
       this.startProgressTracking();
-      
     } catch (error) {
       debugError('Error playing preview:', error);
       this.isPreviewMode = false;
@@ -192,15 +191,15 @@ export class AudioPreviewService {
       this.stopProgressTracking();
       await TrackPlayer.stop();
       await TrackPlayer.reset();
-      
+
       // Restore original track if we had one
       if (this.originalTrack) {
         await TrackPlayer.add(this.originalTrack);
         this.originalTrack = null;
       }
-      
+
       this.isPreviewMode = false;
-      
+
       this.currentState = {
         isPlaying: false,
         duration: 0,
@@ -208,7 +207,7 @@ export class AudioPreviewService {
         progress: 0,
         url: null,
       };
-      
+
       this.notifyCallbacks();
     }
   }

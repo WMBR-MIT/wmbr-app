@@ -15,7 +15,7 @@ export class PlaylistService {
 
   async fetchPlaylist(showName: string, date: Date): Promise<PlaylistResponse> {
     const cacheKey = `${showName}-${date.toISOString()}`;
-    
+
     // Check cache first
     if (this.cache.has(cacheKey)) {
       return this.cache.get(cacheKey)!;
@@ -25,23 +25,25 @@ export class PlaylistService {
       // Convert date from "Wed, 06 Aug 2025 20:00:00 GMT" format to "2025-08-06"
       const formattedDate = getDateYMD(date);
       const encodedShowName = encodeURIComponent(showName);
-      
+
       const url = `https://wmbr.alexandersimoes.com/get_playlist?show_name=${encodedShowName}&date=${formattedDate}`;
       debugLog('Fetching playlist from:', url);
-      
+
       const response = await fetch(url, {
-        headers: { 'Cache-Control': 'no-cache' }
+        headers: { 'Cache-Control': 'no-cache' },
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to fetch playlist: ${response.status} ${response.statusText}`);
+        throw new Error(
+          `Failed to fetch playlist: ${response.status} ${response.statusText}`,
+        );
       }
 
       const data: PlaylistResponse = await response.json();
-      
+
       // Cache the result
       this.cache.set(cacheKey, data);
-      
+
       return data;
     } catch (error) {
       debugError('Error fetching playlist:', error);

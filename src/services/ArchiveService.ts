@@ -32,10 +32,10 @@ export class ArchiveService {
 
   subscribe(callback: ArchiveStateCallback): () => void {
     this.callbacks.add(callback);
-    
+
     // Immediately call with current state
     callback(this.currentState);
-    
+
     return () => {
       this.callbacks.delete(callback);
     };
@@ -48,7 +48,7 @@ export class ArchiveService {
   async playArchive(archive: Archive, show: Show): Promise<void> {
     try {
       debugLog('Playing archive:', archive.url);
-      
+
       // Stop current playback
       await TrackPlayer.stop();
       await TrackPlayer.reset();
@@ -59,7 +59,7 @@ export class ArchiveService {
         url: archive.url,
         title: `${show.name} - Archive`,
         artist: `${DEFAULT_NAME} - ${archive.date}`,
-        artwork: require('../../../assets/cover.png'),
+        artwork: require('../../assets/cover.png'),
         userAgent: getUserAgent(),
       };
 
@@ -74,7 +74,7 @@ export class ArchiveService {
         currentArchive: archive,
         currentShow: show,
       };
-      
+
       this.notifyCallbacks();
     } catch (error) {
       debugError('Error playing archive:', error);
@@ -85,7 +85,7 @@ export class ArchiveService {
   async switchToLive(currentShowTitle?: string): Promise<void> {
     try {
       debugLog('Switching to live stream');
-      
+
       // Stop current playback
       await TrackPlayer.stop();
       await TrackPlayer.reset();
@@ -96,7 +96,7 @@ export class ArchiveService {
         url: this.currentState.liveStreamUrl,
         title: DEFAULT_NAME,
         artist: currentShowTitle || 'Live Radio',
-        artwork: require('../../../assets/cover.png'),
+        artwork: require('../../assets/cover.png'),
         userAgent: getUserAgent(),
       };
 
@@ -111,7 +111,7 @@ export class ArchiveService {
         currentArchive: null,
         currentShow: null,
       };
-      
+
       this.notifyCallbacks();
     } catch (error) {
       debugError('Error switching to live:', error);

@@ -1,9 +1,4 @@
-import {
-  Dimensions,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Dimensions, StyleSheet, Text, View } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { SvgXml } from 'react-native-svg';
 
@@ -14,7 +9,13 @@ import { generateGradientColors } from '../utils/GradientColors';
 const { width } = Dimensions.get('window');
 const ALBUM_SIZE = width * 0.6;
 
-const ShowImage = ({ showName, archiveDate }: { showName: string, archiveDate?: string }) => {
+const ShowImage = ({
+  showName,
+  archiveDate,
+}: {
+  showName: string;
+  archiveDate?: string;
+}) => {
   const [gradientStart, gradientEnd] = generateGradientColors(showName);
 
   return (
@@ -52,7 +53,7 @@ const ShowImage = ({ showName, archiveDate }: { showName: string, archiveDate?: 
       </View>
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   albumSection: {

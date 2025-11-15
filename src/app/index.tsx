@@ -21,7 +21,10 @@ export default function App() {
     <SafeAreaProvider>
       <GestureHandlerRootView style={styles.gestureRoot}>
         <NavigationContainer>
-          <Tab.Navigator screenOptions={{ headerShown: false }} tabBar={renderTabBar}>
+          <Tab.Navigator
+            screenOptions={{ headerShown: false }}
+            tabBar={renderTabBar}
+          >
             <Tab.Screen name="Home" component={HomeScreen} />
             <Tab.Screen name="Recently Played" component={RecentlyPlayedPage} />
             <Tab.Screen name="Schedule" component={ScheduleStack} />

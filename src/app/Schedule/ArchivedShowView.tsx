@@ -15,19 +15,23 @@ import LinearGradient from 'react-native-linear-gradient';
 import { useRoute, RouteProp } from '@react-navigation/native';
 import { useHeaderHeight } from '@react-navigation/elements';
 import { debugError } from '../../utils/Debug';
-import Animated, {
-  useSharedValue,
-  runOnJS,
-} from 'react-native-reanimated';
+import Animated, { useSharedValue, runOnJS } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import TrackPlayer, { useProgress, usePlaybackState, State } from 'react-native-track-player';
+import TrackPlayer, {
+  useProgress,
+  usePlaybackState,
+  State,
+} from 'react-native-track-player';
 import { Show, Archive } from '../../types/RecentlyPlayed';
 import { PlaylistResponse, PlaylistSong } from '../../types/Playlist';
 import { PlaylistService } from '../../services/PlaylistService';
 import { ArchiveService } from '../../services/ArchiveService';
 import { secondsToTime, formatTime } from '../../utils/DateTime';
 import { COLORS } from '../../utils/Colors';
-import { generateDarkGradientColors, generateGradientColors } from '../../utils/GradientColors';
+import {
+  generateDarkGradientColors,
+  generateGradientColors,
+} from '../../utils/GradientColors';
 import { ShowImage } from '../../components/ShowImage';
 
 interface ArchivedShowViewProps {
@@ -36,14 +40,15 @@ interface ArchivedShowViewProps {
 }
 
 export default function ArchivedShowView() {
-  const route = useRoute<RouteProp<Record<string, ArchivedShowViewProps>, string>>();
+  const route =
+    useRoute<RouteProp<Record<string, ArchivedShowViewProps>, string>>();
   const { show, archive } = route.params;
 
   const headerHeight = useHeaderHeight();
 
   const progress = useProgress();
   const playbackState = usePlaybackState();
-  
+
   const [playlist, setPlaylist] = useState<PlaylistResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -51,20 +56,23 @@ export default function ArchivedShowView() {
   const [isDragging, setIsDragging] = useState(false);
   const [scrubPosition, setScrubPosition] = useState(0);
   const [dragPercentage, setDragPercentage] = useState(0);
-  
+
   // Shared values for gesture handling
   const progressBarWidth = useSharedValue(0);
   const dragPosition = useSharedValue(0);
-  
+
   const playlistService = PlaylistService.getInstance();
   const archiveService = ArchiveService.getInstance();
 
   const fetchPlaylist = useCallback(async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
-      const playlistData = await playlistService.fetchPlaylist(show.name, new Date(archive.date));
+      const playlistData = await playlistService.fetchPlaylist(
+        show.name,
+        new Date(archive.date),
+      );
       setPlaylist(playlistData);
     } catch (err) {
       debugError('Error fetching playlist:', err);
@@ -78,9 +86,12 @@ export default function ArchivedShowView() {
     const fp = async () => {
       setLoading(true);
       setError(null);
-      
+
       try {
-        const playlistData = await playlistService.fetchPlaylist(show.name, new Date(archive.date));
+        const playlistData = await playlistService.fetchPlaylist(
+          show.name,
+          new Date(archive.date),
+        );
         setPlaylist(playlistData);
       } catch (err) {
         debugError('Error fetching playlist:', err);
@@ -94,9 +105,9 @@ export default function ArchivedShowView() {
 
   useEffect(() => {
     // Subscribe to archive service state changes
-    const unsubscribe = archiveService.subscribe((state) => {
-      const isCurrentArchivePlaying = state.isPlayingArchive && 
-        state.currentArchive?.url === archive.url;
+    const unsubscribe = archiveService.subscribe(state => {
+      const isCurrentArchivePlaying =
+        state.isPlayingArchive && state.currentArchive?.url === archive.url;
       setIsArchivePlaying(isCurrentArchivePlaying);
     });
 
@@ -110,13 +121,18 @@ export default function ArchivedShowView() {
       return Math.min(Math.max(dragPercentage, 0), 100);
     }
     if (progress.duration > 0) {
-      return Math.min(Math.max((progress.position / progress.duration) * 100, 0), 100);
+      return Math.min(
+        Math.max((progress.position / progress.duration) * 100, 0),
+        100,
+      );
     }
     return 0;
   }, [dragPercentage, isDragging, progress.duration, progress.position]);
 
   const [gradientStart] = generateGradientColors(show.name);
-  const [darkGradientStart, darkGradientEnd] = generateDarkGradientColors(show.name);
+  const [darkGradientStart, darkGradientEnd] = generateDarkGradientColors(
+    show.name,
+  );
 
   const updateScrubPosition = (position: number, percentage: number) => {
     setScrubPosition(position);
@@ -126,7 +142,10 @@ export default function ArchivedShowView() {
   const seekToPosition = async (position: number) => {
     try {
       // Clamp position to avoid seeking to exact beginning or end
-      const clampedPosition = Math.max(0.1, Math.min(position, progress.duration - 0.1));
+      const clampedPosition = Math.max(
+        0.1,
+        Math.min(position, progress.duration - 0.1),
+      );
       await TrackPlayer.seekTo(clampedPosition);
     } catch (e) {
       debugError('Error seeking:', e);
@@ -134,27 +153,31 @@ export default function ArchivedShowView() {
   };
 
   const panGesture = Gesture.Pan()
-    .onStart((event) => {
+    .onStart(event => {
       runOnJS(setIsDragging)(true);
       // Set initial drag position to the touch point - allow full range
       dragPosition.value = event.x;
     })
-    .onUpdate((event) => {
+    .onUpdate(event => {
       // Allow dragging to full range without clamping during drag
       dragPosition.value = event.x;
-      
+
       if (progressBarWidth.value > 0) {
         // Clamp only for visual display and position calculation
         const clampedX = Math.max(0, Math.min(event.x, progressBarWidth.value));
         const percentage = (clampedX / progressBarWidth.value) * 100;
-        const newPosition = (clampedX / progressBarWidth.value) * progress.duration;
+        const newPosition =
+          (clampedX / progressBarWidth.value) * progress.duration;
         runOnJS(updateScrubPosition)(newPosition, percentage);
       }
     })
     .onEnd(() => {
       if (progressBarWidth.value > 0) {
         // Clamp the final position for seeking
-        const clampedX = Math.max(0, Math.min(dragPosition.value, progressBarWidth.value));
+        const clampedX = Math.max(
+          0,
+          Math.min(dragPosition.value, progressBarWidth.value),
+        );
         const percentage = clampedX / progressBarWidth.value;
         const newPosition = percentage * progress.duration;
         runOnJS(seekToPosition)(newPosition);
@@ -185,16 +208,18 @@ export default function ArchivedShowView() {
   return (
     <>
       <StatusBar barStyle="light-content" backgroundColor={gradientStart} />
-      
+
       <LinearGradient
         colors={[darkGradientStart, darkGradientEnd, '#000000']}
         locations={[0, 0.3, 1]}
         style={styles.gradient}
       >
         <SafeAreaView style={[styles.safeArea, { paddingTop: headerHeight }]}>
-          <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+          <ScrollView
+            style={styles.scrollView}
+            showsVerticalScrollIndicator={false}
+          >
             <ShowImage showName={show.name} archiveDate={archive.date} />
-
 
             {/* Play/Pause Button */}
             <View style={styles.playSection}>
@@ -217,32 +242,37 @@ export default function ArchivedShowView() {
                 <View style={styles.progressContainer}>
                   <GestureDetector gesture={panGesture}>
                     <Animated.View style={styles.progressTouchArea}>
-                      <View 
+                      <View
                         style={styles.progressBar}
-                        onLayout={(event) => {
-                          progressBarWidth.value = event.nativeEvent.layout.width;
+                        onLayout={event => {
+                          progressBarWidth.value =
+                            event.nativeEvent.layout.width;
                         }}
                       >
-                        <View 
+                        <View
                           style={[
-                            styles.progressFill, 
-                            { width: `${getCurrentPercentage()}%` }
-                          ]} 
+                            styles.progressFill,
+                            { width: `${getCurrentPercentage()}%` },
+                          ]}
                         />
-                        <View 
+                        <View
                           style={[
-                            styles.progressDot, 
-                            { left: `${getCurrentPercentage()}%` }
-                          ]} 
+                            styles.progressDot,
+                            { left: `${getCurrentPercentage()}%` },
+                          ]}
                         />
                       </View>
                     </Animated.View>
                   </GestureDetector>
                   <View style={styles.timeContainer}>
                     <Text style={styles.timeText}>
-                      {secondsToTime(isDragging ? scrubPosition : progress.position)}
+                      {secondsToTime(
+                        isDragging ? scrubPosition : progress.position,
+                      )}
                     </Text>
-                    <Text style={styles.timeText}>{secondsToTime(progress.duration)}</Text>
+                    <Text style={styles.timeText}>
+                      {secondsToTime(progress.duration)}
+                    </Text>
                   </View>
                 </View>
               </View>
@@ -251,7 +281,7 @@ export default function ArchivedShowView() {
             {/* Playlist Section */}
             <View style={styles.playlistSection}>
               <Text style={styles.sectionTitle}>Playlist</Text>
-              
+
               {loading ? (
                 <View style={styles.loadingContainer}>
                   <ActivityIndicator size="large" color="#FFFFFF" />
@@ -260,7 +290,10 @@ export default function ArchivedShowView() {
               ) : error ? (
                 <View style={styles.errorContainer}>
                   <Text style={styles.errorText}>{error}</Text>
-                  <TouchableOpacity onPress={fetchPlaylist} style={styles.retryButton}>
+                  <TouchableOpacity
+                    onPress={fetchPlaylist}
+                    style={styles.retryButton}
+                  >
                     <Text style={styles.retryButtonText}>Retry</Text>
                   </TouchableOpacity>
                 </View>
@@ -280,9 +313,7 @@ export default function ArchivedShowView() {
                         </Text>
                       )}
                     </View>
-                    <Text style={styles.songTime}>
-                      {formatTime(song.time)}
-                    </Text>
+                    <Text style={styles.songTime}>{formatTime(song.time)}</Text>
                   </View>
                 ))
               ) : (

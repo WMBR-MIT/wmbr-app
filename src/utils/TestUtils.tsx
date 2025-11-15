@@ -2,28 +2,16 @@ import { NavigationContainer } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useEffect } from 'react';
 
-import MetadataService, { ShowInfo } from '@services/MetadataService';
-import { RecentlyPlayedService } from '@services/RecentlyPlayedService';
-import { debugError } from '@utils/Debug';
-
-export const TestWrapper = ({ children }: { children: React.ReactNode }) => (
-  <SafeAreaProvider
-    initialMetrics={{
-      insets: { top: 0, left: 0, right: 0, bottom: 0 },
-      frame: { x: 0, y: 0, width: 0, height: 0 },
-    }}
-  >
-    <NavigationContainer>
-      <RecentlyPlayedServiceWrapper>{children}</RecentlyPlayedServiceWrapper>
-    </NavigationContainer>
-  </SafeAreaProvider>
-);
+import { PlaylistResponse } from '../types/Playlist';
+import MetadataService, { ShowInfo } from '../services/MetadataService';
+import { RecentlyPlayedService } from '../services/RecentlyPlayedService';
+import { debugError } from '../utils/Debug';
 
 /**
  * This is currently needed to set the current show metadata for testing
  * RecentlyPlayed, for instance.
  */
-export function RecentlyPlayedServiceWrapper({
+function RecentlyPlayedServiceWrapper({
   children,
 }: {
   children: React.ReactNode;
@@ -50,10 +38,28 @@ export function RecentlyPlayedServiceWrapper({
   return <>{children}</>;
 }
 
+export const TestWrapper = ({ children }: { children: React.ReactNode }) => (
+  <SafeAreaProvider
+    initialMetrics={{
+      insets: { top: 0, left: 0, right: 0, bottom: 0 },
+      frame: { x: 0, y: 0, width: 0, height: 0 },
+    }}
+  >
+    <NavigationContainer>
+      <RecentlyPlayedServiceWrapper>{children}</RecentlyPlayedServiceWrapper>
+    </NavigationContainer>
+  </SafeAreaProvider>
+);
+
+/**
+ * Generate a mock playlist response for testing.
+ *
+ * JSON format from alexandersimoes.com endpoint
+ */
 export function generatePlaylistResponse(options?: {
   date?: Date;
   showName?: string;
-}) {
+}): PlaylistResponse {
   const effectiveDate = options?.date ?? new Date();
   const effectiveShowName = options?.showName ?? 'Post-tentious';
 
@@ -81,8 +87,9 @@ export function generatePlaylistResponse(options?: {
   };
 }
 
-export function generateNowPlayingXml(options?: { showname?: string }) {
-  const effectiveShowName = options?.showname ?? 'Post-tentious';
+// Generate sample data from wmbr.org/dynamic.xml
+export function generateNowPlayingXml(options?: { showName?: string }) {
+  const effectiveShowName = options?.showName ?? 'Post-tentious';
 
   return `<wmbr_dynamic version="1.0">
 <wmbr_info>

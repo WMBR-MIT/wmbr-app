@@ -1,4 +1,7 @@
-import { PlaylistResponse } from '../src/types/Playlist';
+import {
+  generateNowPlayingXml,
+  generatePlaylistResponse,
+} from '../src/utils/TestUtils';
 
 /**
  * Mock network responses for fetch calls in tests.
@@ -255,72 +258,8 @@ const archivesXml = `<?xml version="1.0" encoding="utf-8" ?>
 </show>
 </wmbr_archives>`;
 
-// Sample data from wmbr.org/dynamic.xml
-const nowPlayingXml = `<wmbr_dynamic version="1.0">
-<wmbr_info>Sat 4:29 PM : now playing: &nbsp;<b><a href="http://auralfixradio.org" target="_blank">Aural Fixation</a></b><br>mostly cloudy, 44°F</wmbr_info>
-<wmbr_show>
-<b><a href="http://auralfixradio.org" target="_blank">Aural Fixation</a></b> <div style="margin-bottom: 4px"><br>with Sue Safton</div> From the paisley underground, dark attics and the edges of space - you'll hear fuzzed out guitars, garage, psych, poppy punk, and Motorik sounds, from the 1960's to the newest releases.
-</wmbr_show>
-<wmbr_twitter/>
-<wmbr_plays>
-<p class="recent">4:27p&nbsp;<b>Vieon</b>: Inter-City</p>
-<p class="recent">4:24p&nbsp;<b>The KVB</b>: Dead Of Night</p>
-<p class="recent">4:20p&nbsp;<b>Les Big Byrd</b>: Diamonds, Rhinestones and Hard Rain</p>
-<p class="recent">4:16p&nbsp;<b>Th' Losin Streaks</b>: I Mean You</p>
-<p class="recent">4:13p&nbsp;<b>The Brooms</b>: Just Can't Love you</p>
-<p class="recent">4:11p&nbsp;<b>Smalltown Tigers</b>: Crush On You</p>
-<p class="recent">4:09p&nbsp;<b>Sprints</b>: Adore Adore Adore</p>
-<p class="recent">4:02p&nbsp;<b>Karkara</b>: Anthropia</p>
-<a href="https://track-blaster.com/wmbr/playlist.php?date=latest" target="_blank">full playlist</a>
-</wmbr_plays>
-<wmbr_upcoming>
-<div class="upcoming">
-<span class="upcoming"><b>6:00p:</b></span>
-<a href="/cgi-bin/show?id=9051">James Dean Death Car Experience</a>
-</div>
-<div class="upcoming">
-<span class="upcoming"><b>8:00p:</b></span>
-<a href="/cgi-bin/show?id=9052">Backpacks and Magazines</a>
-</div>
-<div class="upcoming">
-<span class="upcoming"><b>9:00p:</b></span>
-<a href="/cgi-bin/show?id=9099">Whatever Forever</a>
-</div>
-<div class="upcoming">
-<span class="upcoming"><b>10:00p:</b></span>
-<a href="/cgi-bin/show?eid=34175">Under the Sun</a>
-</div>
-<div class="upcoming">
-<span class="upcoming"><b>11:00p:</b></span>
-<a href="/cgi-bin/show?id=9056">Music for Eels</a> 
-</div>
-<div class="upcoming">
-<span class="upcoming"><b>12:00m:</b></span>
-<a href="/cgi-bin/show?eid=34168">Radio Ninja (rebroadcast)</a>
-</div>
-</wmbr_upcoming>
-</wmbr_dynamic>`;
-
-// Mock playlist response (JSON format from alexandersimoes.com)
-const mockPlaylistResponse: PlaylistResponse = {
-  show_name: 'Post-tentious',
-  date: '2024-11-05',
-  playlist_id: '12345',
-  songs: [
-    {
-      time: '2024/11/05 21:30:00',
-      artist: 'Fugazi',
-      song: 'Waiting Room',
-      album: '13 Songs',
-    },
-    {
-      time: '2024/11/05 21:33:00',
-      artist: 'Slint',
-      song: 'Breadcrumb Trail',
-      album: 'Spiderland',
-    },
-  ],
-};
+const nowPlayingXml = generateNowPlayingXml();
+const mockPlaylistResponse = generatePlaylistResponse();
 
 /**
  * Mock fetch implementation that returns appropriate responses based on URL

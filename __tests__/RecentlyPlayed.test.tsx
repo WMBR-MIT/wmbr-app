@@ -11,7 +11,7 @@ import { createMockFetch } from '../__mocks__/MockNetworkResponses';
 
 const scheduleXml = generateScheduleXml();
 const playlistResponse = generatePlaylistResponse();
-const nowPlayingXml = generateNowPlayingXml('Post-tentious');
+const nowPlayingXml = generateNowPlayingXml({ showName: 'Post-tentious' });
 
 jest.spyOn(global, 'fetch').mockImplementation(
   createMockFetch({

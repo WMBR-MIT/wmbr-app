@@ -1,6 +1,6 @@
 import React, { useCallback, useRef, useEffect } from 'react';
 import { View, TouchableOpacity, StyleSheet, Animated } from 'react-native';
-import { SvgXml } from 'react-native-svg';
+import Icon from 'react-native-vector-icons/Ionicons';
 import { State, usePlaybackState } from 'react-native-track-player';
 import { CORE_COLORS } from '../../utils/Colors';
 
@@ -82,35 +82,14 @@ export default function PlayButton({
             style={[styles.playButton, isPlaying && styles.playButtonActive]}
             onPress={onPress}
             activeOpacity={0.8}
-            aria-label={isPlaying ? 'Pause Button' : 'Play Button'}
+            aria-label={isPlaying ? 'Stop Button' : 'Play Button'}
           >
             <View style={styles.buttonContent}>
               <View style={styles.iconContainer}>
                 {isPlaying ? (
-                  <View style={styles.pauseIcon}>
-                    <View
-                      style={[
-                        styles.pauseBar,
-                        isPlaying && styles.pauseBarActive,
-                      ]}
-                    />
-                    <View
-                      style={[
-                        styles.pauseBar,
-                        isPlaying && styles.pauseBarActive,
-                      ]}
-                    />
-                  </View>
+                  <Icon name="stop" size={64} color={CORE_COLORS.WMBR_GREEN} />
                 ) : (
-                  <SvgXml
-                    xml={`
-                      <svg viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
-                        <polygon points="6,4 30,18 6,32" fill="#FFFFFF" />
-                      </svg>
-                    `}
-                    width={40}
-                    height={40}
-                  />
+                  <Icon name="play" size={64} color="#FFFFFF" />
                 )}
               </View>
             </View>
@@ -173,19 +152,5 @@ const styles = StyleSheet.create({
   iconContainer: {
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  pauseIcon: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  pauseBar: {
-    width: 8,
-    height: 36,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 2,
-  },
-  pauseBarActive: {
-    backgroundColor: CORE_COLORS.WMBR_GREEN,
   },
 });

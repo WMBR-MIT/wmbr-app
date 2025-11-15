@@ -189,7 +189,7 @@ export default function ArchivedShowView() {
     try {
       if (isArchivePlaying && playbackState?.state === State.Playing) {
         // Pause the current archive
-        await TrackPlayer.pause();
+        await TrackPlayer.stop();
       } else if (isArchivePlaying && playbackState?.state === State.Paused) {
         // Resume the current archive
         await TrackPlayer.play();
@@ -229,7 +229,7 @@ export default function ArchivedShowView() {
                 activeOpacity={0.8}
               >
                 {isArchivePlaying && playbackState?.state === State.Playing ? (
-                  <Icon name="pause-circle" size={64} color="#FFFFFF" />
+                  <Icon name="stop-circle" size={64} color="#FFFFFF" />
                 ) : (
                   <Icon name="play-circle" size={64} color="#FFFFFF" />
                 )}

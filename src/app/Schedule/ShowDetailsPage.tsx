@@ -188,7 +188,7 @@ export default function ShowDetailsPage() {
   const handlePauseResume = async () => {
     try {
       if (playbackState?.state === State.Playing) {
-        await TrackPlayer.pause();
+        await TrackPlayer.stop();
       } else if (playbackState?.state === State.Paused) {
         await TrackPlayer.play();
       }

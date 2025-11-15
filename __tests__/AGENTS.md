@@ -9,18 +9,20 @@ import { TestWrapper } from '../src/utils/TestUtils';
 // TestWrapper includes SafeAreaProvider and NavigationContainer. Only necessary
 for components that depend on those contextswraps.
 
-test('shows schedule and navigates to details', async () => {
-  const user = userEvent.setup();
-  render(<ScheduleStack />, { wrapper: TestWrapper });
+describe('', () => {
+  test('shows schedule and navigates to details', async () => {
+    const user = userEvent.setup();
+    render(<ScheduleStack />, { wrapper: TestWrapper });
 
-  // Wait for a known show from mock schedule XML
-  expect(await screen.findByText('Africa Kabisa')).toBeTruthy();
+    // Wait for a known show from mock schedule XML
+    expect(await screen.findByText('Africa Kabisa')).toBeTruthy();
 
-  // Navigate into details (archives fetch via RecentlyPlayedService)
-  await user.press(screen.getByText('Africa Kabisa'));
+    // Navigate into details (archives fetch via RecentlyPlayedService)
+    await user.press(screen.getByText('Africa Kabisa'));
 
-  // Header/title or archive-related content appears
-  expect(await screen.findByText(/Show Details|Archived Show/i)).toBeTruthy();
+    // Header/title or archive-related content appears
+    expect(await screen.findByText(/Show Details|Archived Show/i)).toBeTruthy();
+  });
 });
 ```
 
@@ -86,6 +88,14 @@ if (urlStr.includes('alexandersimoes.com/get_playlist')) {
   }
   // existing branches...
 }
+```
+
+## Running Tests
+
+Run tests from the repository root using npx (avoid npm argument forwarding). For machine-readable output (best for an LLM), run one test file and produce a JSON result. For example, to test `RecentlyPlayed.test.tsx`:
+
+````bash
+npx jest __tests__/RecentlyPlayed.test.tsx --runInBand --json --testLocationInResults
 ```
 
 ---

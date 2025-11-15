@@ -1,9 +1,11 @@
+import { PlaylistResponse } from '../src/types/Playlist';
+
 /**
  * Mock network responses for fetch calls in tests.
  * This allows tests to work with real service code while mocking at the network boundary.
  */
 
-// Mock XML schedule (simplified version with key shows for testing)
+// Sample schedule XML from wmbr.org/cgi-bin/xmlsched
 const scheduleXml = `<?xml version="1.0" encoding="utf-8" ?>
 <wmbr_schedule season_id="73" season_name="Fall/Winter 2025" season_start="Mon, 22 Sep 2025 14:00:00 GMT" season_end="Sat, 28 Feb 2026 15:00:00 GMT" last_update="Tue, 11 Nov 2025 13:01:06 GMT" daystart="240">
 <show id="8974">
@@ -253,8 +255,54 @@ const archivesXml = `<?xml version="1.0" encoding="utf-8" ?>
 </show>
 </wmbr_archives>`;
 
+// Sample data from wmbr.org/dynamic.xml
+const nowPlayingXml = `<wmbr_dynamic version="1.0">
+<wmbr_info>Sat 4:29 PM : now playing: &nbsp;<b><a href="http://auralfixradio.org" target="_blank">Aural Fixation</a></b><br>mostly cloudy, 44°F</wmbr_info>
+<wmbr_show>
+<b><a href="http://auralfixradio.org" target="_blank">Aural Fixation</a></b> <div style="margin-bottom: 4px"><br>with Sue Safton</div> From the paisley underground, dark attics and the edges of space - you'll hear fuzzed out guitars, garage, psych, poppy punk, and Motorik sounds, from the 1960's to the newest releases.
+</wmbr_show>
+<wmbr_twitter/>
+<wmbr_plays>
+<p class="recent">4:27p&nbsp;<b>Vieon</b>: Inter-City</p>
+<p class="recent">4:24p&nbsp;<b>The KVB</b>: Dead Of Night</p>
+<p class="recent">4:20p&nbsp;<b>Les Big Byrd</b>: Diamonds, Rhinestones and Hard Rain</p>
+<p class="recent">4:16p&nbsp;<b>Th' Losin Streaks</b>: I Mean You</p>
+<p class="recent">4:13p&nbsp;<b>The Brooms</b>: Just Can't Love you</p>
+<p class="recent">4:11p&nbsp;<b>Smalltown Tigers</b>: Crush On You</p>
+<p class="recent">4:09p&nbsp;<b>Sprints</b>: Adore Adore Adore</p>
+<p class="recent">4:02p&nbsp;<b>Karkara</b>: Anthropia</p>
+<a href="https://track-blaster.com/wmbr/playlist.php?date=latest" target="_blank">full playlist</a>
+</wmbr_plays>
+<wmbr_upcoming>
+<div class="upcoming">
+<span class="upcoming"><b>6:00p:</b></span>
+<a href="/cgi-bin/show?id=9051">James Dean Death Car Experience</a>
+</div>
+<div class="upcoming">
+<span class="upcoming"><b>8:00p:</b></span>
+<a href="/cgi-bin/show?id=9052">Backpacks and Magazines</a>
+</div>
+<div class="upcoming">
+<span class="upcoming"><b>9:00p:</b></span>
+<a href="/cgi-bin/show?id=9099">Whatever Forever</a>
+</div>
+<div class="upcoming">
+<span class="upcoming"><b>10:00p:</b></span>
+<a href="/cgi-bin/show?eid=34175">Under the Sun</a>
+</div>
+<div class="upcoming">
+<span class="upcoming"><b>11:00p:</b></span>
+<a href="/cgi-bin/show?id=9056">Music for Eels</a> 
+</div>
+<div class="upcoming">
+<span class="upcoming"><b>12:00m:</b></span>
+<a href="/cgi-bin/show?eid=34168">Radio Ninja (rebroadcast)</a>
+</div>
+</wmbr_upcoming>
+</wmbr_dynamic>`;
+
 // Mock playlist response (JSON format from alexandersimoes.com)
-const mockPlaylistResponse = {
+const mockPlaylistResponse: PlaylistResponse = {
   show_name: 'Post-tentious',
   date: '2024-11-05',
   playlist_id: '12345',
@@ -276,17 +324,43 @@ const mockPlaylistResponse = {
 
 /**
  * Mock fetch implementation that returns appropriate responses based on URL
+ *
+ * To use custom data in a test, create a new jest spy with createMockFetch
+ * and pass in overrides for the desired endpoints. For example:
+ *
+ * ```
+ * jest.spyOn(global, 'fetch').mockImplementation(
+ *   createMockFetch({
+ *     scheduleXml,
+ *     playlistResponse,
+ *     nowPlayingXml,
+ *   }),
+ * );
+ * ```
  */
-export function createMockFetch(): jest.Mock {
+export function createMockFetch(options?: {
+  scheduleXml?: string;
+  archivesXml?: string;
+  nowPlayingXml?: string;
+  playlistResponse?: typeof mockPlaylistResponse;
+}): jest.Mock {
+  // Backwards-compatible: allow passing a string (scheduleXml) or an options object
+  const effectiveScheduleXml = options?.scheduleXml || scheduleXml;
+  const effectiveArchivesXml = options?.archivesXml || archivesXml;
+  const effectivePlaylistResponse =
+    options?.playlistResponse || mockPlaylistResponse;
+  const effectiveNowPlayingXml = options?.nowPlayingXml || nowPlayingXml;
+
+  // Allow callers to override the default schedule XML for deterministic tests
   return jest.fn((url: string) => {
     const urlStr = url.toString();
 
-    // Schedule endpoint
+    // Schedule endpoint - use the effective schedule XML (can be overridden by caller)
     if (urlStr.includes('wmbr.org/cgi-bin/xmlsched')) {
       return Promise.resolve({
         ok: true,
         status: 200,
-        text: () => Promise.resolve(scheduleXml),
+        text: () => Promise.resolve(effectiveScheduleXml),
       } as Response);
     }
 
@@ -295,7 +369,16 @@ export function createMockFetch(): jest.Mock {
       return Promise.resolve({
         ok: true,
         status: 200,
-        text: () => Promise.resolve(archivesXml),
+        text: () => Promise.resolve(effectiveArchivesXml),
+      } as Response);
+    }
+
+    // Now playing metadata endpoint
+    if (urlStr.includes('wmbr.org/dynamic.xml')) {
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        text: () => Promise.resolve(effectiveNowPlayingXml),
       } as Response);
     }
 
@@ -306,7 +389,7 @@ export function createMockFetch(): jest.Mock {
         return Promise.resolve({
           ok: true,
           status: 200,
-          json: () => Promise.resolve(mockPlaylistResponse),
+          json: () => Promise.resolve(effectivePlaylistResponse),
         } as Response);
       }
 

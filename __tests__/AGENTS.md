@@ -42,11 +42,11 @@ Render stacks/containers for navigation-dependent components. Example: prefer `r
 
 ### Avoid over-mocking
 
-- Do **not** mock:
-  - anything in the `/src/services` directory (`ScheduleService`, `RecentlyPlayedService`, etc.)
-  - utilities
-  - constants
-  - pure transforms
+Do **not** mock:
+- anything in the `/src/services` directory (`ScheduleService`, `RecentlyPlayedService`, etc.)
+- utilities
+- constants
+- pure transforms
 
 **Why:** Preserves refactor resilience, exercises real parsing & transformation paths. Real services run: XML parsing (`react-native-xml2js`), playlist mapping → `ProcessedSong[]`, alternating logic.
 
@@ -69,6 +69,11 @@ global.fetch = createMockFetch(); // Provides XML + playlist mocks
 ```
 
 To extend playlist mock, add seeded JSON responses in `__mocks__/MockNetworkResponses.ts` and return them from `createMockFetch()` by detecting the show name in the playlist URL (`show_name` or the show string).
+
+You can generate new mock data with functions in `src/utils/TestUtils.ts`:
+- `generateNowPlayingXml()`
+- `generateScheduleXml()`
+- `generatePlaylistResponse()`
 
 Example (inside `__mocks__/MockNetworkResponses.ts`):
 ```ts

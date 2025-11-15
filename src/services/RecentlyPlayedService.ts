@@ -1,4 +1,9 @@
-import { Show, Archive, ProcessedSong, ShowGroup } from '@customTypes/RecentlyPlayed';
+import {
+  Show,
+  Archive,
+  ProcessedSong,
+  ShowGroup,
+} from '@customTypes/RecentlyPlayed';
 import { ScheduleService } from './ScheduleService';
 import { ScheduleShow } from '@customTypes/Schedule';
 import { parseString } from 'react-native-xml2js';

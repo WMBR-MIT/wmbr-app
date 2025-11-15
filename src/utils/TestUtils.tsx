@@ -50,22 +50,29 @@ export function RecentlyPlayedServiceWrapper({
   return <>{children}</>;
 }
 
-export function generatePlaylistResponse() {
-  const todayIso = new Date().toISOString().split('T')[0];
-  const todayYMD = todayIso.replace(/-/g, '/');
+export function generatePlaylistResponse(options?: {
+  date?: Date;
+  showName?: string;
+}) {
+  const effectiveDate = options?.date ?? new Date();
+  const effectiveShowName = options?.showName ?? 'Post-tentious';
+
+  const dateIso = effectiveDate.toISOString().split('T')[0];
+  const dateYMD = dateIso.replace(/-/g, '/');
+
   return {
-    show_name: 'Post-tentious',
-    date: todayIso,
+    show_name: effectiveShowName,
+    date: dateIso,
     playlist_id: 'test-123',
     songs: [
       {
-        time: `${todayYMD} 21:30:00`,
+        time: `${dateYMD} 21:30:00`,
         artist: 'Fugazi',
         song: 'Waiting Room',
         album: '13 Songs',
       },
       {
-        time: `${todayYMD} 21:33:00`,
+        time: `${dateYMD} 21:33:00`,
         artist: 'Slint',
         song: 'Breadcrumb Trail',
         album: 'Spiderland',
@@ -74,7 +81,9 @@ export function generatePlaylistResponse() {
   };
 }
 
-export function generateNowPlayingXml(name?: string) {
+export function generateNowPlayingXml(options?: { showname?: string }) {
+  const effectiveShowName = options?.showname ?? 'Post-tentious';
+
   return `<wmbr_dynamic version="1.0">
 <wmbr_info>
 Sat 4:29 PM : now playing: &nbsp;
@@ -83,7 +92,7 @@ Sat 4:29 PM : now playing: &nbsp;
 mostly cloudy, 44°F
 </wmbr_info>
 <wmbr_show>
-<b>${name || 'Post-tentious'}</b>
+<b>${effectiveShowName}</b>
 </wmbr_show>
 <wmbr_twitter/>
 <wmbr_plays>
@@ -126,8 +135,12 @@ mostly cloudy, 44°F
 </wmbr_dynamic>`;
 }
 
-export function generateScheduleXml(options?: { date: Date }) {
+export function generateScheduleXml(options?: {
+  date?: Date;
+  showName?: string;
+}) {
   const effectiveDate = options?.date ?? new Date();
+  const effectiveShowName = options?.showName ?? 'Post-tentious';
   const dayNum = effectiveDate.getDay(); // 0=Sunday .. 6=Saturday
   // Use the current time (minutes from midnight) so the show is considered "now playing"
   const minutesFromMidnight =
@@ -141,22 +154,15 @@ export function generateScheduleXml(options?: { date: Date }) {
   const timeStr = `${hour12}:${minutePadded}${ampm}`;
 
   // Derive a proper day_str (e.g. "Tuesday") expected by ScheduleService.parseShows
-  const dayNames = [
-    'Sunday',
-    'Monday',
-    'Tuesday',
-    'Wednesday',
-    'Thursday',
-    'Friday',
-    'Saturday',
-  ];
-
-  const dayName = dayNames[dayNum] || 'Unknown';
+  // Use Intl.DateTimeFormat for a locale-aware weekday name
+  const dayName = new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(
+    effectiveDate,
+  );
 
   return `<?xml version="1.0" encoding="utf-8" ?>
 <wmbr_schedule>
 <show id="9007">
-<name>Post-tentious</name>
+<name>${effectiveShowName}</name>
 <day>${dayNum}</day>
 <day_str>${dayName}</day_str>
 <time>${minutesFromMidnight}</time>

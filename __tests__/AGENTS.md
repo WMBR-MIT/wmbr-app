@@ -42,7 +42,11 @@ Render stacks/containers for navigation-dependent components. Example: prefer `r
 
 ### Avoid over-mocking
 
-- Do **not** mock: Services (`ScheduleService`, `RecentlyPlayedService`), utilities, constants, pure transforms
+- Do **not** mock:
+  - anything in the `/src/services` directory (`ScheduleService`, `RecentlyPlayedService`, etc.)
+  - utilities
+  - constants
+  - pure transforms
 
 **Why:** Preserves refactor resilience, exercises real parsing & transformation paths. Real services run: XML parsing (`react-native-xml2js`), playlist mapping → `ProcessedSong[]`, alternating logic.
 

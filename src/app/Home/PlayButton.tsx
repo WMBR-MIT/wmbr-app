@@ -1,6 +1,6 @@
 import React, { useCallback, useRef, useEffect } from 'react';
 import { View, TouchableOpacity, StyleSheet, Animated } from 'react-native';
-import { SvgXml } from 'react-native-svg';
+import Icon from 'react-native-vector-icons/Ionicons';
 import { State, usePlaybackState } from 'react-native-track-player';
 import { CORE_COLORS } from '../../utils/Colors';
 
@@ -87,17 +87,9 @@ export default function PlayButton({
             <View style={styles.buttonContent}>
               <View style={styles.iconContainer}>
                 {isPlaying ? (
-                  <View style={[styles.stopSquare]} />
+                  <Icon name="stop" size={64} color={CORE_COLORS.WMBR_GREEN} />
                 ) : (
-                  <SvgXml
-                    xml={`
-                      <svg viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
-                        <polygon points="6,4 30,18 6,32" fill="#FFFFFF" />
-                      </svg>
-                    `}
-                    width={40}
-                    height={40}
-                  />
+                  <Icon name="play" size={64} color="#FFFFFF" />
                 )}
               </View>
             </View>
@@ -160,15 +152,5 @@ const styles = StyleSheet.create({
   iconContainer: {
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  stopIcon: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  stopSquare: {
-    width: 36,
-    height: 36,
-    backgroundColor: CORE_COLORS.WMBR_GREEN,
-    borderRadius: 2,
   },
 });

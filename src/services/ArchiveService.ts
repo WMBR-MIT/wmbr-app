@@ -58,7 +58,7 @@ export class ArchiveService {
         url: archive.url,
         title: `${show.name} - Archive`,
         artist: `${DEFAULT_NAME} - ${archive.date}`,
-        artwork: require('../../../assets/cover.png'),
+        artwork: require('../../assets/cover.png'),
       };
 
       // Add and play archive
@@ -94,7 +94,7 @@ export class ArchiveService {
         url: this.currentState.liveStreamUrl,
         title: DEFAULT_NAME,
         artist: currentShowTitle || 'Live Radio',
-        artwork: require('../../../assets/cover.png'),
+        artwork: require('../../assets/cover.png'),
       };
 
       // Add and play live stream

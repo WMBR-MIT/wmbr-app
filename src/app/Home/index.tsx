@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
-import { debugError } from '../../utils/Debug';
+import { debugError } from '@utils/Debug';
 import {
   View,
   Text,

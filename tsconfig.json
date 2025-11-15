@@ -6,7 +6,8 @@
       "@components/*": ["./src/components/*"],
       "@services/*": ["./src/services/*"],
       "@utils/*": ["./src/utils/*"],
-      "@customTypes/*": ["./src/types/*"]
+      "@customTypes/*": ["./src/types/*"],
+      "@app/*": ["./src/app/*"]
     }
   }
 }

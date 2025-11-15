@@ -24,7 +24,7 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
-import { debugLog, debugError } from '../../utils/Debug';
+import { debugLog, debugError } from '@utils/Debug';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -32,9 +32,9 @@ import Animated, {
   Easing,
   runOnJS,
 } from 'react-native-reanimated';
-import { Show, Archive } from '../../types/RecentlyPlayed';
-import { WmbrRouteName } from '../../types/Navigation';
-import { ArchiveService } from '../../services/ArchiveService';
+import { Show, Archive } from '@customTypes/RecentlyPlayed';
+import { WmbrRouteName } from '@customTypes/Navigation';
+import { ArchiveService } from '@services/ArchiveService';
 import {
   useProgress,
   usePlaybackState,
@@ -42,18 +42,18 @@ import {
 } from 'react-native-track-player';
 import TrackPlayer from 'react-native-track-player';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import { ShowImage } from '../../components/ShowImage';
+import { ShowImage } from '@components/ShowImage';
 import {
   formatDate,
   getDurationFromSize,
   formatShowTime,
   secondsToTime,
-} from '../../utils/DateTime';
-import { COLORS } from '../../utils/Colors';
+} from '@utils/DateTime';
+import { COLORS } from '@utils/Colors';
 import {
   generateDarkGradientColors,
   generateGradientColors,
-} from '../../utils/GradientColors';
+} from '@utils/GradientColors';
 
 const { width } = Dimensions.get('window');
 const CIRCLE_DIAMETER = 16;

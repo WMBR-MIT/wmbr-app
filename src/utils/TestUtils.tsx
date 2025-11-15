@@ -10,6 +10,10 @@ import { debugError } from '../utils/Debug';
 /**
  * This is currently needed to set the current show metadata for testing
  * RecentlyPlayed, for instance.
+ *
+ * In practice, this is handled by `Home/index.tsx`, but we don't want to have
+ * to include that component in all our tests, so we create this lightweight
+ * wrapper instead.
  */
 function RecentlyPlayedServiceWrapper({
   children,

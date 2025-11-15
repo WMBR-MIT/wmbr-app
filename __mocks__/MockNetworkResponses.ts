@@ -3,11 +3,6 @@ import {
   generatePlaylistResponse,
 } from '../src/utils/TestUtils';
 
-/**
- * Mock network responses for fetch calls in tests.
- * This allows tests to work with real service code while mocking at the network boundary.
- */
-
 // Sample schedule XML from wmbr.org/cgi-bin/xmlsched
 const scheduleXml = `<?xml version="1.0" encoding="utf-8" ?>
 <wmbr_schedule season_id="73" season_name="Fall/Winter 2025" season_start="Mon, 22 Sep 2025 14:00:00 GMT" season_end="Sat, 28 Feb 2026 15:00:00 GMT" last_update="Tue, 11 Nov 2025 13:01:06 GMT" daystart="240">

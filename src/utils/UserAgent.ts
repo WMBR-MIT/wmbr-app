@@ -1,4 +1,5 @@
 import { Platform } from 'react-native';
+import packageJson from '../../package.json';
 
 /**
  * Generates a platform-specific user agent string for HTTP requests.
@@ -10,7 +11,7 @@ import { Platform } from 'react-native';
  *   - "WMBRApp/0.0.1 (Android; SDK 33)"
  */
 export function getUserAgent(): string {
-  const version = '0.0.1'; // Should match package.json version
+  const version = packageJson.version;
   const osVersion = Platform.Version;
   
   if (Platform.OS === 'ios') {

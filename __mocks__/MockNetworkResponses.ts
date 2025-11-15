@@ -278,7 +278,6 @@ export function createMockFetch(options?: {
   nowPlayingXml?: string;
   playlistResponse?: typeof mockPlaylistResponse;
 }): jest.Mock {
-  // Backwards-compatible: allow passing a string (scheduleXml) or an options object
   const effectiveScheduleXml = options?.scheduleXml || scheduleXml;
   const effectiveArchivesXml = options?.archivesXml || archivesXml;
   const effectivePlaylistResponse =

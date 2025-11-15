@@ -2,6 +2,7 @@ import {
   generateNowPlayingXml,
   generatePlaylistResponse,
 } from '../src/utils/TestUtils';
+import { PlaylistResponse } from '../src/types/Playlist';
 
 // Sample schedule XML from wmbr.org/cgi-bin/xmlsched
 const scheduleXml = `<?xml version="1.0" encoding="utf-8" ?>
@@ -276,7 +277,7 @@ export function createMockFetch(options?: {
   scheduleXml?: string;
   archivesXml?: string;
   nowPlayingXml?: string;
-  playlistResponse?: typeof mockPlaylistResponse;
+  playlistResponse?: PlaylistResponse;
 }): jest.Mock {
   const effectiveScheduleXml = options?.scheduleXml || scheduleXml;
   const effectiveArchivesXml = options?.archivesXml || archivesXml;

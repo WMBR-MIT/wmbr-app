@@ -185,7 +185,7 @@ export default function ShowDetailsPage() {
                       onPress={() => handleArchiveRowPress(archive)}
                       activeOpacity={0.7}
                     >
-                      <View style={styles.archiveFirstRow}>
+                      <View style={styles.archiveDetails}>
                         <View style={styles.archiveInfoContainer}>
                           <View style={styles.archiveInfo}>
                             <Text
@@ -308,7 +308,7 @@ const styles = StyleSheet.create({
     position: 'relative',
     overflow: 'hidden',
   },
-  archiveFirstRow: {
+  archiveDetails: {
     flexDirection: 'row',
     alignItems: 'center',
     width: '100%',

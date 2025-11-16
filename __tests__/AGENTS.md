@@ -6,8 +6,9 @@
 import { render, screen, userEvent } from '@testing-library/react-native';
 import { ScheduleStack } from '../src/app/Schedule';
 import { TestWrapper } from '../src/utils/TestUtils';
-// TestWrapper includes SafeAreaProvider and NavigationContainer. Only necessary
-for components that depend on those contextswraps.
+// TestWrapper includes SafeAreaProvider, NavigationContainer, and
+// MetadataServiceWrapper. Only necessary for components that depend
+// on those contexts.
 
 describe('', () => {
   test('shows schedule and navigates to details', async () => {
@@ -38,12 +39,19 @@ Render stacks/containers for navigation-dependent components. Example: prefer `r
 
 ### Mock at boundaries, not internals
 
-- Mock: `fetch`, native modules, console, non-deterministic functions
+Mock: `fetch`, native modules, console, non-deterministic functions
 
 ### Avoid over-mocking
 
 Do **not** mock:
-- anything in the `/src/services` directory (`ScheduleService`, `RecentlyPlayedService`, etc.)
+- anything in the `/src/services` directory
+  - `ArchiveService`
+  - `AudioPreviewService`
+  - `MetadataService`
+  - `PlaylistService`
+  - `RecentlyPlayedService`
+  - `ScheduleService`
+  - `TrackPlayerService`
 - utilities
 - constants
 - pure transforms
@@ -65,7 +73,7 @@ Add new mocks only if they introduce true external nondeterminism.
 
 ```typescript
 // jest.setup.ts
-global.fetch = createMockFetch(); // Provides XML + playlist mocks
+jest.spyOn(global, 'fetch').mockImplementation(createMockFetch());
 ```
 
 To extend playlist mock, add seeded JSON responses in `__mocks__/MockNetworkResponses.ts` and return them from `createMockFetch()` by detecting the show name in the playlist URL (`show_name` or the show string).

@@ -158,12 +158,6 @@ const styles = StyleSheet.create({
     paddingTop: 20,
   },
   logoRow: { alignItems: 'center', marginBottom: 20, marginTop: 20 },
-  title: {
-    color: COLORS.TEXT.PRIMARY,
-    fontSize: 22,
-    fontWeight: '700',
-    marginBottom: 8,
-  },
   body: {
     color: COLORS.TEXT.SECONDARY,
     fontSize: 15,
@@ -171,7 +165,6 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   infoRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
-  infoText: { color: COLORS.TEXT.PRIMARY, marginLeft: 8 },
   actionsRow: { flexDirection: 'row', marginTop: 16, gap: 12 },
   button: {
     flexDirection: 'row',
@@ -196,8 +189,6 @@ const styles = StyleSheet.create({
   buttonOutlineText: { color: COLORS.BUTTON.PRIMARY.TEXT },
   socialRow: { flexDirection: 'row', marginTop: 18 },
   socialButton: { marginRight: 12 },
-  versionRow: { marginTop: 40, alignItems: 'center' },
-  versionText: { color: '#777' },
   linkText: { color: COLORS.TEXT.LINK, textDecorationLine: 'underline' },
   smallText: { color: '#AAAAAA', fontSize: 12, marginTop: 2 },
   section: { marginTop: 12, marginBottom: 8 },
@@ -216,7 +207,6 @@ const styles = StyleSheet.create({
     marginTop: 8,
     marginBottom: 6,
   },
-  phoneContainer: { marginLeft: 8 },
   textBlock: {
     marginLeft: 12,
     flex: 1,

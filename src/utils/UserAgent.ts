@@ -4,7 +4,7 @@ import packageJson from '../../package.json';
 /**
  * Generates a platform-specific user agent string for HTTP requests.
  * This helps servers identify iOS vs Android clients.
- * 
+ *
  * Format: WMBRApp/{version} ({platform}; {os})
  * Examples:
  *   - "WMBRApp/0.0.1 (iOS; iPhone)"
@@ -13,7 +13,7 @@ import packageJson from '../../package.json';
 export function getUserAgent(): string {
   const version = packageJson.version;
   const osVersion = Platform.Version;
-  
+
   if (Platform.OS === 'ios') {
     return `WMBRApp/${version} (iOS; iPhone)`;
   } else {

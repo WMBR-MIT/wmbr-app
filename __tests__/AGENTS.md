@@ -1,26 +1,39 @@
 # Testing Guidelines
 
+## General Guidelines
+
+- Often, as you work to solve a failing test, you engineer approaches that
+    become way too complex. Just as often, the solution is something much much
+    simpler, like an async issue, or a misunderstanding of how the component
+    works. When in doubt, step back and re-evaluate.
+- Import things like screen, waitFor, act, etc. from
+    `@testing-library/react-native` only, not from
+    `react-native-testing-library`.
+
 ## Recommended Test Patterns
 
 ```typescript
 import { render, screen, userEvent } from '@testing-library/react-native';
 import { ScheduleStack } from '../src/app/Schedule';
 import { TestWrapper } from '../src/utils/TestUtils';
-// TestWrapper includes SafeAreaProvider and NavigationContainer. Only necessary
-for components that depend on those contextswraps.
+// TestWrapper includes SafeAreaProvider, NavigationContainer, and
+// MetadataServiceWrapper. Only necessary for components that depend
+// on those contexts.
 
-test('shows schedule and navigates to details', async () => {
-  const user = userEvent.setup();
-  render(<ScheduleStack />, { wrapper: TestWrapper });
+describe('', () => {
+  test('shows schedule and navigates to details', async () => {
+    const user = userEvent.setup();
+    render(<ScheduleStack />, { wrapper: TestWrapper });
 
-  // Wait for a known show from mock schedule XML
-  expect(await screen.findByText('Africa Kabisa')).toBeTruthy();
+    // Wait for a known show from mock schedule XML
+    expect(await screen.findByText('Africa Kabisa')).toBeTruthy();
 
-  // Navigate into details (archives fetch via RecentlyPlayedService)
-  await user.press(screen.getByText('Africa Kabisa'));
+    // Navigate into details (archives fetch via RecentlyPlayedService)
+    await user.press(screen.getByText('Africa Kabisa'));
 
-  // Header/title or archive-related content appears
-  expect(await screen.findByText(/Show Details|Archived Show/i)).toBeTruthy();
+    // Header/title or archive-related content appears
+    expect(await screen.findByText(/Show Details|Archived Show/i)).toBeTruthy();
+  });
 });
 ```
 
@@ -36,11 +49,22 @@ Render stacks/containers for navigation-dependent components. Example: prefer `r
 
 ### Mock at boundaries, not internals
 
-- Mock: `fetch`, native modules, console, non-deterministic functions
+Mock: `fetch`, native modules, console, non-deterministic functions
 
 ### Avoid over-mocking
 
-- Do **not** mock: Services (`ScheduleService`, `RecentlyPlayedService`), utilities, constants, pure transforms
+Do **not** mock:
+- anything in the `/src/services` directory
+  - `ArchiveService`
+  - `AudioPreviewService`
+  - `MetadataService`
+  - `PlaylistService`
+  - `RecentlyPlayedService`
+  - `ScheduleService`
+  - `TrackPlayerService`
+- utilities
+- constants
+- pure transforms
 
 **Why:** Preserves refactor resilience, exercises real parsing & transformation paths. Real services run: XML parsing (`react-native-xml2js`), playlist mapping → `ProcessedSong[]`, alternating logic.
 
@@ -59,10 +83,15 @@ Add new mocks only if they introduce true external nondeterminism.
 
 ```typescript
 // jest.setup.ts
+jest.spyOn(global, 'fetch').mockImplementation(createMockFetch());
 global.fetch = createMockFetch(); // Provides XML + playlist mocks
 ```
 
 To extend playlist mock, add seeded JSON responses in `__mocks__/MockNetworkResponses.ts` and return them from `createMockFetch()` by detecting the show name in the playlist URL (`show_name` or the show string).
+
+You can generate new mock data with functions in `src/utils/TestUtils.ts`:
+- `generateScheduleXml()`
+- `generatePlaylistResponse()`
 
 Example (inside `__mocks__/MockNetworkResponses.ts`):
 ```ts
@@ -77,7 +106,7 @@ const mockPlaylistForNewShow: PlaylistResponse = {
 
 // In createMockFetch():
 if (urlStr.includes('alexandersimoes.com/get_playlist')) {
-  if (urlStr.includes('New+Show') || urlStr.includes('New-Show') || urlStr.includes('New Show')) {
+  if (urlStr.includes('New%20Show') { // Show names are URL-encoded
     return Promise.resolve({
       ok: true,
       status: 200,
@@ -86,6 +115,14 @@ if (urlStr.includes('alexandersimoes.com/get_playlist')) {
   }
   // existing branches...
 }
+```
+
+## Running Tests
+
+Run tests from the repository root using npx (avoid npm argument forwarding). For machine-readable output (best for an LLM), run one test file and produce a JSON result. For example, to test `RecentlyPlayed.test.tsx`:
+
+````bash
+npx jest __tests__/RecentlyPlayed.test.tsx --runInBand --json --testLocationInResults
 ```
 
 ---

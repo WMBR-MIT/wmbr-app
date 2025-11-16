@@ -6,13 +6,9 @@ import { CORE_COLORS } from '../../utils/Colors';
 
 interface PlayButtonProps {
   onPress: () => void;
-  isPlayerInitialized: boolean;
 }
 
-export default function PlayButton({
-  onPress,
-  isPlayerInitialized: _isPlayerInitialized,
-}: PlayButtonProps) {
+export default function PlayButton({ onPress }: PlayButtonProps) {
   const playbackState = usePlaybackState();
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const rotateAnim = useRef(new Animated.Value(0)).current;

@@ -1,5 +1,15 @@
 # Testing Guidelines
 
+## General Guidelines
+
+- Often, as you work to solve a failing test, you engineer approaches that
+    become way too complex. Just as often, the solution is something much much
+    simpler, like an async issue, or a misunderstanding of how the component
+    works. When in doubt, step back and re-evaluate.
+- Import things like screen, waitFor, act, etc. from
+    `@testing-library/react-native` only, not from
+    `react-native-testing-library`.
+
 ## Recommended Test Patterns
 
 ```typescript

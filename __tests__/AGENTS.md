@@ -96,7 +96,7 @@ const mockPlaylistForNewShow: PlaylistResponse = {
 
 // In createMockFetch():
 if (urlStr.includes('alexandersimoes.com/get_playlist')) {
-  if (urlStr.includes('New+Show') || urlStr.includes('New-Show') || urlStr.includes('New Show')) {
+  if (urlStr.includes('New%20Show') { // Show names are URL-encoded
     return Promise.resolve({
       ok: true,
       status: 200,

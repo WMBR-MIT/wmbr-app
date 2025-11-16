@@ -79,12 +79,9 @@ Add new mocks only if they introduce true external nondeterminism.
 
 ### Playlist and schedule mocks
 
-`global.fetch` via `__mocks__/MockNetworkResponses.ts` (network boundary)
-
 ```typescript
 // jest.setup.ts
 jest.spyOn(global, 'fetch').mockImplementation(createMockFetch());
-global.fetch = createMockFetch(); // Provides XML + playlist mocks
 ```
 
 To extend playlist mock, add seeded JSON responses in `__mocks__/MockNetworkResponses.ts` and return them from `createMockFetch()` by detecting the show name in the playlist URL (`show_name` or the show string).

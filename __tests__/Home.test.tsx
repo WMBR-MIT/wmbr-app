@@ -30,6 +30,18 @@ describe('Home Screen', () => {
     expect(TrackPlayer.play).toHaveBeenCalled();
   });
 
+  test('pressing Play while an audio preview is active adds the live stream then plays', async () => {
+    const user = userEvent.setup();
+    await renderAsync(<HomeScreen />, { wrapper: TestWrapper });
+    const playButton = await screen.findByLabelText('Play Button');
+    await user.press(playButton);
+
+    // Main stream should be added to TrackPlayer
+    expect(TrackPlayer.add).toHaveBeenCalledWith(
+      expect.objectContaining({ url: 'https://wmbr.org:8002/hi' }),
+    );
+  });
+
   test('pressing Pause calls TrackPlayer.pause()', async () => {
     const user = userEvent.setup();
 

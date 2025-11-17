@@ -53,8 +53,6 @@ export default function ArchivedShowView() {
   const [error, setError] = useState<string | null>(null);
   const [isArchivePlaying, setIsArchivePlaying] = useState(false);
 
-  // Shared values for gesture handling
-
   const playlistService = PlaylistService.getInstance();
   const archiveService = ArchiveService.getInstance();
 

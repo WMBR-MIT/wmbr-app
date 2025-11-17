@@ -16,9 +16,8 @@
 import { render, screen, userEvent } from '@testing-library/react-native';
 import { ScheduleStack } from '../src/app/Schedule';
 import { TestWrapper } from '../src/utils/TestUtils';
-// TestWrapper includes SafeAreaProvider, NavigationContainer, and
-// MetadataServiceWrapper. Only necessary for components that depend
-// on those contexts.
+// TestWrapper includes SafeAreaProvider and NavigationContainer. Only necessary
+// for components that depend on those contexts.
 
 describe('', () => {
   test('shows schedule and navigates to details', async () => {

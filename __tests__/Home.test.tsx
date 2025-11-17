@@ -30,7 +30,7 @@ describe('Home Screen', () => {
     expect(TrackPlayer.play).toHaveBeenCalled();
   });
 
-  test('pressing Play while an audio preview is active adds the live stream then plays', async () => {
+  test('pressing Play adds the live stream', async () => {
     const user = userEvent.setup();
     await renderAsync(<HomeScreen />, { wrapper: TestWrapper });
     const playButton = await screen.findByLabelText('Play Button');

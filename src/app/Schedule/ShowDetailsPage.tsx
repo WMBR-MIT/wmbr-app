@@ -139,7 +139,7 @@ export default function ShowDetailsPage() {
     }
   };
 
-  // Update current progress to playback position, as long as use is not
+  // Update current progress to playback position, as long as user is not
   // currently sliding
   useEffect(() => {
     !isSliding && setCurrentPosition(progress.position);

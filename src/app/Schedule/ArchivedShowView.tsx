@@ -48,12 +48,12 @@ export default function ArchivedShowView() {
   const progress = useProgress();
   const playbackState = usePlaybackState();
 
-  const [currentPosition, setCurrentPosition] = useState<number>(0);
-
   const [playlist, setPlaylist] = useState<PlaylistResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isArchivePlaying, setIsArchivePlaying] = useState(false);
+
+  const [currentPosition, setCurrentPosition] = useState<number>(0);
   const [isSliding, setIsSliding] = useState<boolean>(false);
 
   const playlistService = PlaylistService.getInstance();
@@ -109,7 +109,7 @@ export default function ArchivedShowView() {
     return unsubscribe;
   }, [archive.url, archiveService]);
 
-  // Update current progress to playback position, as long as use is not
+  // Update current progress to playback position, as long as user is not
   // currently sliding
   useEffect(() => {
     !isSliding && setCurrentPosition(progress.position);

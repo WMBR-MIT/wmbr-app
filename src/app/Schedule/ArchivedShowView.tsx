@@ -347,7 +347,6 @@ const styles = StyleSheet.create({
     maxWidth: 300,
   },
   timeContainer: {
-    fontVariant: ['tabular-nums'],
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -356,6 +355,7 @@ const styles = StyleSheet.create({
     color: COLORS.TEXT.SECONDARY,
     fontSize: 12,
     fontWeight: '500',
+    fontVariant: ['tabular-nums'],
   },
   slider: {
     width: '100%',

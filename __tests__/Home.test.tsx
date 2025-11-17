@@ -15,6 +15,10 @@ jest.mock('../src/app/Home/SplashScreen', () => (props: any) => {
 });
 
 describe('Home Screen', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    getTrackPlayerTestApi().resetAll();
+  });
   test('track player is set up on home screen', async () => {
     await renderAsync(<HomeScreen />, { wrapper: TestWrapper });
 

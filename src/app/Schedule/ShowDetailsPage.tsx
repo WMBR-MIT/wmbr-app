@@ -143,7 +143,7 @@ export default function ShowDetailsPage() {
   // currently sliding
   useEffect(() => {
     !isSliding && setCurrentPosition(progress.position);
-  }, [isSliding, progress.duration, progress.position]);
+  }, [isSliding, progress.position]);
 
   return (
     <>

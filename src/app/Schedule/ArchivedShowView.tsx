@@ -113,7 +113,7 @@ export default function ArchivedShowView() {
   // currently sliding
   useEffect(() => {
     !isSliding && setCurrentPosition(progress.position);
-  }, [isSliding, progress.duration, progress.position]);
+  }, [isSliding, progress.position]);
 
   // Calculate current progress percentage
   const [gradientStart] = generateGradientColors(show.name);

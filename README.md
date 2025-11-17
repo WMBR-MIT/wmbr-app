@@ -46,6 +46,12 @@ A React Native app for streaming WMBR 88.1 FM and browsing show archives, song h
 
 ## Building for Release
 
+### Bump the version number
+
+```bash
+npx react-native bump-version --type (patch|minor|major)
+```
+
 ### Android Release Setup
 
 - Get `wmbr-upload-key.keystore` file and place in `android/` directory
@@ -77,7 +83,6 @@ Output: `android/app/build/outputs/bundle/release/app-release.aab`
 - **Debug menu**: Press `Cmd + D` in simulator for debug options
 
 ## Troubleshooting
-
 
 ### General Issues
 

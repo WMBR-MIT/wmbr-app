@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -48,10 +48,13 @@ export default function ArchivedShowView() {
   const progress = useProgress();
   const playbackState = usePlaybackState();
 
+  const [currentPosition, setCurrentPosition] = useState<number>(0);
+
   const [playlist, setPlaylist] = useState<PlaylistResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isArchivePlaying, setIsArchivePlaying] = useState(false);
+  const [isSliding, setIsSliding] = useState<boolean>(false);
 
   const playlistService = PlaylistService.getInstance();
   const archiveService = ArchiveService.getInstance();
@@ -105,6 +108,12 @@ export default function ArchivedShowView() {
 
     return unsubscribe;
   }, [archive.url, archiveService]);
+
+  // Update current progress to playback position, as long as use is not
+  // currently sliding
+  useEffect(() => {
+    !isSliding && setCurrentPosition(progress.position);
+  }, [isSliding, progress.duration, progress.position]);
 
   // Calculate current progress percentage
   const [gradientStart] = generateGradientColors(show.name);
@@ -167,11 +176,19 @@ export default function ArchivedShowView() {
             {isArchivePlaying && progress.duration > 0 && (
               <View style={styles.progressSection}>
                 <View style={styles.progressContainer}>
-                  <PlaybackSlider styles={styles.slider} />
+                  <PlaybackSlider
+                    styles={styles.slider}
+                    onValueChange={setCurrentPosition}
+                    onSlidingStart={() => setIsSliding(true)}
+                    onSlidingComplete={value => {
+                      TrackPlayer.seekTo(value * (progress?.duration || 0));
+                      setIsSliding(false);
+                    }}
+                  />
 
                   <View style={styles.timeContainer}>
                     <Text style={styles.timeText}>
-                      {secondsToTime(progress.position)}
+                      {secondsToTime(currentPosition)}
                     </Text>
                     <Text style={styles.timeText}>
                       {secondsToTime(progress.duration)}

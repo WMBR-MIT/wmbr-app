@@ -56,9 +56,11 @@ export default function ShowDetailsPage() {
 
   const headerHeight = useHeaderHeight();
 
-  // State hooks
   const [currentlyPlayingArchive, setCurrentlyPlayingArchive] =
     useState<any>(null);
+
+  const [currentPosition, setCurrentPosition] = useState<number>(0);
+  const [isSliding, setIsSliding] = useState<boolean>(false);
 
   // TrackPlayer hooks - must always be called unconditionally
   const progressHook = useProgress();
@@ -137,6 +139,12 @@ export default function ShowDetailsPage() {
     }
   };
 
+  // Update current progress to playback position, as long as use is not
+  // currently sliding
+  useEffect(() => {
+    !isSliding && setCurrentPosition(progress.position);
+  }, [isSliding, progress.duration, progress.position]);
+
   return (
     <>
       <StatusBar barStyle="light-content" backgroundColor={gradientStart} />
@@ -203,7 +211,7 @@ export default function ShowDetailsPage() {
                               ]}
                             >
                               {isCurrentlyPlaying
-                                ? `${secondsToTime(progress.position)} / ${secondsToTime(progress.duration)}`
+                                ? `${secondsToTime(currentPosition)} / ${secondsToTime(progress.duration)}`
                                 : getDurationFromSize(archive.size)}
                             </Text>
                           </View>
@@ -233,7 +241,17 @@ export default function ShowDetailsPage() {
 
                       {/* Progress bar */}
                       {isCurrentlyPlaying && (
-                        <PlaybackSlider styles={styles.slider} />
+                        <PlaybackSlider
+                          styles={styles.slider}
+                          onValueChange={setCurrentPosition}
+                          onSlidingStart={() => setIsSliding(true)}
+                          onSlidingComplete={value => {
+                            TrackPlayer.seekTo(
+                              value * (progress?.duration || 0),
+                            );
+                            setIsSliding(false);
+                          }}
+                        />
                       )}
                     </TouchableOpacity>
                   );

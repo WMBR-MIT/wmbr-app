@@ -120,7 +120,6 @@ Run tests from the repository root using npx (avoid npm argument forwarding). Fo
 
 ````bash
 npx jest __tests__/RecentlyPlayed.test.tsx --runInBand --json --testLocationInResults
-```
 
 ---
 Resources:

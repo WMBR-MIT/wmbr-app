@@ -27,7 +27,7 @@ export default function PlaybackSlider({
       maximumTrackTintColor={COLORS.BACKGROUND.SECONDARY}
       onValueChange={onValueChange}
       tapToSeek={true}
-      value={progress.position / progress.duration || 0}
+      value={progress.duration > 0 ? progress.position / progress.duration : 0}
     />
   );
 }

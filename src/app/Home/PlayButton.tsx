@@ -7,11 +7,13 @@ import { CORE_COLORS } from '../../utils/Colors';
 interface PlayButtonProps {
   onPress: () => void;
   isPlayerInitialized: boolean;
+  isPlayingArchive?: boolean;
 }
 
 export default function PlayButton({
   onPress,
   isPlayerInitialized: _isPlayerInitialized,
+  isPlayingArchive,
 }: PlayButtonProps) {
   const playbackState = usePlaybackState();
   const pulseAnim = useRef(new Animated.Value(1)).current;
@@ -82,12 +84,30 @@ export default function PlayButton({
             style={[styles.playButton, isPlaying && styles.playButtonActive]}
             onPress={onPress}
             activeOpacity={0.8}
-            aria-label={isPlaying ? 'Stop Button' : 'Play Button'}
+            aria-label={
+              isPlaying
+                ? isPlayingArchive
+                  ? 'Pause Button'
+                  : 'Stop Button'
+                : 'Play Button'
+            }
           >
             <View style={styles.buttonContent}>
               <View style={styles.iconContainer}>
                 {isPlaying ? (
-                  <Icon name="stop" size={64} color={CORE_COLORS.WMBR_GREEN} />
+                  isPlayingArchive ? (
+                    <Icon
+                      name="pause"
+                      size={64}
+                      color={CORE_COLORS.WMBR_GREEN}
+                    />
+                  ) : (
+                    <Icon
+                      name="stop"
+                      size={64}
+                      color={CORE_COLORS.WMBR_GREEN}
+                    />
+                  )
                 ) : (
                   <Icon name="play" size={64} color="#FFFFFF" />
                 )}

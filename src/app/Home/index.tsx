@@ -167,7 +167,11 @@ export default function HomeScreen() {
       const previewState = audioPreviewService.getCurrentState();
 
       if (isPlaying) {
-        await TrackPlayer.stop();
+        if (archiveState.isPlayingArchive) {
+          await TrackPlayer.pause();
+        } else {
+          await TrackPlayer.stop();
+        }
       } else {
         if (previewState.url !== null) {
           await audioPreviewService.stop();
@@ -188,7 +192,12 @@ export default function HomeScreen() {
     } catch (error) {
       debugError('Error toggling playback:', error);
     }
-  }, [currentShow, isPlayerInitialized, isPlaying]);
+  }, [
+    archiveState.isPlayingArchive,
+    currentShow,
+    isPlayerInitialized,
+    isPlaying,
+  ]);
 
   const handleSplashEnd = () => setShowSplash(false);
   const handleSwitchToLive = useCallback(async () => {
@@ -291,6 +300,7 @@ export default function HomeScreen() {
             <PlayButton
               onPress={togglePlayback}
               isPlayerInitialized={isPlayerInitialized}
+              isPlayingArchive={archiveState.isPlayingArchive}
             />
             <View style={styles.bottomInfo}>
               {!archiveState.isPlayingArchive && showDescription && (

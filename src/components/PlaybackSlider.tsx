@@ -7,8 +7,10 @@ import Slider from '@react-native-community/slider';
 
 export default function PlaybackSlider({
   styles,
+  onValueChange,
 }: {
   styles?: StyleProp<ViewStyle>;
+  onValueChange?: (value: number) => void;
 }) {
   const progressHook = useProgress();
 
@@ -21,10 +23,6 @@ export default function PlaybackSlider({
     TrackPlayer.seekTo(value * (progress?.duration || 0));
   };
 
-  const handleValueChange = (value: number) => {
-    TrackPlayer.seekTo(value * (progress?.duration || 0));
-  };
-
   return (
     <Slider
       style={styles}
@@ -33,7 +31,7 @@ export default function PlaybackSlider({
       onSlidingComplete={handleSlidingComplete}
       minimumTrackTintColor={CORE_COLORS.WMBR_GREEN}
       maximumTrackTintColor={COLORS.BACKGROUND.SECONDARY}
-      onValueChange={handleValueChange}
+      onValueChange={onValueChange}
       tapToSeek={true}
       value={progress.position / progress.duration || 0}
     />

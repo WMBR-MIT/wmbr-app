@@ -52,6 +52,13 @@ A React Native app for streaming WMBR 88.1 FM and browsing show archives, song h
 npx react-native bump-version --type (patch|minor|major)
 ```
 
+Tag the current HEAD of `main` branch with the new version number.
+
+```bash
+git tag vX.Y.Z
+git push origin --tags
+```
+
 ### Android Release Setup
 
 - Get `wmbr-upload-key.keystore` file and place in `android/` directory

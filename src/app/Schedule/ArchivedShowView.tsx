@@ -188,7 +188,7 @@ export default function ArchivedShowView() {
   const handlePlayPause = async () => {
     try {
       if (isArchivePlaying && playbackState?.state === State.Playing) {
-        // Pause the current archive
+        // Stop the current archive
         await TrackPlayer.stop();
       } else if (isArchivePlaying && playbackState?.state === State.Paused) {
         // Resume the current archive

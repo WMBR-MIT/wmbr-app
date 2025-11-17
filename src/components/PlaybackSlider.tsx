@@ -1,4 +1,3 @@
-import { useMemo } from 'react';
 import TrackPlayer, { useProgress } from 'react-native-track-player';
 import { ViewStyle, StyleProp } from 'react-native';
 import { COLORS, CORE_COLORS } from '../utils/Colors';
@@ -12,12 +11,7 @@ export default function PlaybackSlider({
   styles?: StyleProp<ViewStyle>;
   onValueChange?: (value: number) => void;
 }) {
-  const progressHook = useProgress();
-
-  const progress = useMemo(
-    () => progressHook || { position: 0, duration: 0 },
-    [progressHook],
-  );
+  const progress = useProgress();
 
   const handleSlidingComplete = (value: number) => {
     TrackPlayer.seekTo(value * (progress?.duration || 0));

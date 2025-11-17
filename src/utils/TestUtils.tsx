@@ -13,7 +13,7 @@ export const TestWrapper = ({ children }: { children: React.ReactNode }) => (
 );
 
 // Test helpers for driving the react-native-track-player mock from tests.
-// These access the __testApi exported by the jest setup mock above.
+// These access the __testApi exported by the mock in __mocks__/react-native-track-player.ts.
 export const getTrackPlayerTestApi = () => {
   const api = require('react-native-track-player')?.default?.__testApi;
 

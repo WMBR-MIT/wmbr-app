@@ -473,26 +473,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#333',
   },
-  stickyDayHeader: {
-    backgroundColor: COLORS.BACKGROUND.ELEVATED,
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#333',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  dayHeaderSticky: {
-    color: COLORS.TEXT.PRIMARY,
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
   showItem: {
     flexDirection: 'row',
     alignItems: 'center',

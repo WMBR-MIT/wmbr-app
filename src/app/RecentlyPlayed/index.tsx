@@ -48,7 +48,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
   },
-  spacer: { width: 40 },
   refreshButton: { width: 40, alignItems: 'center', justifyContent: 'center' },
   refreshText: { color: COLORS.TEXT.PRIMARY, fontSize: 18 },
 });

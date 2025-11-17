@@ -374,13 +374,6 @@ const styles = StyleSheet.create({
     lineHeight: 16,
   },
   showDescriptionActive: { color: '#D0D0D0' },
-  streamingText: {
-    color: CORE_COLORS.WMBR_GREEN,
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  streamingTextActive: { color: COLORS.TEXT.PRIMARY },
-  bottomSpace: { height: 100 },
   liveButton: {
     marginTop: 16,
     paddingHorizontal: 20,

@@ -547,9 +547,6 @@ const styles = StyleSheet.create({
     padding: 8,
     marginRight: -8,
   },
-  playIconDisabled: {
-    opacity: 0.6,
-  },
   progressContainer: {
     position: 'absolute',
     bottom: 0,

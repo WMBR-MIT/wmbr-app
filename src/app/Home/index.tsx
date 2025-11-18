@@ -12,7 +12,6 @@ import {
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 import TrackPlayer, {
-  Capability,
   State,
   usePlaybackState,
 } from 'react-native-track-player';
@@ -37,6 +36,7 @@ import { WmbrRouteName } from '../../types/Navigation';
 import { DEFAULT_NAME } from '../../types/Playlist';
 import { COLORS, CORE_COLORS } from '../../utils/Colors';
 import { formatArchiveDate } from '../../utils/DateTime';
+import { liveCapabilities } from '../../utils/TrackPlayerUtils';
 
 import HomeNowPlaying from './HomeNowPlaying';
 
@@ -63,6 +63,42 @@ export default function HomeScreen() {
 
   const navigation =
     useNavigation<NavigationProp<Record<WmbrRouteName, object | undefined>>>();
+
+  const bottomSpacerStyle = useMemo(
+    () => ({ height: Math.max(insets.bottom + 56, 56) }),
+    [insets.bottom],
+  );
+
+  const setupPlayer = useCallback(async () => {
+    try {
+      // If the player already exists, mark it initialized and skip setup
+      try {
+        await TrackPlayer.getPlaybackState();
+        setIsPlayerInitialized(true);
+        return;
+      } catch (e) {
+        // not initialized yet, proceed
+      }
+
+      await TrackPlayer.setupPlayer();
+
+      await TrackPlayer.updateOptions({
+        capabilities: liveCapabilities,
+      });
+
+      await TrackPlayer.add({
+        id: 'wmbr-stream',
+        url: streamUrl,
+        title: DEFAULT_NAME,
+        artist: 'Live Radio',
+        artwork: require('../../../assets/cover.png'),
+      });
+
+      setIsPlayerInitialized(true);
+    } catch (error) {
+      debugError('Error setting up player:', error);
+    }
+  }, []);
 
   useEffect(() => {
     setupPlayer();
@@ -100,7 +136,7 @@ export default function HomeScreen() {
       unsubscribeSongs();
       unsubscribeArchive();
     };
-  }, []); // Empty dependency array - only run once on mount
+  }, [setupPlayer]);
 
   // Separate useEffect for updating track metadata when show changes
   useEffect(() => {
@@ -124,37 +160,6 @@ export default function HomeScreen() {
 
     updateLiveTrackMetadata();
   }, [currentShow, archiveState.isPlayingArchive, isPlayerInitialized]);
-
-  const setupPlayer = async () => {
-    try {
-      // If the player already exists, mark it initialized and skip setup
-      try {
-        await TrackPlayer.getPlaybackState();
-        setIsPlayerInitialized(true);
-        return;
-      } catch (e) {
-        // not initialized yet, proceed
-      }
-
-      await TrackPlayer.setupPlayer();
-      await TrackPlayer.updateOptions({
-        capabilities: [Capability.Play, Capability.Pause, Capability.Stop],
-        compactCapabilities: [Capability.Play, Capability.Pause],
-      });
-
-      await TrackPlayer.add({
-        id: 'wmbr-stream',
-        url: streamUrl,
-        title: DEFAULT_NAME,
-        artist: 'Live Radio',
-        artwork: require('../../../assets/cover.png'),
-      });
-
-      setIsPlayerInitialized(true);
-    } catch (error) {
-      debugError('Error setting up player:', error);
-    }
-  };
 
   const togglePlayback = useCallback(async () => {
     if (!isPlayerInitialized) {
@@ -200,6 +205,7 @@ export default function HomeScreen() {
   ]);
 
   const handleSplashEnd = () => setShowSplash(false);
+
   const handleSwitchToLive = useCallback(async () => {
     try {
       await ArchiveService.getInstance().switchToLive(currentShow);
@@ -207,11 +213,6 @@ export default function HomeScreen() {
       debugError('Error switching to live:', e);
     }
   }, [currentShow]);
-
-  const bottomSpacerStyle = useMemo(
-    () => ({ height: Math.max(insets.bottom + 56, 56) }),
-    [insets.bottom],
-  );
 
   const handleOpenShowDetails = useCallback(() => {
     const show = archiveState.currentShow;

@@ -139,3 +139,13 @@ export const formatArchiveDate = (dateString: string) => {
     year: 'numeric',
   });
 };
+
+export const dayNames = [
+  'Sunday',
+  'Monday',
+  'Tuesday',
+  'Wednesday',
+  'Thursday',
+  'Friday',
+  'Saturday',
+];

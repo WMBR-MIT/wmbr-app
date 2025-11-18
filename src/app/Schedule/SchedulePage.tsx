@@ -225,7 +225,7 @@ export default function SchedulePage({ currentShow }: SchedulePageProps) {
                         isCurrent && styles.currentShowTime,
                       ]}
                     >
-                      {scheduleService.formatTime(show.time_str)}
+                      {scheduleService.formatTime(parseInt(show.time, 10))}
                     </Text>
                   </View>
 

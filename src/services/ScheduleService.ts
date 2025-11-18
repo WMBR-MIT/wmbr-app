@@ -124,7 +124,10 @@ export class ScheduleService {
 
   // Helper method to format time for display (just start time)
   formatTime(timeStr: string): string {
-    return timeStr;
+    // Convert "12:00m" (midnight) to "12:00am" and "12:00n" (noon) to "12:00pm"
+    return timeStr
+      .replace(/12:00m\b/g, '12:00am')
+      .replace(/12:00n\b/g, '12:00pm');
   }
 
   // Helper method to determine if alternating show is active this week

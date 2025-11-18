@@ -141,6 +141,36 @@ const scheduleXml = `<?xml version="1.0" encoding="utf-8" ?>
 <email></email>
 <description>post music for post people.</description>
 </show>
+<show id="9100">
+<name>Midnight Special</name>
+<day>3</day>
+<day_str>Wednesday</day_str>
+<time>0</time>
+<time_str>12:00m</time_str>
+<length>60</length>
+<alternates>0</alternates>
+<hosts>Night Owl</hosts>
+<multihosts>0</multihosts>
+<producers>999</producers>
+<url></url>
+<email></email>
+<description>Late night music at midnight.</description>
+</show>
+<show id="9101">
+<name>Noon Day Sun</name>
+<day>4</day>
+<day_str>Thursday</day_str>
+<time>720</time>
+<time_str>12:00n</time_str>
+<length>60</length>
+<alternates>0</alternates>
+<hosts>Sunny Day</hosts>
+<multihosts>0</multihosts>
+<producers>998</producers>
+<url></url>
+<email></email>
+<description>Midday music at noon.</description>
+</show>
 </wmbr_schedule>`;
 
 // Mock XML for archives endpoint (real structure from actual xmlarch endpoint)

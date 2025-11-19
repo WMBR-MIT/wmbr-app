@@ -6,6 +6,8 @@ import { dayNames } from '../utils/DateTime';
 export class ScheduleService {
   private static instance: ScheduleService;
   private readonly scheduleUrl = 'https://wmbr.org/cgi-bin/xmlsched';
+  // Store the current "start of the broadcast day" (in minutes after midnight)
+  // given by the root element of the schedule XML.
   private dayStart = 0;
 
   static getInstance(): ScheduleService {
@@ -131,7 +133,7 @@ export class ScheduleService {
          */
         const day =
           parseInt(show.time, 10) < this.dayStart
-            ? dayNames[show.day + 1]
+            ? dayNames[(show.day + 1) % dayNames.length] // Wrap back to 0th index if out of bounds
             : dayNames[show.day];
 
         if (!grouped[day]) {

@@ -75,6 +75,8 @@ Output: `android/app/build/outputs/bundle/release/app-release.aab`
 - **Hot reload**: Save any file to see changes instantly
 - **Restart**: Press `R` in the simulator to reload
 - **Debug menu**: Press `Cmd + D` in simulator for debug options
+- **Path aliases**: Path aliases must be set up in both `tsconfig.json` and
+    `babel.config.js`
 
 ## Troubleshooting
 

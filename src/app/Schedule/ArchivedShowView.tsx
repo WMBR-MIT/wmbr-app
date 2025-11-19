@@ -14,7 +14,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
 import { useRoute, RouteProp } from '@react-navigation/native';
 import { useHeaderHeight } from '@react-navigation/elements';
-import { debugError } from '../../utils/Debug';
+import { debugError } from '@utils/Debug';
 import Animated, { useSharedValue, runOnJS } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import TrackPlayer, {
@@ -22,17 +22,17 @@ import TrackPlayer, {
   usePlaybackState,
   State,
 } from 'react-native-track-player';
-import { Show, Archive } from '../../types/RecentlyPlayed';
-import { PlaylistResponse, PlaylistSong } from '../../types/Playlist';
-import { PlaylistService } from '../../services/PlaylistService';
-import { ArchiveService } from '../../services/ArchiveService';
-import { secondsToTime, formatTime } from '../../utils/DateTime';
-import { COLORS } from '../../utils/Colors';
+import { Show, Archive } from '@customTypes/RecentlyPlayed';
+import { PlaylistResponse, PlaylistSong } from '@customTypes/Playlist';
+import { PlaylistService } from '@services/PlaylistService';
+import { ArchiveService } from '@services/ArchiveService';
+import { secondsToTime, formatTime } from '@utils/DateTime';
+import { COLORS } from '@utils/Colors';
 import {
   generateDarkGradientColors,
   generateGradientColors,
-} from '../../utils/GradientColors';
-import { ShowImage } from '../../components/ShowImage';
+} from '@utils/GradientColors';
+import { ShowImage } from '@components/ShowImage';
 
 interface ArchivedShowViewProps {
   show: Show;

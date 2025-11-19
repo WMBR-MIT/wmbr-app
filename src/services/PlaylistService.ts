@@ -1,6 +1,6 @@
-import { PlaylistResponse } from '../types/Playlist';
-import { debugLog, debugError } from '../utils/Debug';
-import { getDateYMD } from '../utils/DateTime';
+import { PlaylistResponse } from '@customTypes/Playlist';
+import { debugLog, debugError } from '@utils/Debug';
+import { getDateYMD } from '@utils/DateTime';
 
 export class PlaylistService {
   private static instance: PlaylistService;

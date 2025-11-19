@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { COLORS } from '../utils/Colors';
+import { COLORS } from '@utils/Colors';
 
 function getIconName(routeName: string) {
   switch (routeName) {

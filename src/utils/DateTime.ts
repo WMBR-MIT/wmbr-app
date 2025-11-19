@@ -1,5 +1,5 @@
-import { Show } from '../types/RecentlyPlayed';
-import { debugError } from '../utils/Debug';
+import { Show } from '@customTypes/RecentlyPlayed';
+import { debugError } from '@utils/Debug';
 
 export const dayNames = [
   'Sunday',

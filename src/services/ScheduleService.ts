@@ -1,7 +1,7 @@
 import { parseString } from 'react-native-xml2js';
-import { ScheduleShow, ScheduleResponse } from '../types/Schedule';
-import { debugLog, debugError } from '../utils/Debug';
-import { dayNames } from '../utils/DateTime';
+import { ScheduleShow, ScheduleResponse } from '@customTypes/Schedule';
+import { debugLog, debugError } from '@utils/Debug';
+import { dayNames } from '@utils/DateTime';
 
 export class ScheduleService {
   private static instance: ScheduleService;
@@ -36,7 +36,8 @@ export class ScheduleService {
 
           try {
             debugLog('XML Parse Result:', JSON.stringify(result, null, 2));
-            this.dayStart = parseInt(result?.wmbr_schedule?.$?.daystart, 10) || 0;
+            this.dayStart =
+              parseInt(result?.wmbr_schedule?.$?.daystart, 10) || 0;
             const shows = this.parseShows(result);
             debugLog('Parsed shows:', shows.length);
             resolve({ shows });

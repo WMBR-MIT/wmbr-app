@@ -3,13 +3,13 @@ import {
   Archive,
   ProcessedSong,
   ShowGroup,
-} from '../types/RecentlyPlayed';
+} from '@customTypes/RecentlyPlayed';
 import { ScheduleService } from './ScheduleService';
-import { ScheduleShow } from '../types/Schedule';
+import { ScheduleShow } from '@customTypes/Schedule';
 import { parseString } from 'react-native-xml2js';
-import { debugLog, debugError } from '../utils/Debug';
-import { getDateYMD, parsePlaylistTimestamp } from '../utils/DateTime';
-import { PlaylistSong, PlaylistResponse } from '../types/Playlist';
+import { debugLog, debugError } from '@utils/Debug';
+import { getDateYMD, parsePlaylistTimestamp } from '@utils/DateTime';
+import { PlaylistSong, PlaylistResponse } from '@customTypes/Playlist';
 
 export class RecentlyPlayedService {
   private static instance: RecentlyPlayedService;

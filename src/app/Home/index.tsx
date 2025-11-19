@@ -109,7 +109,8 @@ export default function HomeScreen() {
       const allowedStates = [State.Playing, State.Paused, State.Ready];
       if (
         !isPlayerInitialized ||
-        !(playbackState.state && allowedStates.includes(playbackState.state))
+        !playbackState.state ||
+        !allowedStates.includes(playbackState.state)
       ) {
         return;
       }

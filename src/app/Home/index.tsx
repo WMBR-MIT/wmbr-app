@@ -105,8 +105,12 @@ export default function HomeScreen() {
   // Separate useEffect for updating track metadata when show changes
   useEffect(() => {
     const updateLiveTrackMetadata = async () => {
-      if (!isPlayerInitialized || playbackState?.state !== State.Playing) {
-        return; // Don't try to update metadata if player isn't initialized yet, or isn't playing
+      const allowedStates = [State.Playing, State.Paused, State.Ready];
+      if (
+        !isPlayerInitialized ||
+        !allowedStates.includes(playbackState?.state)
+      ) {
+        return; // Don't try to update metadata if player isn't initialized yet, or isn't in an active state
       }
 
       try {

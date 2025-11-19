@@ -112,6 +112,10 @@ export default function HomeScreen() {
       try {
         // Only update if we're not playing an archive
         if (!archiveState.isPlayingArchive) {
+          if (playbackState?.state !== State.Playing) {
+            // If not playing, no need to update metadata
+            return;
+          }
           await TrackPlayer.updateMetadataForTrack(0, {
             title: DEFAULT_NAME,
             artist: currentShow || 'Live Radio',
@@ -123,7 +127,12 @@ export default function HomeScreen() {
     };
 
     updateLiveTrackMetadata();
-  }, [currentShow, archiveState.isPlayingArchive, isPlayerInitialized]);
+  }, [
+    currentShow,
+    archiveState.isPlayingArchive,
+    isPlayerInitialized,
+    playbackState?.state,
+  ]);
 
   const setupPlayer = async () => {
     try {
@@ -142,14 +151,6 @@ export default function HomeScreen() {
         compactCapabilities: [Capability.Play, Capability.Pause],
       });
 
-      await TrackPlayer.add({
-        id: 'wmbr-stream',
-        url: streamUrl,
-        title: DEFAULT_NAME,
-        artist: 'Live Radio',
-        artwork: require('../../../assets/cover.png'),
-      });
-
       setIsPlayerInitialized(true);
     } catch (error) {
       debugError('Error setting up player:', error);
@@ -164,25 +165,25 @@ export default function HomeScreen() {
 
     try {
       const audioPreviewService = AudioPreviewService.getInstance();
-      const previewState = audioPreviewService.getCurrentState();
 
       if (isPlaying) {
         await TrackPlayer.pause();
       } else {
-        if (previewState.url !== null) {
-          await audioPreviewService.stop();
-          const queue = await TrackPlayer.getQueue();
-          const hasLiveStream = queue.some(track => track.id === 'wmbr-stream');
-          if (!hasLiveStream) {
-            await TrackPlayer.add({
-              id: 'wmbr-stream',
-              url: streamUrl,
-              title: DEFAULT_NAME,
-              artist: currentShow || 'Live Radio',
-              artwork: require('../../../assets/cover.png'),
-            });
-          }
+        await audioPreviewService.stop();
+        const queue = await TrackPlayer.getQueue();
+
+        const hasLiveStream = queue.some(track => track.id === 'wmbr-stream');
+
+        if (!hasLiveStream) {
+          await TrackPlayer.add({
+            id: 'wmbr-stream',
+            url: streamUrl,
+            title: DEFAULT_NAME,
+            artist: currentShow || 'Live Radio',
+            artwork: require('../../../assets/cover.png'),
+          });
         }
+
         await TrackPlayer.play();
       }
     } catch (error) {

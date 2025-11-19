@@ -105,17 +105,13 @@ export default function HomeScreen() {
   // Separate useEffect for updating track metadata when show changes
   useEffect(() => {
     const updateLiveTrackMetadata = async () => {
-      if (!isPlayerInitialized) {
-        return; // Don't try to update metadata if player isn't initialized yet
+      if (!isPlayerInitialized || playbackState?.state !== State.Playing) {
+        return; // Don't try to update metadata if player isn't initialized yet, or isn't playing
       }
 
       try {
         // Only update if we're not playing an archive
         if (!archiveState.isPlayingArchive) {
-          if (playbackState?.state !== State.Playing) {
-            // If not playing, no need to update metadata
-            return;
-          }
           await TrackPlayer.updateMetadataForTrack(0, {
             title: DEFAULT_NAME,
             artist: currentShow || 'Live Radio',

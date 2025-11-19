@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useEffect } from 'react';
+import React, { useCallback, useMemo, useRef, useEffect } from 'react';
 import { View, TouchableOpacity, StyleSheet, Animated } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { State, usePlaybackState } from 'react-native-track-player';
@@ -58,6 +58,37 @@ export default function PlayButton({
     }).start();
   }, [pulseAnim, rotateAnim]);
 
+  /**
+   * If we're playing, we either:
+   * a. show a pause icon if we're playing an archive.
+   * b. show a stop icon if we're playing the live stream.
+   *
+   * Otherwise, we show a play icon.
+   */
+  const playbackButtonLabel = useMemo(
+    () =>
+      isPlaying
+        ? isPlayingArchive
+          ? 'Pause Button'
+          : 'Stop Button'
+        : 'Play Button',
+    [isPlaying, isPlayingArchive],
+  );
+
+  const playbackIcon = useMemo(
+    () =>
+      isPlaying ? (
+        isPlayingArchive ? (
+          <Icon name="pause" size={64} color={CORE_COLORS.WMBR_GREEN} />
+        ) : (
+          <Icon name="stop" size={64} color={CORE_COLORS.WMBR_GREEN} />
+        )
+      ) : (
+        <Icon name="play" size={64} color="#FFFFFF" />
+      ),
+    [isPlaying, isPlayingArchive],
+  );
+
   useEffect(() => {
     if (playbackState?.state === State.Playing) {
       startPulseAnimation();
@@ -84,34 +115,10 @@ export default function PlayButton({
             style={[styles.playButton, isPlaying && styles.playButtonActive]}
             onPress={onPress}
             activeOpacity={0.8}
-            aria-label={
-              isPlaying
-                ? isPlayingArchive
-                  ? 'Pause Button'
-                  : 'Stop Button'
-                : 'Play Button'
-            }
+            aria-label={playbackButtonLabel}
           >
             <View style={styles.buttonContent}>
-              <View style={styles.iconContainer}>
-                {isPlaying ? (
-                  isPlayingArchive ? (
-                    <Icon
-                      name="pause"
-                      size={64}
-                      color={CORE_COLORS.WMBR_GREEN}
-                    />
-                  ) : (
-                    <Icon
-                      name="stop"
-                      size={64}
-                      color={CORE_COLORS.WMBR_GREEN}
-                    />
-                  )
-                ) : (
-                  <Icon name="play" size={64} color="#FFFFFF" />
-                )}
-              </View>
+              <View style={styles.iconContainer}>{playbackIcon}</View>
             </View>
           </TouchableOpacity>
         </View>

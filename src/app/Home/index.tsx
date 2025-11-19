@@ -161,11 +161,15 @@ export default function HomeScreen() {
 
     try {
       const audioPreviewService = AudioPreviewService.getInstance();
+      const previewState = audioPreviewService.getCurrentState();
 
       if (isPlaying) {
         await TrackPlayer.pause();
       } else {
-        await audioPreviewService.stop();
+        if (previewState.url !== null) {
+          await audioPreviewService.stop();
+        }
+
         const queue = await TrackPlayer.getQueue();
 
         const hasLiveStream = queue.some(track => track.id === 'wmbr-stream');

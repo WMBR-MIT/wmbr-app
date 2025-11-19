@@ -1,6 +1,16 @@
 import { Show } from '../types/RecentlyPlayed';
 import { debugError } from '../utils/Debug';
 
+export const dayNames = [
+  'Sunday',
+  'Monday',
+  'Tuesday',
+  'Wednesday',
+  'Thursday',
+  'Friday',
+  'Saturday',
+];
+
 export const formatDate = (dateString: string) => {
   const date = new Date(dateString);
   return date.toLocaleDateString('en-US', {
@@ -100,15 +110,6 @@ export const getDurationFromSize = (
 };
 
 export const formatShowTime = (show: Show) => {
-  const dayNames = [
-    'Sunday',
-    'Monday',
-    'Tuesday',
-    'Wednesday',
-    'Thursday',
-    'Friday',
-    'Saturday',
-  ];
   const dayName = show.day === 7 ? 'Weekdays' : dayNames[show.day];
   // Only add 's' if it's not already plural (weekdays)
   const plural = show.day === 7 ? dayName : `${dayName}s`;
@@ -139,13 +140,3 @@ export const formatArchiveDate = (dateString: string) => {
     year: 'numeric',
   });
 };
-
-export const dayNames = [
-  'Sunday',
-  'Monday',
-  'Tuesday',
-  'Wednesday',
-  'Thursday',
-  'Friday',
-  'Saturday',
-];

@@ -1,7 +1,7 @@
-import { parsePlaylistTimestamp } from '../src/utils/DateTime';
+import { parsePlaylistTimestamp } from '@utils/DateTime';
 
 // Mock the debugError function to avoid console noise in tests
-import { debugError } from '../src/utils/Debug';
+import { debugError } from '@utils/Debug';
 
 const mockedDebugError = debugError as jest.MockedFunction<typeof debugError>;
 

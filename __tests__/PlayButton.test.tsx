@@ -1,5 +1,5 @@
 import { render, screen, userEvent } from '@testing-library/react-native';
-import PlayButton from '../src/app/Home/PlayButton';
+import PlayButton from '@app/Home/PlayButton';
 
 const mockOnPress = jest.fn();
 
@@ -35,19 +35,19 @@ describe('PlayButton', () => {
 
     // When not playing, should show play icon and not show pause icon
     expect(screen.queryByLabelText('Play Button')).toBeTruthy();
-    expect(screen.queryByLabelText('Pause Button')).toBeFalsy();
+    expect(screen.queryByLabelText('Stop Button')).toBeFalsy();
   });
 
-  test('shows pause icon when playing', () => {
+  test('shows stop icon when playing', () => {
     const { usePlaybackState } = require('react-native-track-player');
     const { State } = require('react-native-track-player');
     usePlaybackState.mockReturnValue({ state: State.Playing });
 
     render(<TestComponent />);
 
-    // When playing, should show pause icon and not show play icon
+    // When playing, should show stop icon and not show play icon
     expect(screen.queryByLabelText('Play Button')).toBeFalsy();
-    expect(screen.queryByLabelText('Pause Button')).toBeTruthy();
+    expect(screen.queryByLabelText('Stop Button')).toBeTruthy();
   });
 
   test('handles undefined playback state', () => {

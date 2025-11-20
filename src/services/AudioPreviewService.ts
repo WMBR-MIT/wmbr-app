@@ -1,6 +1,6 @@
 import TrackPlayer, { Track, State, Event } from 'react-native-track-player';
-import { debugError } from '../utils/Debug';
-import { getUserAgent } from '../utils/UserAgent';
+import { debugError } from '@utils/Debug';
+import { getUserAgent } from '@utils/UserAgent';
 
 export interface PreviewState {
   isPlaying: boolean;

@@ -11,7 +11,8 @@
     "typecheck": "tsc --noEmit",
     "bundle:ios": "npx react-native bundle --entry-file index.ts --platform ios --dev true --bundle-output dist/ios/main.jsbundle --assets-dest dist/ios/assets",
     "bundle:android": "npx react-native bundle --entry-file index.ts --platform android --dev true --bundle-output dist/android/main.jsbundle --assets-dest dist/android/assets",
-    "postinstall": "patch-package"
+    "postinstall": "patch-package",
+    "prepare": "husky"
   },
   "dependencies": {
     "@react-navigation/bottom-tabs": "^7.4.9",
@@ -48,7 +49,9 @@
     "babel-plugin-module-resolver": "^5.0.2",
     "eslint": "^8.19.0",
     "eslint-plugin-prettier": "^5.5.4",
+    "husky": "^9.1.7",
     "jest": "^29.6.3",
+    "lint-staged": "^16.2.7",
     "patch-package": "^8.0.1",
     "prettier-eslint": "^16.4.2",
     "react-native-cli-bump-version": "^1.5.1",
@@ -56,5 +59,10 @@
   },
   "engines": {
     "node": ">=18"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "npx eslint --fix"
+    ]
   }
 }

@@ -1,5 +1,6 @@
 import TrackPlayer, { Track, State, Event } from 'react-native-track-player';
 import { debugError } from '@utils/Debug';
+import { getUserAgent } from '@utils/UserAgent';
 
 export interface PreviewState {
   isPlaying: boolean;
@@ -141,6 +142,7 @@ export class AudioPreviewService {
         url: url,
         title: 'Preview',
         artist: 'Apple Music Preview',
+        userAgent: getUserAgent(),
       };
 
       // Reset the queue with just the preview track

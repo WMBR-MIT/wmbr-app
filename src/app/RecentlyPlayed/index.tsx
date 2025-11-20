@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import RecentlyPlayed from './RecentlyPlayed';
-import { COLORS } from '../../utils/Colors';
+import { COLORS } from '@utils/Colors';
 
 export default function RecentlyPlayedPage() {
   const [refreshKey, setRefreshKey] = useState(0);
@@ -48,7 +48,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
   },
-  spacer: { width: 40 },
   refreshButton: { width: 40, alignItems: 'center', justifyContent: 'center' },
   refreshText: { color: COLORS.TEXT.PRIMARY, fontSize: 18 },
 });

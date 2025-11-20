@@ -1,10 +1,14 @@
 import { parseString } from 'react-native-xml2js';
 import { ScheduleShow, ScheduleResponse } from '@customTypes/Schedule';
 import { debugLog, debugError } from '@utils/Debug';
+import { dayNames } from '@utils/DateTime';
 
 export class ScheduleService {
   private static instance: ScheduleService;
   private readonly scheduleUrl = 'https://wmbr.org/cgi-bin/xmlsched';
+  // Store the current "start of the broadcast day" (in minutes after midnight)
+  // given by the root element of the schedule XML.
+  private dayStart = 0;
 
   static getInstance(): ScheduleService {
     if (!ScheduleService.instance) {
@@ -32,6 +36,8 @@ export class ScheduleService {
 
           try {
             debugLog('XML Parse Result:', JSON.stringify(result, null, 2));
+            this.dayStart =
+              parseInt(result?.wmbr_schedule?.$?.daystart, 10) || 0;
             const shows = this.parseShows(result);
             debugLog('Parsed shows:', shows.length);
             resolve({ shows });
@@ -86,7 +92,7 @@ export class ScheduleService {
 
     shows.forEach(show => {
       if (show.day === 7) {
-        // Weekday show (Monday-Friday)
+        // Shows that air every weekday (Monday-Friday)
         const weekdays = [
           'Monday',
           'Tuesday',
@@ -101,8 +107,36 @@ export class ScheduleService {
           grouped[day].push(show);
         });
       } else {
-        // Regular show for specific day
-        const day = show.day_str || 'Unknown';
+        /**
+         * Regular show for specific day.
+         *
+         * If show time (minutes after midnight) is before dayStart, that means it's not "really" on this
+         * "day," but on the next day.
+         *
+         * For instance, Radio Ninja: Long Play has this XML:
+         *
+         * ```xml
+         * <show id="9106">
+         *   <name>Radio Ninja: Long Play</name>
+         *   <day>1</day>
+         *   <day_str>Monday</day_str>
+         *   <time>60</time>
+         *   <time_str>1:00a</time_str>
+         *   <length>120</length>
+         * </show>
+         * ```
+         *
+         * Where `<day>1</day>` means Monday, and `<time>60</time>` means 1:00
+         * AM. In this case, the show actually airs early Tuesday morning, so we
+         * have to add 1 to the value of `show.day` to get the correct day name.
+         *
+         * TODO: Write tests for this.
+         */
+        const day =
+          parseInt(show.time, 10) < this.dayStart
+            ? dayNames[(show.day + 1) % dayNames.length] // Wrap back to 0th index if out of bounds
+            : dayNames[show.day];
+
         if (!grouped[day]) {
           grouped[day] = [];
         }

@@ -65,29 +65,29 @@ export default function PlayButton({
    *
    * Otherwise, we show a play icon.
    */
-  const playbackButtonLabel = useMemo(
-    () =>
-      isPlaying
-        ? isPlayingArchive
-          ? 'Pause Button'
-          : 'Stop Button'
-        : 'Play Button',
-    [isPlaying, isPlayingArchive],
-  );
+  const playbackButtonLabel = useMemo(() => {
+    if (isPlaying) {
+      if (isPlayingArchive) {
+        return 'Pause Button';
+      } else {
+        return 'Stop Button';
+      }
+    } else {
+      return 'Play Button';
+    }
+  }, [isPlaying, isPlayingArchive]);
 
-  const playbackIcon = useMemo(
-    () =>
-      isPlaying ? (
-        isPlayingArchive ? (
-          <Icon name="pause" size={64} color={CORE_COLORS.WMBR_GREEN} />
-        ) : (
-          <Icon name="stop" size={64} color={CORE_COLORS.WMBR_GREEN} />
-        )
-      ) : (
-        <Icon name="play" size={64} color="#FFFFFF" />
-      ),
-    [isPlaying, isPlayingArchive],
-  );
+  const playbackIcon = useMemo(() => {
+    if (isPlaying) {
+      if (isPlayingArchive) {
+        return <Icon name="pause" size={64} color={CORE_COLORS.WMBR_GREEN} />;
+      } else {
+        return <Icon name="stop" size={64} color={CORE_COLORS.WMBR_GREEN} />;
+      }
+    } else {
+      return <Icon name="play" size={64} color="#FFFFFF" />;
+    }
+  }, [isPlaying, isPlayingArchive]);
 
   useEffect(() => {
     if (playbackState?.state === State.Playing) {

@@ -18,7 +18,7 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
 import { debugError } from '@utils/Debug';
-import { Show, Archive } from '@customTtypes/RecentlyPlayed';
+import { Show, Archive } from '@customTypes/RecentlyPlayed';
 import { WmbrRouteName } from '@customTypes/Navigation';
 import { ArchiveService } from '@services/ArchiveService';
 import {

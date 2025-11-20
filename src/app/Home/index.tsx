@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
-import { debugError } from '../../utils/Debug';
+import { debugError } from '@utils/Debug';
 import {
   View,
   Text,
@@ -20,23 +20,17 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SvgXml } from 'react-native-svg';
 import PlayButton from './PlayButton';
 import SplashScreen from './SplashScreen';
-import MetadataService, {
-  ShowInfo,
-  Song,
-} from '../../services/MetadataService';
-import { RecentlyPlayedService } from '../../services/RecentlyPlayedService';
-import {
-  ArchiveService,
-  ArchivePlaybackState,
-} from '../../services/ArchiveService';
-import { AudioPreviewService } from '../../services/AudioPreviewService';
-import { getWMBRLogoSVG } from '../../utils/WMBRLogo';
+import MetadataService, { ShowInfo, Song } from '@services/MetadataService';
+import { RecentlyPlayedService } from '@services/RecentlyPlayedService';
+import { ArchiveService, ArchivePlaybackState } from '@services/ArchiveService';
+import { AudioPreviewService } from '@services/AudioPreviewService';
+import { getWMBRLogoSVG } from '@utils/WMBRLogo';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import { WmbrRouteName } from '../../types/Navigation';
-import { DEFAULT_NAME } from '../../types/Playlist';
-import { COLORS, CORE_COLORS } from '../../utils/Colors';
-import { formatArchiveDate } from '../../utils/DateTime';
-import { liveCapabilities } from '../../utils/TrackPlayerUtils';
+import { WmbrRouteName } from '@customTypes/Navigation';
+import { DEFAULT_NAME } from '@customTypes/Playlist';
+import { COLORS, CORE_COLORS } from '@utils/Colors';
+import { formatArchiveDate } from '@utils/DateTime';
+import { liveCapabilities } from '@utils/TrackPlayerUtils';
 
 import HomeNowPlaying from './HomeNowPlaying';
 

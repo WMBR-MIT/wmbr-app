@@ -46,16 +46,16 @@ describe('Home Screen', () => {
     );
   });
 
-  test('pressing Pause calls TrackPlayer.pause()', async () => {
+  test('pressing Stop calls TrackPlayer.stop()', async () => {
     const user = userEvent.setup();
 
     // Start in Playing state so Pause button is shown
     setPlaybackState(State.Playing);
 
     await renderAsync(<HomeScreen />, { wrapper: TestWrapper });
-    const pauseButton = await screen.findByLabelText('Pause Button');
-    await user.press(pauseButton);
+    const stopButton = await screen.findByLabelText('Stop Button');
+    await user.press(stopButton);
 
-    expect(TrackPlayer.pause).toHaveBeenCalled();
+    expect(TrackPlayer.stop).toHaveBeenCalled();
   });
 });

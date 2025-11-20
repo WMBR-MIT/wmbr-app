@@ -17,29 +17,29 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
-import { debugError } from '../../utils/Debug';
-import { Show, Archive } from '../../types/RecentlyPlayed';
-import { WmbrRouteName } from '../../types/Navigation';
-import { ArchiveService } from '../../services/ArchiveService';
+import { debugError } from '@utils/Debug';
+import { Show, Archive } from '@customTtypes/RecentlyPlayed';
+import { WmbrRouteName } from '@customTypes/Navigation';
+import { ArchiveService } from '@services/ArchiveService';
 import {
   useProgress,
   usePlaybackState,
   State,
 } from 'react-native-track-player';
 import TrackPlayer from 'react-native-track-player';
-import { ShowImage } from '../../components/ShowImage';
+import { ShowImage } from '@components/ShowImage';
 import {
   formatDate,
   getDurationFromSize,
   formatShowTime,
   secondsToTime,
-} from '../../utils/DateTime';
-import { COLORS } from '../../utils/Colors';
+} from '@utils/DateTime';
+import { COLORS } from '@utils/Colors';
 import {
   generateDarkGradientColors,
   generateGradientColors,
-} from '../../utils/GradientColors';
-import PlaybackSlider from '../../components/PlaybackSlider';
+} from '@utils/GradientColors';
+import PlaybackSlider from '@components/PlaybackSlider';
 
 // Route params for ShowDetailsPage
 export type ShowDetailsPageRouteParams = {

@@ -2,9 +2,9 @@ import { Dimensions, StyleSheet, Text, View } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { SvgXml } from 'react-native-svg';
 
-import { formatDate } from '../utils/DateTime';
-import { getWMBRLogoSVG } from '../utils/WMBRLogo';
-import { generateGradientColors } from '../utils/GradientColors';
+import { formatDate } from '@utils/DateTime';
+import { getWMBRLogoSVG } from '@utils/WMBRLogo';
+import { generateGradientColors } from '@utils/GradientColors';
 
 const { width } = Dimensions.get('window');
 const ALBUM_SIZE = width * 0.6;

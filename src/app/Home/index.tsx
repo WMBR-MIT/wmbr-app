@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
-import { debugError } from '../../utils/Debug';
+import { debugError } from '@utils/Debug';
 import {
   View,
   Text,
@@ -21,22 +21,16 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SvgXml } from 'react-native-svg';
 import PlayButton from './PlayButton';
 import SplashScreen from './SplashScreen';
-import MetadataService, {
-  ShowInfo,
-  Song,
-} from '../../services/MetadataService';
-import { RecentlyPlayedService } from '../../services/RecentlyPlayedService';
-import {
-  ArchiveService,
-  ArchivePlaybackState,
-} from '../../services/ArchiveService';
-import { AudioPreviewService } from '../../services/AudioPreviewService';
-import { getWMBRLogoSVG } from '../../utils/WMBRLogo';
+import MetadataService, { ShowInfo, Song } from '@services/MetadataService';
+import { RecentlyPlayedService } from '@services/RecentlyPlayedService';
+import { ArchiveService, ArchivePlaybackState } from '@services/ArchiveService';
+import { AudioPreviewService } from '@services/AudioPreviewService';
+import { getWMBRLogoSVG } from '@utils/WMBRLogo';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import { WmbrRouteName } from '../../types/Navigation';
-import { DEFAULT_NAME } from '../../types/Playlist';
-import { COLORS, CORE_COLORS } from '../../utils/Colors';
-import { formatArchiveDate } from '../../utils/DateTime';
+import { WmbrRouteName } from '@customTypes/Navigation';
+import { DEFAULT_NAME } from '@customTypes/Playlist';
+import { COLORS, CORE_COLORS } from '@utils/Colors';
+import { formatArchiveDate } from '@utils/DateTime';
 
 import HomeNowPlaying from './HomeNowPlaying';
 
@@ -167,7 +161,11 @@ export default function HomeScreen() {
       const previewState = audioPreviewService.getCurrentState();
 
       if (isPlaying) {
-        await TrackPlayer.pause();
+        if (archiveState.isPlayingArchive) {
+          await TrackPlayer.pause();
+        } else {
+          await TrackPlayer.stop();
+        }
       } else {
         if (previewState.url !== null) {
           await audioPreviewService.stop();
@@ -188,7 +186,12 @@ export default function HomeScreen() {
     } catch (error) {
       debugError('Error toggling playback:', error);
     }
-  }, [currentShow, isPlayerInitialized, isPlaying]);
+  }, [
+    archiveState.isPlayingArchive,
+    currentShow,
+    isPlayerInitialized,
+    isPlaying,
+  ]);
 
   const handleSplashEnd = () => setShowSplash(false);
   const handleSwitchToLive = useCallback(async () => {
@@ -291,6 +294,7 @@ export default function HomeScreen() {
             <PlayButton
               onPress={togglePlayback}
               isPlayerInitialized={isPlayerInitialized}
+              isPlayingArchive={archiveState.isPlayingArchive}
             />
             <View style={styles.bottomInfo}>
               {!archiveState.isPlayingArchive && showDescription && (

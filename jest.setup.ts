@@ -19,14 +19,6 @@ jest.mock('react-native-gesture-handler', () => {
   };
 });
 
-jest.mock('react-native-track-player', () => ({
-  usePlaybackState: jest.fn(() => Promise.resolve()),
-  useProgress: jest.fn(() => Promise.resolve()),
-  State: {
-    Playing: jest.mock(''),
-  },
-}));
-
 // Silence debug logs
 jest.mock('./src/utils/Debug.ts', () => ({
   debugLog: jest.fn(),

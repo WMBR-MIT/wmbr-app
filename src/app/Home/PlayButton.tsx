@@ -6,13 +6,11 @@ import { CORE_COLORS } from '@utils/Colors';
 
 interface PlayButtonProps {
   onPress: () => void;
-  isPlayerInitialized: boolean;
   isPlayingArchive?: boolean;
 }
 
 export default function PlayButton({
   onPress,
-  isPlayerInitialized: _isPlayerInitialized,
   isPlayingArchive,
 }: PlayButtonProps) {
   const playbackState = usePlaybackState();

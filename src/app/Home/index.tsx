@@ -300,7 +300,6 @@ export default function HomeScreen() {
             </View>
             <PlayButton
               onPress={togglePlayback}
-              isPlayerInitialized={isPlayerInitialized}
               isPlayingArchive={archiveState.isPlayingArchive}
             />
             <View style={styles.bottomInfo}>

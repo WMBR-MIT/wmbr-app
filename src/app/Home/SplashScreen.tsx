@@ -11,8 +11,8 @@ import Animated, {
 } from 'react-native-reanimated';
 import LinearGradient from 'react-native-linear-gradient';
 import { SvgXml } from 'react-native-svg';
-import { getWMBRLogoSVG } from '../../utils/WMBRLogo';
-import { CORE_COLORS } from '../../utils/Colors';
+import { getWMBRLogoSVG } from '@utils/WMBRLogo';
+import { CORE_COLORS } from '@utils/Colors';
 
 interface SplashScreenProps {
   onAnimationEnd: () => void;

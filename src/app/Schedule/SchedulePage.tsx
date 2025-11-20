@@ -17,10 +17,8 @@ import { debugLog, debugError } from '../../utils/Debug';
 import { RefreshControl } from 'react-native';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { useHeaderHeight } from '@react-navigation/elements';
-import { SvgXml } from 'react-native-svg';
 import { ScheduleShow, ScheduleResponse } from '../../types/Schedule';
 import { ScheduleService } from '../../services/ScheduleService';
-import { getWMBRLogoSVG } from '../../utils/WMBRLogo';
 import { RecentlyPlayedService } from '../../services/RecentlyPlayedService';
 import { WmbrRouteName } from '../../types/Navigation';
 import { COLORS, CORE_COLORS } from '../../utils/Colors';
@@ -310,11 +308,6 @@ export default function SchedulePage({ currentShow }: SchedulePageProps) {
         style={styles.gradient}
       >
         <SafeAreaView style={[styles.safeArea, { paddingTop: headerHeight }]}>
-          {/* Logo */}
-          <View style={styles.logoContainer}>
-            <SvgXml xml={getWMBRLogoSVG('#FFFFFF')} width={60} height={13} />
-          </View>
-
           {/* Search Box */}
           <View style={styles.searchContainer}>
             <View style={styles.searchInputContainer}>
@@ -472,26 +465,6 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
     borderBottomWidth: 1,
     borderBottomColor: '#333',
-  },
-  stickyDayHeader: {
-    backgroundColor: COLORS.BACKGROUND.ELEVATED,
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#333',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  dayHeaderSticky: {
-    color: COLORS.TEXT.PRIMARY,
-    fontSize: 20,
-    fontWeight: 'bold',
   },
   showItem: {
     flexDirection: 'row',

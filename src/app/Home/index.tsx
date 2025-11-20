@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
-import { debugError } from '../../utils/Debug';
+import { debugError } from '@utils/Debug';
 import {
   View,
   Text,
@@ -21,22 +21,16 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SvgXml } from 'react-native-svg';
 import PlayButton from './PlayButton';
 import SplashScreen from './SplashScreen';
-import MetadataService, {
-  ShowInfo,
-  Song,
-} from '../../services/MetadataService';
-import { RecentlyPlayedService } from '../../services/RecentlyPlayedService';
-import {
-  ArchiveService,
-  ArchivePlaybackState,
-} from '../../services/ArchiveService';
-import { AudioPreviewService } from '../../services/AudioPreviewService';
-import { getWMBRLogoSVG } from '../../utils/WMBRLogo';
+import MetadataService, { ShowInfo, Song } from '@services/MetadataService';
+import { RecentlyPlayedService } from '@services/RecentlyPlayedService';
+import { ArchiveService, ArchivePlaybackState } from '@services/ArchiveService';
+import { AudioPreviewService } from '@services/AudioPreviewService';
+import { getWMBRLogoSVG } from '@utils/WMBRLogo';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import { WmbrRouteName } from '../../types/Navigation';
-import { DEFAULT_NAME } from '../../types/Playlist';
-import { COLORS, CORE_COLORS } from '../../utils/Colors';
-import { formatArchiveDate } from '../../utils/DateTime';
+import { WmbrRouteName } from '@customTypes/Navigation';
+import { DEFAULT_NAME } from '@customTypes/Playlist';
+import { COLORS, CORE_COLORS } from '@utils/Colors';
+import { formatArchiveDate } from '@utils/DateTime';
 
 import HomeNowPlaying from './HomeNowPlaying';
 
@@ -105,8 +99,14 @@ export default function HomeScreen() {
   // Separate useEffect for updating track metadata when show changes
   useEffect(() => {
     const updateLiveTrackMetadata = async () => {
-      if (!isPlayerInitialized) {
-        return; // Don't try to update metadata if player isn't initialized yet
+      // Don't try to update metadata if player isn't initialized yet, or is in a state that isn't active
+      const allowedStates = [State.Playing, State.Paused, State.Ready];
+      if (
+        !isPlayerInitialized ||
+        !playbackState.state ||
+        !allowedStates.includes(playbackState.state)
+      ) {
+        return;
       }
 
       try {
@@ -123,7 +123,12 @@ export default function HomeScreen() {
     };
 
     updateLiveTrackMetadata();
-  }, [currentShow, archiveState.isPlayingArchive, isPlayerInitialized]);
+  }, [
+    currentShow,
+    archiveState.isPlayingArchive,
+    isPlayerInitialized,
+    playbackState?.state,
+  ]);
 
   const setupPlayer = async () => {
     try {
@@ -140,14 +145,6 @@ export default function HomeScreen() {
       await TrackPlayer.updateOptions({
         capabilities: [Capability.Play, Capability.Pause, Capability.Stop],
         compactCapabilities: [Capability.Play, Capability.Pause],
-      });
-
-      await TrackPlayer.add({
-        id: 'wmbr-stream',
-        url: streamUrl,
-        title: DEFAULT_NAME,
-        artist: 'Live Radio',
-        artwork: require('../../../assets/cover.png'),
       });
 
       setIsPlayerInitialized(true);
@@ -167,28 +164,41 @@ export default function HomeScreen() {
       const previewState = audioPreviewService.getCurrentState();
 
       if (isPlaying) {
-        await TrackPlayer.pause();
+        if (archiveState.isPlayingArchive) {
+          await TrackPlayer.pause();
+        } else {
+          await TrackPlayer.stop();
+        }
       } else {
         if (previewState.url !== null) {
           await audioPreviewService.stop();
-          const queue = await TrackPlayer.getQueue();
-          const hasLiveStream = queue.some(track => track.id === 'wmbr-stream');
-          if (!hasLiveStream) {
-            await TrackPlayer.add({
-              id: 'wmbr-stream',
-              url: streamUrl,
-              title: DEFAULT_NAME,
-              artist: currentShow || 'Live Radio',
-              artwork: require('../../../assets/cover.png'),
-            });
-          }
         }
+
+        const queue = await TrackPlayer.getQueue();
+
+        const hasLiveStream = queue.some(track => track.id === 'wmbr-stream');
+
+        if (!hasLiveStream) {
+          await TrackPlayer.add({
+            id: 'wmbr-stream',
+            url: streamUrl,
+            title: DEFAULT_NAME,
+            artist: currentShow || 'Live Radio',
+            artwork: require('../../../assets/cover.png'),
+          });
+        }
+
         await TrackPlayer.play();
       }
     } catch (error) {
       debugError('Error toggling playback:', error);
     }
-  }, [currentShow, isPlayerInitialized, isPlaying]);
+  }, [
+    archiveState.isPlayingArchive,
+    currentShow,
+    isPlayerInitialized,
+    isPlaying,
+  ]);
 
   const handleSplashEnd = () => setShowSplash(false);
   const handleSwitchToLive = useCallback(async () => {
@@ -291,6 +301,7 @@ export default function HomeScreen() {
             <PlayButton
               onPress={togglePlayback}
               isPlayerInitialized={isPlayerInitialized}
+              isPlayingArchive={archiveState.isPlayingArchive}
             />
             <View style={styles.bottomInfo}>
               {!archiveState.isPlayingArchive && showDescription && (
@@ -377,13 +388,6 @@ const styles = StyleSheet.create({
     lineHeight: 16,
   },
   showDescriptionActive: { color: '#D0D0D0' },
-  streamingText: {
-    color: CORE_COLORS.WMBR_GREEN,
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  streamingTextActive: { color: COLORS.TEXT.PRIMARY },
-  bottomSpace: { height: 100 },
   liveButton: {
     marginTop: 16,
     paddingHorizontal: 20,

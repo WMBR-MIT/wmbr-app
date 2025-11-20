@@ -2,6 +2,8 @@
 
 A React Native app for streaming WMBR 88.1 FM and browsing show archives, song history, and schedules.
 
+You can download the latest release from the [Apple](https://apps.apple.com/app/wmbr/id6749026414) and [Google Play](https://apps.apple.com/app/wmbr/id6749026414) mobile app stores.
+
 ## Features
 
 - **Live Stream**: Listen to WMBR 88.1 FM with live show information

@@ -27,4 +27,4 @@ jest.mock('./src/utils/Debug.ts', () => ({
 
 // Mock fetch at the network boundary instead of mocking services
 // This allows real service code to run in tests
-global.fetch = createMockFetch() as any;
+jest.spyOn(global, 'fetch').mockImplementation(createMockFetch());

@@ -1,9 +1,10 @@
-/**
- * Mock network responses for fetch calls in tests.
- * This allows tests to work with real service code while mocking at the network boundary.
- */
+import {
+  generateNowPlayingXml,
+  generatePlaylistResponse,
+} from '../src/utils/TestUtils';
+import { PlaylistResponse } from '../src/types/Playlist';
 
-// Mock XML schedule (simplified version with key shows for testing)
+// Sample schedule XML from wmbr.org/cgi-bin/xmlsched
 const scheduleXml = `<?xml version="1.0" encoding="utf-8" ?>
 <wmbr_schedule season_id="73" season_name="Fall/Winter 2025" season_start="Mon, 22 Sep 2025 14:00:00 GMT" season_end="Sat, 28 Feb 2026 15:00:00 GMT" last_update="Tue, 11 Nov 2025 13:01:06 GMT" daystart="240">
 <show id="8974">
@@ -253,31 +254,37 @@ const archivesXml = `<?xml version="1.0" encoding="utf-8" ?>
 </show>
 </wmbr_archives>`;
 
-// Mock playlist response (JSON format from alexandersimoes.com)
-const mockPlaylistResponse = {
-  show_name: 'Post-tentious',
-  date: '2024-11-05',
-  playlist_id: '12345',
-  songs: [
-    {
-      time: '2024/11/05 21:30:00',
-      artist: 'Fugazi',
-      song: 'Waiting Room',
-      album: '13 Songs',
-    },
-    {
-      time: '2024/11/05 21:33:00',
-      artist: 'Slint',
-      song: 'Breadcrumb Trail',
-      album: 'Spiderland',
-    },
-  ],
-};
+const nowPlayingXml = generateNowPlayingXml();
+const mockPlaylistResponse = generatePlaylistResponse();
 
 /**
  * Mock fetch implementation that returns appropriate responses based on URL
+ *
+ * To use custom data in a test, create a new jest spy with createMockFetch
+ * and pass in overrides for the desired endpoints. For example:
+ *
+ * ```
+ * jest.spyOn(global, 'fetch').mockImplementation(
+ *   createMockFetch({
+ *     scheduleXml,
+ *     playlistResponse,
+ *     nowPlayingXml,
+ *   }),
+ * );
+ * ```
  */
-export function createMockFetch(): jest.Mock {
+export function createMockFetch(options?: {
+  scheduleXml?: string;
+  archivesXml?: string;
+  nowPlayingXml?: string;
+  playlistResponse?: PlaylistResponse;
+}): jest.Mock {
+  const effectiveScheduleXml = options?.scheduleXml || scheduleXml;
+  const effectiveArchivesXml = options?.archivesXml || archivesXml;
+  const effectivePlaylistResponse =
+    options?.playlistResponse || mockPlaylistResponse;
+  const effectiveNowPlayingXml = options?.nowPlayingXml || nowPlayingXml;
+
   return jest.fn((url: string) => {
     const urlStr = url.toString();
 
@@ -286,7 +293,7 @@ export function createMockFetch(): jest.Mock {
       return Promise.resolve({
         ok: true,
         status: 200,
-        text: () => Promise.resolve(scheduleXml),
+        text: () => Promise.resolve(effectiveScheduleXml),
       } as Response);
     }
 
@@ -295,7 +302,16 @@ export function createMockFetch(): jest.Mock {
       return Promise.resolve({
         ok: true,
         status: 200,
-        text: () => Promise.resolve(archivesXml),
+        text: () => Promise.resolve(effectiveArchivesXml),
+      } as Response);
+    }
+
+    // Now playing endpoint
+    if (urlStr.includes('wmbr.org/dynamic.xml')) {
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        text: () => Promise.resolve(effectiveNowPlayingXml),
       } as Response);
     }
 
@@ -306,7 +322,7 @@ export function createMockFetch(): jest.Mock {
         return Promise.resolve({
           ok: true,
           status: 200,
-          json: () => Promise.resolve(mockPlaylistResponse),
+          json: () => Promise.resolve(effectivePlaylistResponse),
         } as Response);
       }
 

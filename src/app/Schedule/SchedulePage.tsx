@@ -34,6 +34,9 @@ export default function SchedulePage({ currentShow }: SchedulePageProps) {
   const headerHeight = useHeaderHeight();
 
   const [schedule, setSchedule] = useState<ScheduleResponse | null>(null);
+  const [currentShowTitle, setCurrentShowTitle] = useState<string | undefined>(
+    currentShow,
+  );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -41,6 +44,20 @@ export default function SchedulePage({ currentShow }: SchedulePageProps) {
   const currentShowRef = useRef<View>(null);
 
   const scheduleService = ScheduleService.getInstance();
+  const recentlyPlayedService = RecentlyPlayedService.getInstance();
+
+  useEffect(() => {
+    if (currentShow) {
+      setCurrentShowTitle(currentShow);
+      return;
+    }
+
+    const unsubscribe = recentlyPlayedService.subscribeToCurrentShow(show => {
+      setCurrentShowTitle(show ?? undefined);
+    });
+
+    return unsubscribe;
+  }, [currentShow, recentlyPlayedService]);
 
   const fetchSchedule = useCallback(async () => {
     setLoading(true);
@@ -118,10 +135,11 @@ export default function SchedulePage({ currentShow }: SchedulePageProps) {
     show: ScheduleShow,
     dayName: string,
   ): boolean => {
-    if (!currentShow) return false;
+    if (!currentShowTitle) return false;
 
     // Match by name (case insensitive)
-    const isNameMatch = show.name.toLowerCase() === currentShow.toLowerCase();
+    const isNameMatch =
+      show.name.trim().toLowerCase() === currentShowTitle.trim().toLowerCase();
     if (!isNameMatch) return false;
 
     // Get current day info

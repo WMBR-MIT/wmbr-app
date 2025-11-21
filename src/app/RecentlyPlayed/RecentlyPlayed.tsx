@@ -644,7 +644,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#333',
+    borderBottomColor: COLORS.BORDER.SUBTLE,
     alignItems: 'center',
   },
   songInfo: {
@@ -768,7 +768,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#333',
+    borderBottomColor: COLORS.BORDER.SUBTLE,
   },
   currentShowTitle: {
     fontSize: 18,
@@ -785,7 +785,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#333',
+    borderBottomColor: COLORS.BORDER.SUBTLE,
     marginBottom: 0,
   },
   showHeaderTitle: {
@@ -825,12 +825,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#333',
+    backgroundColor: COLORS.CARD.SUBTLE.BORDER,
     marginHorizontal: 20,
     marginVertical: 10,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#444',
+    borderColor: COLORS.CARD.SUBTLE.BORDER,
   },
   endOfDayText: {
     color: COLORS.TEXT.SECONDARY,

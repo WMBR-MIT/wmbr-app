@@ -67,7 +67,7 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     borderTopWidth: 1,
-    borderTopColor: '#222',
+    borderTopColor: COLORS.BORDER.SUBTLE,
     backgroundColor: COLORS.BACKGROUND.PRIMARY,
     alignItems: 'center',
     justifyContent: 'space-around',

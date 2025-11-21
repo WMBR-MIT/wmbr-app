@@ -410,7 +410,7 @@ const styles = StyleSheet.create({
     transform: [{ scaleX: 1 }],
   },
   skipText: {
-    color: COLORS.TEXT.PRIMARY
+    color: COLORS.TEXT.PRIMARY,
     fontSize: 10,
     fontWeight: '600',
     marginTop: 0,

@@ -344,7 +344,7 @@ export default function HomeScreen() {
                   <Icon
                     name="refresh-outline"
                     size={28}
-                    color="#FFFFFF"
+                    color={COLORS.TEXT.PRIMARY}
                     style={styles.skipForwardIcon}
                   />
                   <Text style={styles.skipText}>{SKIP_INTERVAL}</Text>
@@ -475,7 +475,7 @@ const styles = StyleSheet.create({
     transform: [{ scaleX: 1 }],
   },
   skipText: {
-    color: '#FFFFFF',
+    color: COLORS.TEXT.PRIMARY,
     fontSize: 10,
     fontWeight: '600',
   },

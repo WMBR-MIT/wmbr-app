@@ -157,8 +157,21 @@ export class ScheduleService {
   }
 
   // Helper method to format time for display (just start time)
-  formatTime(timeStr: string): string {
-    return timeStr;
+  // Converts minutes after midnight to a formatted time string (e.g., "12:00am", "3:30pm")
+  formatTime(minutes: number): string {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+
+    // Convert to 12-hour format
+    let displayHour = hours % 12;
+    if (displayHour === 0) {
+      displayHour = 12; // Midnight (0) or noon (12) should display as 12
+    }
+
+    const ampm = hours < 12 ? 'am' : 'pm';
+    const minuteStr = mins === 0 ? '00' : mins.toString().padStart(2, '0');
+
+    return `${displayHour}:${minuteStr}${ampm}`;
   }
 
   // Helper method to determine if alternating show is active this week

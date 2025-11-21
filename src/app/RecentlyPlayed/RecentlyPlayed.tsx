@@ -669,7 +669,7 @@ const styles = StyleSheet.create({
   },
   playedTime: {
     fontSize: 11,
-    color: '#666',
+    color: COLORS.TEXT.TERTIARY,
   },
   previewButton: {
     width: 40,
@@ -734,7 +734,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   errorText: {
-    color: COLORS.TEXT.ERROR,
+    color: COLORS.TEXT.ALERT,
     textAlign: 'center',
     fontSize: 16,
     marginBottom: 20,
@@ -815,7 +815,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   emptyShowText: {
-    color: '#666',
+    color: COLORS.TEXT.TERTIARY,
     fontSize: 14,
     textAlign: 'center',
     fontStyle: 'italic',

@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { COLORS } from '@utils/Colors';
+import { COLORS, CORE_COLORS } from '@utils/Colors';
 
 function getIconName(routeName: string) {
   switch (routeName) {
@@ -51,7 +51,7 @@ export default function BottomMenuBar({
             <Icon
               name={iconName}
               size={22}
-              color={focused ? '#00D17A' : '#888'}
+              color={focused ? CORE_COLORS.WMBR_GREEN : '#888'}
             />
             <Text style={[styles.label, focused && styles.labelActive]}>
               {route.name}
@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   labelActive: {
-    color: '#00D17A',
+    color: CORE_COLORS.WMBR_GREEN,
     fontWeight: '600',
   },
 });

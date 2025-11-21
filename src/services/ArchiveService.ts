@@ -2,7 +2,11 @@ import TrackPlayer, { Track } from 'react-native-track-player';
 import { Show, Archive } from '@customTypes/RecentlyPlayed';
 import { debugLog, debugError } from '@utils/Debug';
 import { DEFAULT_NAME } from '@customTypes/Playlist';
-import { archiveCapabilities, liveCapabilities, SKIP_INTERVAL } from '@utils/TrackPlayerUtils';
+import {
+  archiveCapabilities,
+  liveCapabilities,
+  SKIP_INTERVAL,
+} from '@utils/TrackPlayerUtils';
 
 export interface ArchivePlaybackState {
   isPlayingArchive: boolean;

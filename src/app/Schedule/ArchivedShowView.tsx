@@ -269,6 +269,7 @@ export default function ArchivedShowView() {
                   style={styles.skipButton}
                   onPress={handleSkipForward}
                   activeOpacity={0.7}
+                  aria-label={`Skip forward ${SKIP_INTERVAL} seconds`}
                 >
                   <Icon
                     name="refresh-outline"

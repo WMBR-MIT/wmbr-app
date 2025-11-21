@@ -763,7 +763,7 @@ const styles = StyleSheet.create({
   currentShowTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: CORE_COLORS.WMBR_GREEN,
+    color: COLORS.TEXT.ACCENT,
     marginBottom: 4,
   },
   currentShowSubtitle: {
@@ -781,7 +781,7 @@ const styles = StyleSheet.create({
   showHeaderTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: CORE_COLORS.WMBR_GREEN,
+    color: COLORS.TEXT.ACCENT,
     marginBottom: 2,
   },
   showHeaderSubtitle: {

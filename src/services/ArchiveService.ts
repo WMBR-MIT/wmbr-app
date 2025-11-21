@@ -2,7 +2,7 @@ import TrackPlayer, { Track } from 'react-native-track-player';
 import { Show, Archive } from '@customTypes/RecentlyPlayed';
 import { debugLog, debugError } from '@utils/Debug';
 import { DEFAULT_NAME } from '@customTypes/Playlist';
-import { archiveCapabilities, liveCapabilities } from '@utils/TrackPlayerUtils';
+import { archiveCapabilities, liveCapabilities, SKIP_INTERVAL } from '@utils/TrackPlayerUtils';
 
 export interface ArchivePlaybackState {
   isPlayingArchive: boolean;
@@ -65,8 +65,8 @@ export class ArchiveService {
       await TrackPlayer.updateOptions({
         capabilities: archiveCapabilities,
         compactCapabilities: archiveCapabilities,
-        forwardJumpInterval: 15,
-        backwardJumpInterval: 15,
+        forwardJumpInterval: SKIP_INTERVAL,
+        backwardJumpInterval: SKIP_INTERVAL,
       });
 
       // Add and play archive

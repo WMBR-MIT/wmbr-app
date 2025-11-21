@@ -14,7 +14,10 @@ import {
 import TrackPlayer, {
   State,
   usePlaybackState,
+  useProgress,
 } from 'react-native-track-player';
+import Icon from 'react-native-vector-icons/Ionicons';
+import { liveCapabilities, SKIP_INTERVAL } from '@utils/TrackPlayerUtils';
 import LinearGradient from 'react-native-linear-gradient';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SvgXml } from 'react-native-svg';
@@ -30,7 +33,6 @@ import { WmbrRouteName } from '@customTypes/Navigation';
 import { DEFAULT_NAME } from '@customTypes/Playlist';
 import { COLORS, CORE_COLORS } from '@utils/Colors';
 import { formatArchiveDate } from '@utils/DateTime';
-import { liveCapabilities } from '@utils/TrackPlayerUtils';
 
 import HomeNowPlaying from './HomeNowPlaying';
 
@@ -38,6 +40,7 @@ const streamUrl = 'https://wmbr.org:8002/hi';
 
 export default function HomeScreen() {
   const playbackState = usePlaybackState();
+  const progress = useProgress();
   const insets = useSafeAreaInsets();
   const [currentShow, setCurrentShow] = useState(DEFAULT_NAME);
   const [, setSongHistory] = useState<Song[]>([]);
@@ -215,6 +218,19 @@ export default function HomeScreen() {
     }
   }, [currentShow]);
 
+  const handleSkipBackward = useCallback(async () => {
+    const newPosition = Math.max(progress.position - SKIP_INTERVAL, 0);
+    await TrackPlayer.seekTo(newPosition);
+  }, [progress.position]);
+
+  const handleSkipForward = useCallback(async () => {
+    const newPosition = Math.min(
+      progress.position + SKIP_INTERVAL,
+      progress.duration,
+    );
+    await TrackPlayer.seekTo(newPosition);
+  }, [progress.position, progress.duration]);
+
   const handleOpenShowDetails = useCallback(() => {
     const show = archiveState.currentShow;
     if (!show) return;
@@ -299,11 +315,43 @@ export default function HomeScreen() {
                 </>
               )}
             </View>
-            <PlayButton
-              onPress={togglePlayback}
-              isPlayerInitialized={isPlayerInitialized}
-              isPlayingArchive={archiveState.isPlayingArchive}
-            />
+            <View style={styles.playbackControls}>
+              {archiveState.isPlayingArchive && (
+                <TouchableOpacity
+                  style={styles.skipButton}
+                  onPress={handleSkipBackward}
+                  activeOpacity={0.7}
+                >
+                  <Icon
+                    name="refresh-outline"
+                    size={28}
+                    color="#FFFFFF"
+                    style={styles.skipBackIcon}
+                  />
+                  <Text style={styles.skipText}>15</Text>
+                </TouchableOpacity>
+              )}
+              <PlayButton
+                onPress={togglePlayback}
+                isPlayerInitialized={isPlayerInitialized}
+                isPlayingArchive={archiveState.isPlayingArchive}
+              />
+              {archiveState.isPlayingArchive && (
+                <TouchableOpacity
+                  style={styles.skipButton}
+                  onPress={handleSkipForward}
+                  activeOpacity={0.7}
+                >
+                  <Icon
+                    name="refresh-outline"
+                    size={28}
+                    color="#FFFFFF"
+                    style={styles.skipForwardIcon}
+                  />
+                  <Text style={styles.skipText}>15</Text>
+                </TouchableOpacity>
+              )}
+            </View>
             <View style={styles.bottomInfo}>
               {!archiveState.isPlayingArchive && showDescription && (
                 <Text
@@ -409,4 +457,27 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   liveButtonTextActive: { color: '#FFFFFF' },
+  playbackControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 32,
+  },
+  skipButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 48,
+    height: 48,
+  },
+  skipBackIcon: {
+    transform: [{ scaleX: -1 }],
+  },
+  skipForwardIcon: {
+    transform: [{ scaleX: 1 }],
+  },
+  skipText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: '600',
+  },
 });

@@ -28,8 +28,7 @@ import { PlaylistService } from '@services/PlaylistService';
 import { ArchiveService } from '@services/ArchiveService';
 import { secondsToTime, formatTime } from '@utils/DateTime';
 import { COLORS } from '@utils/Colors';
-
-const SKIP_INTERVAL = 15;
+import { SKIP_INTERVAL } from '@utils/TrackPlayerUtils';
 import {
   generateDarkGradientColors,
   generateGradientColors,

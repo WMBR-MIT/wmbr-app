@@ -327,6 +327,7 @@ export default function HomeScreen() {
                     size={28}
                     color={COLORS.TEXT.PRIMARY}
                     style={styles.skipBackIcon}
+                    aria-label={`Skip backward ${SKIP_INTERVAL} seconds`}
                   />
                   <Text style={styles.skipText}>{SKIP_INTERVAL}</Text>
                 </TouchableOpacity>

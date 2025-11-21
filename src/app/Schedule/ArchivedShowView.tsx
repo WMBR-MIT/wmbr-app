@@ -272,7 +272,7 @@ export default function ArchivedShowView() {
                   <Icon
                     name="refresh-outline"
                     size={28}
-                    color="#FFFFFF"
+                    color={COLORS.TEXT.PRIMARY}
                     style={styles.skipForwardIcon}
                   />
                   <Text style={styles.skipText}>15</Text>

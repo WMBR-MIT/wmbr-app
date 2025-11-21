@@ -210,7 +210,7 @@ export default function ArchivedShowView() {
       <StatusBar barStyle="light-content" backgroundColor={gradientStart} />
 
       <LinearGradient
-        colors={[darkGradientStart, darkGradientEnd, '#000000']}
+        colors={[darkGradientStart, darkGradientEnd, COLORS.BACKGROUND.PRIMARY]}
         locations={[0, 0.3, 1]}
         style={styles.gradient}
       >

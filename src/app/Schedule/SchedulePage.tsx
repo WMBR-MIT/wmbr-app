@@ -303,8 +303,7 @@ export default function SchedulePage({ currentShow }: SchedulePageProps) {
       />
 
       <LinearGradient
-        colors={['#1a1a1a', '#0a0a0a', '#000000']}
-        locations={[0, 0.5, 1]}
+        colors={[COLORS.BACKGROUND.SECONDARY, COLORS.BACKGROUND.PRIMARY]}
         style={styles.gradient}
       >
         <SafeAreaView style={[styles.safeArea, { paddingTop: headerHeight }]}>

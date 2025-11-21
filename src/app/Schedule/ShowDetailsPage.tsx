@@ -49,7 +49,7 @@ import {
   formatShowTime,
   secondsToTime,
 } from '@utils/DateTime';
-import { COLORS } from '@utils/Colors';
+import { COLORS, CORE_COLORS } from '@utils/Colors';
 import {
   generateDarkGradientColors,
   generateGradientColors,
@@ -292,7 +292,7 @@ export default function ShowDetailsPage() {
       <StatusBar barStyle="light-content" backgroundColor={gradientStart} />
 
       <LinearGradient
-        colors={[darkGradientStart, darkGradientEnd, '#000000']}
+        colors={[darkGradientStart, darkGradientEnd, CORE_COLORS.BLACK]}
         locations={[0, 0.3, 1]}
         style={styles.gradient}
       >

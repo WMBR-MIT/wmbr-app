@@ -249,7 +249,7 @@ export default function HomeScreen() {
         colors={
           isPlaying
             ? [CORE_COLORS.WMBR_GREEN, '#006B31', CORE_COLORS.WMBR_GREEN]
-            : ['#000000', '#1a1a1a', '#000000']
+            : [COLORS.BACKGROUND.SECONDARY, COLORS.BACKGROUND.PRIMARY]
         }
         style={styles.fullScreenGradient}
       >

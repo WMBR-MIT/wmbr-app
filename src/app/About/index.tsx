@@ -8,7 +8,6 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
-import { ABOUT_PAGE_GRADIENT } from '@utils/GradientColors';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { getWMBRLogoSVG } from '@utils/WMBRLogo';
 import { COLORS } from '@utils/Colors';
@@ -26,7 +25,10 @@ const openProgramGuide = () =>
 
 export default function AboutPage() {
   return (
-    <LinearGradient colors={ABOUT_PAGE_GRADIENT} style={styles.gradient}>
+    <LinearGradient
+      colors={[COLORS.BACKGROUND.SECONDARY, COLORS.BACKGROUND.PRIMARY]}
+      style={styles.gradient}
+    >
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.container}>
           <View style={styles.logoRow}>

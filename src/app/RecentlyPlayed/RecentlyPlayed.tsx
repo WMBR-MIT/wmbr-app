@@ -10,6 +10,7 @@ import {
   RefreshControl,
   Appearance,
 } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import { debugError } from '@utils/Debug';
 import {
   AudioPreviewService,
@@ -550,77 +551,80 @@ export default function RecentlyPlayed({
   return (
     <>
       {/* Content */}
-      <ScrollView
-        ref={scrollViewRef}
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
-        bounces={true}
-        onScroll={handleScroll}
-        scrollEventThrottle={400}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
-            tintColor="#FFFFFF"
-            colors={[CORE_COLORS.WMBR_GREEN, '#FFFFFF']}
-            progressBackgroundColor="#000000"
-            titleColor="#FFFFFF"
-            title=""
-          />
-        }
+      <LinearGradient
+        colors={[COLORS.BACKGROUND.SECONDARY, COLORS.BACKGROUND.PRIMARY]}
+        style={styles.gradient}
       >
-        {/* Current Show Header - only show when there's a single show with songs */}
-        {currentShow &&
-          currentShow !== DEFAULT_NAME &&
-          showPlaylists.length === 1 &&
-          showPlaylists[0].songs.length > 0 && (
-            <View style={styles.currentShowHeader}>
-              <Text style={styles.currentShowTitle}>{currentShow}</Text>
-              <Text style={styles.currentShowSubtitle}>Now Playing</Text>
+        <ScrollView
+          ref={scrollViewRef}
+          showsVerticalScrollIndicator={false}
+          bounces={true}
+          onScroll={handleScroll}
+          scrollEventThrottle={400}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              tintColor="#FFFFFF"
+              colors={[CORE_COLORS.WMBR_GREEN, '#FFFFFF']}
+              progressBackgroundColor="#000000"
+              titleColor="#FFFFFF"
+              title=""
+            />
+          }
+        >
+          {/* Current Show Header - only show when there's a single show with songs */}
+          {currentShow &&
+            currentShow !== DEFAULT_NAME &&
+            showPlaylists.length === 1 &&
+            showPlaylists[0].songs.length > 0 && (
+              <View style={styles.currentShowHeader}>
+                <Text style={styles.currentShowTitle}>{currentShow}</Text>
+                <Text style={styles.currentShowSubtitle}>Now Playing</Text>
+              </View>
+            )}
+
+          {loading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color="#FFFFFF" />
+              <Text style={styles.loadingText}>Loading playlist...</Text>
+            </View>
+          ) : error ? (
+            <View style={styles.errorContainer}>
+              <Text style={styles.errorText}>{error}</Text>
+              <TouchableOpacity
+                onPress={handleRefresh}
+                style={styles.retryButton}
+              >
+                <Text style={styles.retryButtonText}>Retry</Text>
+              </TouchableOpacity>
+            </View>
+          ) : !currentShow || currentShow === DEFAULT_NAME ? (
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>No playlists found</Text>
+            </View>
+          ) : showPlaylists.length > 0 &&
+            (showPlaylists[0].songs.length > 0 || showPlaylists.length > 1) ? (
+            <>{renderPlaylistContent()}</>
+          ) : (
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>
+                No playlist found for {currentShow}
+              </Text>
             </View>
           )}
 
-        {loading ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#FFFFFF" />
-            <Text style={styles.loadingText}>Loading playlist...</Text>
-          </View>
-        ) : error ? (
-          <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>{error}</Text>
-            <TouchableOpacity
-              onPress={handleRefresh}
-              style={styles.retryButton}
-            >
-              <Text style={styles.retryButtonText}>Retry</Text>
-            </TouchableOpacity>
-          </View>
-        ) : !currentShow || currentShow === DEFAULT_NAME ? (
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No playlists found</Text>
-          </View>
-        ) : showPlaylists.length > 0 &&
-          (showPlaylists[0].songs.length > 0 || showPlaylists.length > 1) ? (
-          <>{renderPlaylistContent()}</>
-        ) : (
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>
-              No playlist found for {currentShow}
-            </Text>
-          </View>
-        )}
-
-        {/* Bottom padding for gesture area */}
-        <View style={styles.bottomPadding} />
-      </ScrollView>
+          {/* Bottom padding for gesture area */}
+          <View style={styles.bottomPadding} />
+        </ScrollView>
+      </LinearGradient>
     </>
   );
 }
 
 const styles = StyleSheet.create({
-  scrollView: {
+  gradient: {
     flex: 1,
-    backgroundColor: COLORS.BACKGROUND.SECONDARY,
   },
   showGroup: {
     marginBottom: 20,

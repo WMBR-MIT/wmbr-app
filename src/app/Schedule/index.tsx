@@ -3,6 +3,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import ArchivedShowView from './ArchivedShowView';
 import ShowDetailsPage from './ShowDetailsPage';
 import SchedulePage from './SchedulePage';
+import { COLORS } from '@utils/Colors';
 
 const Stack = createNativeStackNavigator();
 

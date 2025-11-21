@@ -334,7 +334,7 @@ export default function SchedulePage() {
           >
             {loading ? (
               <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color="#FFFFFF" />
+                <ActivityIndicator size="large" color={COLORS.TEXT.PRIMARY} />
                 <Text style={styles.loadingText}>Loading schedule...</Text>
               </View>
             ) : error ? (

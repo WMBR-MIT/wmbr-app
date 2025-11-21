@@ -28,6 +28,8 @@ import { PlaylistService } from '@services/PlaylistService';
 import { ArchiveService } from '@services/ArchiveService';
 import { secondsToTime, formatTime } from '@utils/DateTime';
 import { COLORS } from '@utils/Colors';
+
+const SKIP_INTERVAL = 15;
 import {
   generateDarkGradientColors,
   generateGradientColors,
@@ -205,6 +207,19 @@ export default function ArchivedShowView() {
     }
   };
 
+  const handleSkipBackward = async () => {
+    const newPosition = Math.max(progress.position - SKIP_INTERVAL, 0);
+    await TrackPlayer.seekTo(newPosition);
+  };
+
+  const handleSkipForward = async () => {
+    const newPosition = Math.min(
+      progress.position + SKIP_INTERVAL,
+      progress.duration,
+    );
+    await TrackPlayer.seekTo(newPosition);
+  };
+
   return (
     <>
       <StatusBar barStyle="light-content" backgroundColor={gradientStart} />
@@ -221,8 +236,23 @@ export default function ArchivedShowView() {
           >
             <ShowImage showName={show.name} archiveDate={archive.date} />
 
-            {/* Play/Pause Button */}
+            {/* Playback Controls */}
             <View style={styles.playSection}>
+              {isArchivePlaying && (
+                <TouchableOpacity
+                  style={styles.skipButton}
+                  onPress={handleSkipBackward}
+                  activeOpacity={0.7}
+                >
+                  <Icon
+                    name="refresh-outline"
+                    size={28}
+                    color="#FFFFFF"
+                    style={styles.skipBackIcon}
+                  />
+                  <Text style={styles.skipText}>15</Text>
+                </TouchableOpacity>
+              )}
               <TouchableOpacity
                 style={styles.playButton}
                 onPress={handlePlayPause}
@@ -234,6 +264,21 @@ export default function ArchivedShowView() {
                   <Icon name="play-circle" size={64} color="#FFFFFF" />
                 )}
               </TouchableOpacity>
+              {isArchivePlaying && (
+                <TouchableOpacity
+                  style={styles.skipButton}
+                  onPress={handleSkipForward}
+                  activeOpacity={0.7}
+                >
+                  <Icon
+                    name="refresh-outline"
+                    size={28}
+                    color="#FFFFFF"
+                    style={styles.skipForwardIcon}
+                  />
+                  <Text style={styles.skipText}>15</Text>
+                </TouchableOpacity>
+              )}
             </View>
 
             {/* Progress Bar - Only show when this archive is playing */}
@@ -342,11 +387,32 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   playSection: {
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     paddingVertical: 20,
+    gap: 24,
   },
   playButton: {
-    padding: 16,
+    padding: 8,
+  },
+  skipButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 48,
+    height: 48,
+  },
+  skipBackIcon: {
+    transform: [{ scaleX: -1 }],
+  },
+  skipForwardIcon: {
+    transform: [{ scaleX: 1 }],
+  },
+  skipText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: '600',
+    marginTop: 0,
   },
   playlistSection: {
     paddingHorizontal: 20,

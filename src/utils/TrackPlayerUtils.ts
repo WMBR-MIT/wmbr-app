@@ -10,13 +10,3 @@ export const archiveCapabilities = [
 ];
 
 export const liveCapabilities = [Capability.Play, Capability.Stop];
-
-// export const useTrackPlayerCapabilities = () => {
-//   const capabilities = useMemo(
-//     () =>
-//       archiveState.isPlayingArchive ? archiveCapabilities : liveCapabilities,
-//     [archiveState.isPlayingArchive],
-//   );
-//
-//   return capabilities;
-// };

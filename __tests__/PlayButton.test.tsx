@@ -23,7 +23,6 @@ describe('PlayButton', () => {
 
     render(<TestComponent />);
 
-    // Find the play button by testID
     const playButton = screen.getByLabelText('Play Button');
     await user.press(playButton);
 
@@ -39,6 +38,7 @@ describe('PlayButton', () => {
   });
 
   test('shows stop icon when playing', () => {
+    // TODO: Test actual interaction, not mockReturnValue
     const { usePlaybackState } = require('react-native-track-player');
     const { State } = require('react-native-track-player');
     usePlaybackState.mockReturnValue({ state: State.Playing });

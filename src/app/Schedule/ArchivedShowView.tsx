@@ -229,9 +229,17 @@ export default function ArchivedShowView() {
                 activeOpacity={0.8}
               >
                 {isArchivePlaying && playbackState?.state === State.Playing ? (
-                  <Icon name="pause-circle" size={64} color="#FFFFFF" />
+                  <Icon
+                    name="pause-circle"
+                    size={64}
+                    color={COLORS.TEXT.PRIMARY}
+                  />
                 ) : (
-                  <Icon name="play-circle" size={64} color="#FFFFFF" />
+                  <Icon
+                    name="play-circle"
+                    size={64}
+                    color={COLORS.TEXT.PRIMARY}
+                  />
                 )}
               </TouchableOpacity>
             </View>

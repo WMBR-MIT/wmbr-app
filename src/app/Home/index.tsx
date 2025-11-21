@@ -80,14 +80,6 @@ export default function HomeScreen() {
         capabilities: liveCapabilities,
       });
 
-      await TrackPlayer.add({
-        id: 'wmbr-stream',
-        url: streamUrl,
-        title: DEFAULT_NAME,
-        artist: 'Live Radio',
-        artwork: require('../../../assets/cover.png'),
-      });
-
       setIsPlayerInitialized(true);
     } catch (error) {
       debugError('Error setting up player:', error);

@@ -517,7 +517,7 @@ export default function RecentlyPlayed({
     if (loadingMore) {
       content.push(
         <View key="loading-more" style={styles.loadingMoreContainer}>
-          <ActivityIndicator size="small" color="#FFFFFF" />
+          <ActivityIndicator size="small" color={COLORS.TEXT.PRIMARY} />
           <Text style={styles.loadingMoreText}>Loading previous show...</Text>
         </View>,
       );
@@ -565,10 +565,10 @@ export default function RecentlyPlayed({
             <RefreshControl
               refreshing={refreshing}
               onRefresh={handleRefresh}
-              tintColor="#FFFFFF"
-              colors={[CORE_COLORS.WMBR_GREEN, '#FFFFFF']}
-              progressBackgroundColor="#000000"
-              titleColor="#FFFFFF"
+              tintColor={COLORS.TEXT.PRIMARY}
+              colors={[CORE_COLORS.WMBR_GREEN, COLORS.TEXT.PRIMARY]}
+              progressBackgroundColor={COLORS.BACKGROUND.PRIMARY}
+              titleColor={COLORS.TEXT.PRIMARY}
               title=""
             />
           }

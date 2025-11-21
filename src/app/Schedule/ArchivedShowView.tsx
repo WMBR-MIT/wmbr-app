@@ -292,7 +292,7 @@ export default function ArchivedShowView() {
 
               {loading ? (
                 <View style={styles.loadingContainer}>
-                  <ActivityIndicator size="large" color="#FFFFFF" />
+                  <ActivityIndicator size="large" color={COLORS.TEXT.PRIMARY} />
                   <Text style={styles.loadingText}>Loading playlist...</Text>
                 </View>
               ) : error ? (

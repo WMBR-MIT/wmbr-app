@@ -379,7 +379,7 @@ export default function ShowDetailsPage() {
                               : 'play-circle'
                           }
                           size={28}
-                          color={'#FFFFFF'}
+                          color={COLORS.TEXT.PRIMARY}
                         />
                       </TouchableOpacity>
 

@@ -65,8 +65,8 @@ export class ArchiveService {
       await TrackPlayer.updateOptions({
         capabilities: archiveCapabilities,
         compactCapabilities: archiveCapabilities,
-        forwardJumpInterval: 15,
-        backwardJumpInterval: 15,
+        forwardJumpInterval: 30,
+        backwardJumpInterval: 30,
       });
 
       // Add and play archive

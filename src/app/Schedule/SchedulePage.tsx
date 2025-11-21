@@ -464,7 +464,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     paddingBottom: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#333',
+    borderBottomColor: COLORS.BORDER.SUBTLE,
   },
   showItem: {
     flexDirection: 'row',
@@ -473,14 +473,14 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 16,
     marginBottom: 12,
-    backgroundColor: COLORS.CARD.SUBTLE.BORDER,
+    backgroundColor: COLORS.CARD.SUBTLE.BACKGROUND,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: COLORS.CARD.SUBTLE.BACKGROUND,
+    borderColor: COLORS.CARD.SUBTLE.BORDER,
   },
   currentShowItem: {
-    backgroundColor: 'rgba(0, 132, 61, 0.2)',
-    borderColor: CORE_COLORS.WMBR_GREEN,
+    backgroundColor: COLORS.CARD.ACTIVE.BACKGROUND,
+    borderColor: COLORS.CARD.ACTIVE.BORDER,
     borderWidth: 2,
   },
   showContent: {

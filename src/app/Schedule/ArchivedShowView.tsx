@@ -365,7 +365,9 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 16,
     marginBottom: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: COLORS.CARD.SUBTLE.BACKGROUND,
+    borderWidth: 1,
+    borderColor: COLORS.CARD.SUBTLE.BORDER,
     borderRadius: 8,
   },
   songInfo: {

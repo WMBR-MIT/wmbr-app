@@ -172,7 +172,7 @@ export class AudioPreviewService {
 
   async pause(): Promise<void> {
     if (this.isPreviewMode && this.currentState.isPlaying) {
-      await TrackPlayer.stop();
+      await TrackPlayer.pause();
       this.stopProgressTracking();
     }
   }

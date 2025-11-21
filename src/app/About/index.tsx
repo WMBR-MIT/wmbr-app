@@ -99,7 +99,11 @@ export default function AboutPage() {
               onPress={openProgramGuide}
               activeOpacity={0.8}
             >
-              <Icon name="musical-notes-outline" size={18} color="#000" />
+              <Icon
+                name="musical-notes-outline"
+                size={18}
+                color={COLORS.BUTTON.ACCENT.TEXT}
+              />
               <Text style={styles.buttonText}>Program Guide</Text>
             </TouchableOpacity>
 
@@ -169,13 +173,17 @@ const styles = StyleSheet.create({
   button: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#00D17A',
+    backgroundColor: COLORS.BUTTON.ACCENT.BACKGROUND,
     paddingHorizontal: 12,
     paddingVertical: 10,
     borderRadius: 8,
     marginRight: 8,
   },
-  buttonText: { marginLeft: 8, color: '#000', fontWeight: '700' },
+  buttonText: {
+    marginLeft: 8,
+    color: COLORS.BUTTON.ACCENT.TEXT,
+    fontWeight: '700',
+  },
   buttonOutline: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -190,7 +198,7 @@ const styles = StyleSheet.create({
   socialRow: { flexDirection: 'row', marginTop: 18 },
   socialButton: { marginRight: 12 },
   linkText: { color: COLORS.TEXT.LINK, textDecorationLine: 'underline' },
-  smallText: { color: '#AAAAAA', fontSize: 12, marginTop: 2 },
+  smallText: { color: COLORS.TEXT.TERTIARY, fontSize: 12, marginTop: 2 },
   section: { marginTop: 12, marginBottom: 8 },
   sectionTitle: {
     color: COLORS.TEXT.PRIMARY,

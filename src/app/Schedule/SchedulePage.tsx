@@ -398,12 +398,12 @@ const styles = StyleSheet.create({
   searchInputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: COLORS.INPUT.BACKGROUND,
     borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderColor: COLORS.INPUT.BORDER,
   },
   searchIcon: {
     marginRight: 8,
@@ -442,13 +442,13 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   retryButton: {
-    backgroundColor: '#FF4444',
+    backgroundColor: COLORS.BUTTON.ALERT.BACKGROUND,
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 8,
   },
   retryButtonText: {
-    color: '#FFFFFF',
+    color: COLORS.BUTTON.ALERT.TEXT,
     fontWeight: '600',
   },
   scheduleContainer: {
@@ -473,10 +473,10 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 16,
     marginBottom: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: COLORS.CARD.SUBTLE.BORDER,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: COLORS.CARD.SUBTLE.BACKGROUND,
   },
   currentShowItem: {
     backgroundColor: 'rgba(0, 132, 61, 0.2)',
@@ -505,7 +505,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   showTime: {
-    color: '#AAAAAA',
+    color: COLORS.TEXT.TERTIARY,
     fontSize: 14,
     fontWeight: '500',
   },
@@ -528,7 +528,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   currentShowFrequency: {
-    color: '#BBBBBB',
+    color: COLORS.TEXT.SECONDARY,
   },
   showDescription: {
     color: COLORS.TEXT.TERTIARY,

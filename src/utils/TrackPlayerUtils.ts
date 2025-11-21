@@ -1,4 +1,3 @@
-// import { useMemo } from 'react';
 import { Capability } from 'react-native-track-player';
 
 export const archiveCapabilities = [

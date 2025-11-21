@@ -318,7 +318,7 @@ export default function HomeScreen() {
                 <TouchableOpacity
                   style={[
                     styles.liveButton,
-                    isPlaying && styles.liveButtonActive,
+                    isPlaying && styles.liveButtonPlaying,
                   ]}
                   onPress={handleSwitchToLive}
                   activeOpacity={0.7}
@@ -326,7 +326,7 @@ export default function HomeScreen() {
                   <Text
                     style={[
                       styles.liveButtonText,
-                      isPlaying && styles.liveButtonTextActive,
+                      isPlaying && styles.liveButtonTextPlaying,
                     ]}
                   >
                     ← Switch to LIVE
@@ -391,14 +391,10 @@ const styles = StyleSheet.create({
     marginTop: 16,
     paddingHorizontal: 20,
     paddingVertical: 12,
-    backgroundColor: 'rgba(255, 68, 68, 0.2)',
+    backgroundColor: `${CORE_COLORS.RED_500}88`,
     borderRadius: 20,
     borderWidth: 1,
     borderColor: '#FF4444',
-  },
-  liveButtonActive: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    borderColor: '#FFFFFF',
   },
   liveButtonText: {
     color: '#FF4444',
@@ -406,5 +402,9 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     textAlign: 'center',
   },
-  liveButtonTextActive: { color: '#FFFFFF' },
+  liveButtonPlaying: {
+    backgroundColor: CORE_COLORS.OVERLAY_WHITE_20,
+    borderColor: '#FFFFFF',
+  },
+  liveButtonTextPlaying: { color: '#FFFFFF' },
 });

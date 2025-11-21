@@ -410,7 +410,7 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
-    color: '#FFFFFF',
+    color: COLORS.INPUT.TEXT,
     fontSize: 14,
     paddingVertical: 4,
   },
@@ -436,7 +436,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   errorText: {
-    color: COLORS.TEXT.ERROR,
+    color: COLORS.TEXT.ALERT,
     textAlign: 'center',
     fontSize: 16,
     marginBottom: 20,
@@ -522,7 +522,7 @@ const styles = StyleSheet.create({
     color: COLORS.TEXT.PRIMARY,
   },
   showFrequency: {
-    color: COLORS.TEXT.META,
+    color: COLORS.TEXT.TERTIARY,
     fontSize: 11,
     fontStyle: 'italic',
     marginBottom: 4,

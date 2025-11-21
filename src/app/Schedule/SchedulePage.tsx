@@ -13,15 +13,15 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
-import { debugLog, debugError } from '../../utils/Debug';
+import { debugLog, debugError } from '@utils/Debug';
 import { RefreshControl } from 'react-native';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { useHeaderHeight } from '@react-navigation/elements';
-import { ScheduleShow, ScheduleResponse } from '../../types/Schedule';
-import { ScheduleService } from '../../services/ScheduleService';
-import { RecentlyPlayedService } from '../../services/RecentlyPlayedService';
-import { WmbrRouteName } from '../../types/Navigation';
-import { COLORS, CORE_COLORS } from '../../utils/Colors';
+import { ScheduleShow, ScheduleResponse } from '@customTypes/Schedule';
+import { ScheduleService } from '@services/ScheduleService';
+import { RecentlyPlayedService } from '@services/RecentlyPlayedService';
+import { WmbrRouteName } from '@customTypes/Navigation';
+import { COLORS, CORE_COLORS } from '@utils/Colors';
 
 interface SchedulePageProps {
   currentShow?: string;

@@ -328,7 +328,7 @@ export default function HomeScreen() {
                     color={COLORS.TEXT.PRIMARY}
                     style={styles.skipBackIcon}
                   />
-                  <Text style={styles.skipText}>15</Text>
+                  <Text style={styles.skipText}>{SKIP_INTERVAL}</Text>
                 </TouchableOpacity>
               )}
               <PlayButton
@@ -347,7 +347,7 @@ export default function HomeScreen() {
                     color="#FFFFFF"
                     style={styles.skipForwardIcon}
                   />
-                  <Text style={styles.skipText}>15</Text>
+                  <Text style={styles.skipText}>{SKIP_INTERVAL}</Text>
                 </TouchableOpacity>
               )}
             </View>

@@ -250,7 +250,9 @@ export default function ArchivedShowView() {
                     color={COLORS.TEXT.PRIMARY}
                     style={styles.skipBackIcon}
                   />
-                  <Text style={styles.skipText}>{SKIP_INTERVAL}</Text>
+                  <Text style={styles.skipText} aria-hidden={true}>
+                    {SKIP_INTERVAL}
+                  </Text>
                 </TouchableOpacity>
               )}
               <TouchableOpacity
@@ -277,7 +279,9 @@ export default function ArchivedShowView() {
                     color={COLORS.TEXT.PRIMARY}
                     style={styles.skipForwardIcon}
                   />
-                  <Text style={styles.skipText}>{SKIP_INTERVAL}</Text>
+                  <Text style={styles.skipText} aria-hidden={true}>
+                    {SKIP_INTERVAL}
+                  </Text>
                 </TouchableOpacity>
               )}
             </View>

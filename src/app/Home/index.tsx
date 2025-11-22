@@ -321,13 +321,13 @@ export default function HomeScreen() {
                   style={styles.skipButton}
                   onPress={handleSkipBackward}
                   activeOpacity={0.7}
+                  aria-label={`Skip backward ${SKIP_INTERVAL} seconds`}
                 >
                   <Icon
                     name="refresh-outline"
                     size={28}
                     color={COLORS.TEXT.PRIMARY}
                     style={styles.skipBackIcon}
-                    aria-label={`Skip backward ${SKIP_INTERVAL} seconds`}
                   />
                   <Text style={styles.skipText}>{SKIP_INTERVAL}</Text>
                 </TouchableOpacity>
@@ -341,6 +341,7 @@ export default function HomeScreen() {
                   style={styles.skipButton}
                   onPress={handleSkipForward}
                   activeOpacity={0.7}
+                  aria-label={`Skip forward ${SKIP_INTERVAL} seconds`}
                 >
                   <Icon
                     name="refresh-outline"
@@ -348,7 +349,9 @@ export default function HomeScreen() {
                     color={COLORS.TEXT.PRIMARY}
                     style={styles.skipForwardIcon}
                   />
-                  <Text style={styles.skipText}>{SKIP_INTERVAL}</Text>
+                  <Text style={styles.skipText} aria-hidden={true}>
+                    {SKIP_INTERVAL}
+                  </Text>
                 </TouchableOpacity>
               )}
             </View>

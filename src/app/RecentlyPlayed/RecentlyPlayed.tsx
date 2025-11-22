@@ -10,6 +10,7 @@ import {
   RefreshControl,
   Appearance,
 } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import { debugError } from '@utils/Debug';
 import {
   AudioPreviewService,
@@ -516,7 +517,7 @@ export default function RecentlyPlayed({
     if (loadingMore) {
       content.push(
         <View key="loading-more" style={styles.loadingMoreContainer}>
-          <ActivityIndicator size="small" color="#FFFFFF" />
+          <ActivityIndicator size="small" color={COLORS.TEXT.PRIMARY} />
           <Text style={styles.loadingMoreText}>Loading previous show...</Text>
         </View>,
       );
@@ -550,77 +551,80 @@ export default function RecentlyPlayed({
   return (
     <>
       {/* Content */}
-      <ScrollView
-        ref={scrollViewRef}
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
-        bounces={true}
-        onScroll={handleScroll}
-        scrollEventThrottle={400}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
-            tintColor="#FFFFFF"
-            colors={[CORE_COLORS.WMBR_GREEN, '#FFFFFF']}
-            progressBackgroundColor="#000000"
-            titleColor="#FFFFFF"
-            title=""
-          />
-        }
+      <LinearGradient
+        colors={[COLORS.BACKGROUND.SECONDARY, COLORS.BACKGROUND.PRIMARY]}
+        style={styles.gradient}
       >
-        {/* Current Show Header - only show when there's a single show with songs */}
-        {currentShow &&
-          currentShow !== DEFAULT_NAME &&
-          showPlaylists.length === 1 &&
-          showPlaylists[0].songs.length > 0 && (
-            <View style={styles.currentShowHeader}>
-              <Text style={styles.currentShowTitle}>{currentShow}</Text>
-              <Text style={styles.currentShowSubtitle}>Now Playing</Text>
+        <ScrollView
+          ref={scrollViewRef}
+          showsVerticalScrollIndicator={false}
+          bounces={true}
+          onScroll={handleScroll}
+          scrollEventThrottle={400}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              tintColor={COLORS.TEXT.PRIMARY}
+              colors={[CORE_COLORS.WMBR_GREEN, COLORS.TEXT.PRIMARY]}
+              progressBackgroundColor={COLORS.BACKGROUND.PRIMARY}
+              titleColor={COLORS.TEXT.PRIMARY}
+              title=""
+            />
+          }
+        >
+          {/* Current Show Header - only show when there's a single show with songs */}
+          {currentShow &&
+            currentShow !== DEFAULT_NAME &&
+            showPlaylists.length === 1 &&
+            showPlaylists[0].songs.length > 0 && (
+              <View style={styles.currentShowHeader}>
+                <Text style={styles.currentShowTitle}>{currentShow}</Text>
+                <Text style={styles.currentShowSubtitle}>Now Playing</Text>
+              </View>
+            )}
+
+          {loading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color="#FFFFFF" />
+              <Text style={styles.loadingText}>Loading playlist...</Text>
+            </View>
+          ) : error ? (
+            <View style={styles.errorContainer}>
+              <Text style={styles.errorText}>{error}</Text>
+              <TouchableOpacity
+                onPress={handleRefresh}
+                style={styles.retryButton}
+              >
+                <Text style={styles.retryButtonText}>Retry</Text>
+              </TouchableOpacity>
+            </View>
+          ) : !currentShow || currentShow === DEFAULT_NAME ? (
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>No playlists found</Text>
+            </View>
+          ) : showPlaylists.length > 0 &&
+            (showPlaylists[0].songs.length > 0 || showPlaylists.length > 1) ? (
+            <>{renderPlaylistContent()}</>
+          ) : (
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>
+                No playlist found for {currentShow}
+              </Text>
             </View>
           )}
 
-        {loading ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#FFFFFF" />
-            <Text style={styles.loadingText}>Loading playlist...</Text>
-          </View>
-        ) : error ? (
-          <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>{error}</Text>
-            <TouchableOpacity
-              onPress={handleRefresh}
-              style={styles.retryButton}
-            >
-              <Text style={styles.retryButtonText}>Retry</Text>
-            </TouchableOpacity>
-          </View>
-        ) : !currentShow || currentShow === DEFAULT_NAME ? (
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No playlists found</Text>
-          </View>
-        ) : showPlaylists.length > 0 &&
-          (showPlaylists[0].songs.length > 0 || showPlaylists.length > 1) ? (
-          <>{renderPlaylistContent()}</>
-        ) : (
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>
-              No playlist found for {currentShow}
-            </Text>
-          </View>
-        )}
-
-        {/* Bottom padding for gesture area */}
-        <View style={styles.bottomPadding} />
-      </ScrollView>
+          {/* Bottom padding for gesture area */}
+          <View style={styles.bottomPadding} />
+        </ScrollView>
+      </LinearGradient>
     </>
   );
 }
 
 const styles = StyleSheet.create({
-  scrollView: {
+  gradient: {
     flex: 1,
-    backgroundColor: COLORS.BACKGROUND.SECONDARY,
   },
   showGroup: {
     marginBottom: 20,
@@ -630,7 +634,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#333',
+    borderBottomColor: COLORS.BORDER.SUBTLE,
     alignItems: 'center',
   },
   songInfo: {
@@ -655,7 +659,7 @@ const styles = StyleSheet.create({
   },
   playedTime: {
     fontSize: 11,
-    color: '#666',
+    color: COLORS.TEXT.TERTIARY,
   },
   previewButton: {
     width: 40,
@@ -720,7 +724,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   errorText: {
-    color: COLORS.TEXT.ERROR,
+    color: COLORS.TEXT.ALERT,
     textAlign: 'center',
     fontSize: 16,
     marginBottom: 20,
@@ -754,12 +758,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#333',
+    borderBottomColor: COLORS.BORDER.SUBTLE,
   },
   currentShowTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: CORE_COLORS.WMBR_GREEN,
+    color: COLORS.TEXT.ACCENT,
     marginBottom: 4,
   },
   currentShowSubtitle: {
@@ -771,13 +775,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#333',
+    borderBottomColor: COLORS.BORDER.SUBTLE,
     marginBottom: 0,
   },
   showHeaderTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: CORE_COLORS.WMBR_GREEN,
+    color: COLORS.TEXT.ACCENT,
     marginBottom: 2,
   },
   showHeaderSubtitle: {
@@ -801,7 +805,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   emptyShowText: {
-    color: '#666',
+    color: COLORS.TEXT.TERTIARY,
     fontSize: 14,
     textAlign: 'center',
     fontStyle: 'italic',
@@ -811,12 +815,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#333',
+    backgroundColor: COLORS.CARD.SUBTLE.BORDER,
     marginHorizontal: 20,
     marginVertical: 10,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#444',
+    borderColor: COLORS.CARD.SUBTLE.BORDER,
   },
   endOfDayText: {
     color: COLORS.TEXT.SECONDARY,

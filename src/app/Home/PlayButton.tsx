@@ -83,7 +83,7 @@ export default function PlayButton({
         return <Icon name="stop" size={64} color={CORE_COLORS.WMBR_GREEN} />;
       }
     } else {
-      return <Icon name="play" size={64} color="#FFFFFF" />;
+      return <Icon name="play" size={64} color={CORE_COLORS.WHITE} />;
     }
   }, [isPlaying, isPlayingArchive]);
 
@@ -165,8 +165,8 @@ const styles = StyleSheet.create({
     elevation: 12,
   },
   playButtonActive: {
-    backgroundColor: '#FFFFFF',
-    shadowColor: '#FFFFFF',
+    backgroundColor: CORE_COLORS.WHITE,
+    shadowColor: CORE_COLORS.WHITE,
   },
   buttonContent: {
     width: '100%',

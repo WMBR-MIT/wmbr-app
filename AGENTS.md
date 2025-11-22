@@ -32,6 +32,12 @@ React Native app for WMBR radio streaming (live + archives), schedules, and play
   - `5–8` one specific week in a 4‑week cycle (Week 1–4)
   - Weekday shows use `day=7` and are expanded across Monday–Friday.
 
+## Best Practices
+
+- Don't use any "bare" colors, either hex or `rgb()`. Instead, use values from
+    the `COLORS` object in `src/utils/Colors.ts`, or `CORE_COLORS` if there
+    doesn't seem to be a matching semantic color.
+
 ## Data Flow (High Level)
 
 ```

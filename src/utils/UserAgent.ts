@@ -15,7 +15,7 @@ export function getUserAgent(): string {
   const osVersion = Platform.Version;
 
   if (Platform.OS === 'ios') {
-    return `WMBRApp/${version} (iOS; iPhone)`;
+    return `WMBRApp/${version} (iPhone; iOS ${osVersion})`;
   } else {
     return `WMBRApp/${version} (Android; SDK ${osVersion})`;
   }

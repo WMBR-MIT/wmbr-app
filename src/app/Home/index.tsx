@@ -321,7 +321,7 @@ export default function HomeScreen() {
                   style={styles.skipButton}
                   onPress={handleSkipBackward}
                   activeOpacity={0.7}
-                  aria-label={`Skip backward ${SKIP_INTERVAL} seconds`}
+                  accessibilityLabel={`Skip backward ${SKIP_INTERVAL} seconds`}
                 >
                   <Icon
                     name="refresh-outline"
@@ -341,7 +341,7 @@ export default function HomeScreen() {
                   style={styles.skipButton}
                   onPress={handleSkipForward}
                   activeOpacity={0.7}
-                  aria-label={`Skip forward ${SKIP_INTERVAL} seconds`}
+                  accessibilityLabel={`Skip forward ${SKIP_INTERVAL} seconds`}
                 >
                   <Icon
                     name="refresh-outline"

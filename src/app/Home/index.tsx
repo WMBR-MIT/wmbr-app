@@ -95,7 +95,7 @@ export default function HomeScreen() {
     const unsubscribeMetadata = metadataService.subscribe((data: ShowInfo) => {
       setShowInfo(data);
       setCurrentShow(data.showTitle);
-      setHosts(he.decode(data.hosts));
+      setHosts(he.decode(data.hosts || ''));
       setShowDescription(data.description);
 
       try {

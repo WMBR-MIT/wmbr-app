@@ -1,5 +1,5 @@
 import { useProgress } from 'react-native-track-player';
-import { ViewStyle, StyleProp } from 'react-native';
+import { Platform, StyleProp, ViewStyle } from 'react-native';
 import { COLORS, CORE_COLORS } from '../utils/Colors';
 
 import Slider from '@react-native-community/slider';
@@ -27,7 +27,9 @@ export default function PlaybackSlider({
       maximumValue={1}
       onSlidingStart={onSlidingStart}
       onSlidingComplete={onSlidingComplete}
-      thumbTintColor={CORE_COLORS.WMBR_GREEN}
+      thumbTintColor={
+        Platform.OS === 'android' ? CORE_COLORS.WMBR_GREEN : undefined
+      }
       minimumTrackTintColor={CORE_COLORS.WMBR_GREEN}
       maximumTrackTintColor={COLORS.TEXT.PRIMARY}
       onValueChange={value =>

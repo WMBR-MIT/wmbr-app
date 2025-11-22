@@ -27,8 +27,9 @@ export default function PlaybackSlider({
       maximumValue={1}
       onSlidingStart={onSlidingStart}
       onSlidingComplete={onSlidingComplete}
+      thumbTintColor={CORE_COLORS.WMBR_GREEN}
       minimumTrackTintColor={CORE_COLORS.WMBR_GREEN}
-      maximumTrackTintColor={COLORS.BACKGROUND.SECONDARY}
+      maximumTrackTintColor={COLORS.TEXT.PRIMARY}
       onValueChange={value =>
         onValueChange?.(value * (progress?.duration || 0))
       }

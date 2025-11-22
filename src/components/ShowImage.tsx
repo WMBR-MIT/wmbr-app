@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
   albumContent: {
     flex: 1,
     justifyContent: 'space-between',
-    paddingVertical: 20,
+    paddingVertical: 16,
     paddingHorizontal: 0,
   },
   albumLogoContainer: {
@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     flex: 1,
     justifyContent: 'flex-end',
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
   },
   albumShowName: {
     color: '#FFFFFF',

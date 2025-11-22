@@ -1,4 +1,5 @@
 import { Platform } from 'react-native';
+import packageJson from '../package.json';
 import { getUserAgent } from '../src/utils/UserAgent';
 
 // Mock Platform from react-native
@@ -9,32 +10,34 @@ jest.mock('react-native', () => ({
   },
 }));
 
+const version = packageJson.version;
+
 describe('getUserAgent', () => {
   afterEach(() => {
     jest.clearAllMocks();
   });
 
   test('should return iOS user agent when platform is iOS', () => {
-    (Platform as any).OS = 'ios';
-    (Platform as any).Version = '17.0';
+    Platform.OS = 'ios';
+    Platform.Version = '17.0';
 
     const userAgent = getUserAgent();
 
-    expect(userAgent).toBe('WMBRApp/0.0.1 (iOS; iPhone)');
+    expect(userAgent).toBe(`WMBRApp/${version} (iPhone; iOS 17.0)`);
   });
 
   test('should return Android user agent when platform is Android', () => {
-    (Platform as any).OS = 'android';
-    (Platform as any).Version = 33;
+    Platform.OS = 'android';
+    Platform.Version = 33;
 
     const userAgent = getUserAgent();
 
-    expect(userAgent).toBe('WMBRApp/0.0.1 (Android; SDK 33)');
+    expect(userAgent).toBe(`WMBRApp/${version} (Android; SDK 33)`);
   });
 
   test('should include correct SDK version for Android', () => {
-    (Platform as any).OS = 'android';
-    (Platform as any).Version = 30;
+    Platform.OS = 'android';
+    Platform.Version = 30;
 
     const userAgent = getUserAgent();
 
@@ -43,6 +46,6 @@ describe('getUserAgent', () => {
 
   test('should always include app version in user agent', () => {
     const iosUserAgent = getUserAgent();
-    expect(iosUserAgent).toContain('WMBRApp/0.0.1');
+    expect(iosUserAgent).toContain(`WMBRApp/${version}`);
   });
 });

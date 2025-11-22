@@ -28,3 +28,13 @@ jest.mock('./src/utils/Debug.ts', () => ({
 // Mock fetch at the network boundary instead of mocking services
 // This allows real service code to run in tests
 jest.spyOn(global, 'fetch').mockImplementation(createMockFetch());
+
+
+// Mock useHeaderHeight from @react-navigation/elements used by header components
+jest.mock('@react-navigation/elements', () => {
+  const actual = jest.requireActual('@react-navigation/elements');
+  return {
+    ...actual,
+    useHeaderHeight: () => 0,
+  };
+});

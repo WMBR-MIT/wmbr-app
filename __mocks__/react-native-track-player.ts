@@ -80,6 +80,11 @@ const TrackPlayer = {
   }),
   getPosition: jest.fn(async () => Promise.resolve(position)),
   getDuration: jest.fn(async () => Promise.resolve(duration)),
+  seekTo: jest.fn(async (sec: number) => {
+    // clamp into [0, duration] and update internal position
+    position = Math.max(0, Math.min(duration, sec));
+    return Promise.resolve();
+  }),
   play: jest.fn(async () => Promise.resolve()),
   pause: jest.fn(async () => Promise.resolve()),
   stop: jest.fn(async () => Promise.resolve()),

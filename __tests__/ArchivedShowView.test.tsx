@@ -67,8 +67,10 @@ describe('ArchivedShowView', () => {
 
     // Arrange: make archive playing and set duration/position
     await archiveService.playArchive(testArchive, mockShow);
+
     const { setPlaybackState, setDuration, setPosition } =
       getTrackPlayerTestApi();
+
     await act(async () => {
       setPlaybackState(State.Playing);
       setDuration(120); // 2 minutes
@@ -79,20 +81,20 @@ describe('ArchivedShowView', () => {
 
     // Act: skip forward by SKIP_INTERVAL (30) -> expect 70
     await user.press(await screen.findByLabelText('Skip forward 30 seconds'));
-    expect(await TrackPlayer.getPosition()).toBe(70);
+    expect(TrackPlayer.seekTo).toHaveBeenLastCalledWith(70);
 
-    // Act: skip backward by SKIP_INTERVAL (30) -> expect 40 (clamped)
+    // Act: skip backward by SKIP_INTERVAL (30) -> expect 40 (from 70 - 30)
     await user.press(await screen.findByLabelText('Skip backward 30 seconds'));
-    expect(await TrackPlayer.getPosition()).toBe(40);
+    expect(TrackPlayer.seekTo).toHaveBeenLastCalledWith(40);
 
     // Edge cases: skip forward near end should clamp to duration
     await act(async () => setPosition(110)); // 110 + 30 -> clamp to 120
     await user.press(await screen.findByLabelText('Skip forward 30 seconds'));
-    expect(await TrackPlayer.getPosition()).toBe(120);
+    expect(TrackPlayer.seekTo).toHaveBeenLastCalledWith(120);
 
     // Edge case: skip backward near start should clamp to 0 (or min allowed)
     await act(async () => setPosition(10));
     await user.press(await screen.findByLabelText('Skip backward 30 seconds'));
-    expect(await TrackPlayer.getPosition()).toBe(0);
+    expect(TrackPlayer.seekTo).toHaveBeenLastCalledWith(0);
   });
 });

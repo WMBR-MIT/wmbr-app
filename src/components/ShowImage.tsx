@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
   albumContent: {
     flex: 1,
     justifyContent: 'space-between',
-    paddingVertical: 16,
+    paddingVertical: 20,
     paddingHorizontal: 0,
   },
   albumLogoContainer: {

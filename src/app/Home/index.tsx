@@ -144,7 +144,11 @@ export default function HomeScreen() {
       await TrackPlayer.setupPlayer();
       await TrackPlayer.updateOptions({
         capabilities: [Capability.Play, Capability.Pause, Capability.Stop],
-        compactCapabilities: [Capability.Play, Capability.Pause],
+        compactCapabilities: [
+          Capability.Play,
+          Capability.Pause,
+          Capability.Stop,
+        ],
       });
 
       setIsPlayerInitialized(true);

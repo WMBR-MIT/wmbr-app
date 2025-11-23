@@ -46,11 +46,11 @@ export const testApi = {
   setPlaybackState: (state: State) => {
     playbackState = state;
   },
-  setPosition: (seconds: number) => {
-    position = seconds;
+  setPosition: (sec: number) => {
+    position = sec;
   },
-  setDuration: (seconds: number) => {
-    duration = seconds;
+  setDuration: (sec: number) => {
+    duration = sec;
   },
   advance: (ms: number) => {
     position = Math.min(duration, position + ms / 1000);

@@ -35,22 +35,6 @@ let duration = 0; // seconds
 let initialized = false;
 let queue: any[] = [];
 
-// listeners for the hook-based mocks
-const progressListeners = new Set<
-  (progress: { position: number; duration: number }) => void
->();
-
-const playbackStateListeners = new Set<(state: State) => void>();
-
-function notifyProgress() {
-  const progress = { position, duration };
-  progressListeners.forEach(fn => fn(progress));
-}
-
-function notifyPlaybackState() {
-  playbackStateListeners.forEach(fn => fn(playbackState));
-}
-
 export const testApi = {
   resetAll: () => {
     playbackState = State.Stopped;
@@ -58,25 +42,18 @@ export const testApi = {
     duration = 0;
     initialized = false;
     queue = [];
-    // notify subscribers of reset
-    notifyProgress();
-    notifyPlaybackState();
   },
   setPlaybackState: (state: State) => {
     playbackState = state;
-    notifyPlaybackState();
   },
   setPosition: (seconds: number) => {
     position = seconds;
-    notifyProgress();
   },
   setDuration: (seconds: number) => {
     duration = seconds;
-    notifyProgress();
   },
   advance: (ms: number) => {
     position = Math.min(duration, position + ms / 1000);
-    notifyProgress();
   },
 };
 
@@ -89,7 +66,6 @@ const TrackPlayer = {
   setupPlayer: jest.fn(() => {
     // mark the mock as initialized so getPlaybackState will resolve
     initialized = true;
-    notifyPlaybackState();
     return Promise.resolve();
   }),
   updateOptions: jest.fn(() => Promise.resolve()),
@@ -107,8 +83,6 @@ const TrackPlayer = {
   seekTo: jest.fn(async (sec: number) => {
     // clamp into [0, duration] and update internal position
     position = Math.max(0, Math.min(duration, sec));
-    // notify listeners that position changed as a result of seeking
-    notifyProgress();
     return Promise.resolve();
   }),
   play: jest.fn(async () => Promise.resolve()),

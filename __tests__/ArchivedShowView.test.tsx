@@ -36,12 +36,20 @@ describe('ArchivedShowView', () => {
   });
 
   test('renders skip forward and back', async () => {
-    // Drive the ArchiveService into a playing state using its public API
+    /**
+     * Drive the ArchiveService into a playing state using its public API.
+     *
+     * This is necessary so that `isArchivePlaying` is true in the component,
+     * causing the skip buttons to appear.
+     *
+     * Technically this only needs to be done once for the whole test suite, but
+     * I'm putting it in each test so that each test is more self-contained.
+     *
+     */
     await archiveService.playArchive(testArchive, mockShow);
 
     await renderAsync(<ArchivedShowView />, { wrapper: TestWrapper });
 
-    // Wait for the skip buttons to appear after service subscription updates
     expect(
       await screen.findByLabelText(`Skip backward ${SKIP_INTERVAL} seconds`),
     ).toBeTruthy();
@@ -49,15 +57,16 @@ describe('ArchivedShowView', () => {
       await screen.findByLabelText(`Skip forward ${SKIP_INTERVAL} seconds`),
     ).toBeTruthy();
   });
+});
 
-  test('skip buttons modify TrackPlayer position', async () => {
+describe('ArchivedShowView skip buttons', () => {
+  test('skip forward works', async () => {
     const user = userEvent.setup();
-
-    // Arrange: make archive playing and set duration/position
-    await archiveService.playArchive(testArchive, mockShow);
 
     const { setPlaybackState, setDuration, setPosition } =
       getTrackPlayerTestApi();
+
+    await archiveService.playArchive(testArchive, mockShow);
 
     await act(async () => {
       setPlaybackState(State.Playing);
@@ -67,27 +76,72 @@ describe('ArchivedShowView', () => {
 
     await renderAsync(<ArchivedShowView />, { wrapper: TestWrapper });
 
-    // Act: skip forward by SKIP_INTERVAL (30) -> expect 70
     await user.press(
       await screen.findByLabelText(`Skip forward ${SKIP_INTERVAL} seconds`),
     );
     expect(TrackPlayer.seekTo).toHaveBeenLastCalledWith(70);
+  });
 
-    // Act: skip backward by SKIP_INTERVAL (30) -> expect 40 (from 70 - 30)
+  test('skip backward works', async () => {
+    const user = userEvent.setup();
+
+    const { setPlaybackState, setDuration, setPosition } =
+      getTrackPlayerTestApi();
+
+    await archiveService.playArchive(testArchive, mockShow);
+
+    await act(async () => {
+      setPlaybackState(State.Playing);
+      setDuration(120); // 2 minutes
+      setPosition(40); // start at 40s
+    });
+
+    await renderAsync(<ArchivedShowView />, { wrapper: TestWrapper });
+
     await user.press(
       await screen.findByLabelText(`Skip backward ${SKIP_INTERVAL} seconds`),
     );
-    expect(TrackPlayer.seekTo).toHaveBeenLastCalledWith(40);
+    expect(TrackPlayer.seekTo).toHaveBeenLastCalledWith(10);
+  });
 
-    // Edge cases: skip forward near end should clamp to duration
-    await act(async () => setPosition(110)); // 110 + 30 -> clamp to 120
+  test('skip forward is clamped to duration', async () => {
+    const user = userEvent.setup();
+
+    const { setPlaybackState, setDuration, setPosition } =
+      getTrackPlayerTestApi();
+
+    await archiveService.playArchive(testArchive, mockShow);
+
+    await act(async () => {
+      setPlaybackState(State.Playing);
+      setDuration(120); // 2 minutes
+      setPosition(110); // start at 110s
+    });
+
+    await renderAsync(<ArchivedShowView />, { wrapper: TestWrapper });
+
     await user.press(
       await screen.findByLabelText(`Skip forward ${SKIP_INTERVAL} seconds`),
     );
     expect(TrackPlayer.seekTo).toHaveBeenLastCalledWith(120);
+  });
 
-    // Edge case: skip backward near start should clamp to 0 (or min allowed)
-    await act(async () => setPosition(10));
+  test('skip backward is clamped to 0', async () => {
+    const user = userEvent.setup();
+
+    const { setPlaybackState, setDuration, setPosition } =
+      getTrackPlayerTestApi();
+
+    await archiveService.playArchive(testArchive, mockShow);
+
+    await act(async () => {
+      setPlaybackState(State.Playing);
+      setDuration(120); // 2 minutes
+      setPosition(10); // start at 10s
+    });
+
+    await renderAsync(<ArchivedShowView />, { wrapper: TestWrapper });
+
     await user.press(
       await screen.findByLabelText(`Skip backward ${SKIP_INTERVAL} seconds`),
     );

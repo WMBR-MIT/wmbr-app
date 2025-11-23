@@ -1,5 +1,3 @@
-import { useEffect, useState } from 'react';
-
 export enum Event {
   PlaybackState = 'playback-state',
   PlaybackProgressUpdated = 'playback-progress',
@@ -82,45 +80,12 @@ export const testApi = {
   },
 };
 
-export const useProgress = () => {
-  const [progress, setProgress] = useState({ position, duration });
-
-  useEffect(() => {
-    const fn = (newProgress: { position: number; duration: number }) =>
-      setProgress(newProgress);
-
-    progressListeners.add(fn);
-
-    return () => {
-      progressListeners.delete(fn);
-    };
-  }, []);
-
-  return progress;
-};
-
-export const usePlaybackState = () => {
-  const [state, setState] = useState<State>(playbackState);
-
-  useEffect(() => {
-    const fn = (newState: State) => setState(newState);
-
-    playbackStateListeners.add(fn);
-
-    return () => {
-      playbackStateListeners.delete(fn);
-    };
-  }, []);
-
-  return { state };
-};
-
 const TrackPlayer = {
   Event,
   State,
   Capability,
-  useProgress,
-  usePlaybackState,
+  useProgress: jest.fn(() => ({ position, duration })),
+  usePlaybackState: jest.fn(() => ({ state: playbackState })),
   setupPlayer: jest.fn(() => {
     // mark the mock as initialized so getPlaybackState will resolve
     initialized = true;
@@ -153,5 +118,8 @@ const TrackPlayer = {
   updateMetadataForTrack: jest.fn(() => Promise.resolve()),
   addEventListener: jest.fn(() => Promise.resolve()),
 };
+
+export const useProgress = TrackPlayer.useProgress;
+export const usePlaybackState = TrackPlayer.usePlaybackState;
 
 export default TrackPlayer;

@@ -35,7 +35,6 @@ export default function SchedulePage() {
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const scrollViewRef = useRef<ScrollView>(null);
-  const currentShowRef = useRef<View>(null);
 
   const scheduleService = ScheduleService.getInstance();
   const recentlyPlayedService = RecentlyPlayedService.getInstance();
@@ -207,7 +206,7 @@ export default function SchedulePage() {
                 style={[styles.showItem, isCurrent && styles.currentShowItem]}
                 onPress={() => handleShowPress(show)}
                 activeOpacity={0.7}
-                ref={isCurrent ? currentShowRef : null}
+                ref={null}
               >
                 <View style={styles.showContent}>
                   <View style={styles.showMainInfo}>

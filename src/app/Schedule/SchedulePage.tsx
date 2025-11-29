@@ -23,20 +23,14 @@ import { RecentlyPlayedService } from '../../services/RecentlyPlayedService';
 import { WmbrRouteName } from '../../types/Navigation';
 import { COLORS, CORE_COLORS } from '../../utils/Colors';
 
-interface SchedulePageProps {
-  currentShow?: string;
-}
-
-export default function SchedulePage({ currentShow }: SchedulePageProps) {
+export default function SchedulePage() {
   const navigation =
     useNavigation<NavigationProp<Record<WmbrRouteName, object | undefined>>>();
 
   const headerHeight = useHeaderHeight();
 
   const [schedule, setSchedule] = useState<ScheduleResponse | null>(null);
-  const [currentShowTitle, setCurrentShowTitle] = useState<string | undefined>(
-    currentShow,
-  );
+  const [currentShowTitle, setCurrentShowTitle] = useState<string>();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -47,17 +41,12 @@ export default function SchedulePage({ currentShow }: SchedulePageProps) {
   const recentlyPlayedService = RecentlyPlayedService.getInstance();
 
   useEffect(() => {
-    if (currentShow) {
-      setCurrentShowTitle(currentShow);
-      return;
-    }
-
     const unsubscribe = recentlyPlayedService.subscribeToCurrentShow(show => {
       setCurrentShowTitle(show ?? undefined);
     });
 
     return unsubscribe;
-  }, [currentShow, recentlyPlayedService]);
+  }, [recentlyPlayedService]);
 
   const fetchSchedule = useCallback(async () => {
     setLoading(true);
@@ -98,9 +87,6 @@ export default function SchedulePage({ currentShow }: SchedulePageProps) {
 
   const handleShowPress = async (show: ScheduleShow) => {
     try {
-      // Fetch archives for this show from the recently played service
-      const recentlyPlayedService = RecentlyPlayedService.getInstance();
-
       // fetch show cache (xml only)
       await recentlyPlayedService.fetchShowsCacheOnly();
 

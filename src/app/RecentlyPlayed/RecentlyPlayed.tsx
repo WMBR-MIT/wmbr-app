@@ -547,7 +547,7 @@ export default function RecentlyPlayed({
     showPlaylists,
   ]);
 
-  const mainContent = (() => {
+  const mainContent = () => {
     if (loading) {
       return (
         <View style={styles.loadingContainer}>
@@ -590,7 +590,7 @@ export default function RecentlyPlayed({
         </Text>
       </View>
     );
-  })();
+  };
 
   return (
     <>
@@ -624,7 +624,7 @@ export default function RecentlyPlayed({
               <Text style={styles.currentShowSubtitle}>Now Playing</Text>
             </View>
           )}
-        {mainContent}
+        {mainContent()}
         {/* Bottom padding for gesture area */}
         <View style={styles.bottomPadding} />
       </ScrollView>

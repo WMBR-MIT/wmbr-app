@@ -94,9 +94,12 @@ export default function SchedulePage() {
         show.name,
       );
 
+      const showDetails = await scheduleService.getShowById(show.id);
+
       if (showWithArchiveData && showWithArchiveData.archives.length > 0) {
         navigation.navigate('ShowDetails' as WmbrRouteName, {
           show: showWithArchiveData,
+          showDescription: showDetails?.description || '',
         });
       } else {
         // If no archives found, show info message

@@ -229,10 +229,7 @@ export default function ArchivedShowView() {
         style={styles.gradient}
       >
         <SafeAreaView style={[styles.safeArea, { paddingTop: headerHeight }]}>
-          <ScrollView
-            style={styles.scrollView}
-            showsVerticalScrollIndicator={false}
-          >
+          <ScrollView style={styles.scrollView}>
             <ShowImage showName={show.name} archiveDate={archive.date} />
 
             {/* Playback Controls */}

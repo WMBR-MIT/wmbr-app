@@ -343,7 +343,6 @@ export default function SchedulePage() {
           <ScrollView
             ref={scrollViewRef}
             style={styles.scrollView}
-            showsVerticalScrollIndicator={false}
             refreshControl={
               <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
             }

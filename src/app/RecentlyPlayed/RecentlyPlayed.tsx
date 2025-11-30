@@ -598,7 +598,6 @@ export default function RecentlyPlayed({
       <ScrollView
         ref={scrollViewRef}
         style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
         bounces={true}
         onScroll={handleScroll}
         scrollEventThrottle={400}

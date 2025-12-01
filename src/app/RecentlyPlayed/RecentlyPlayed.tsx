@@ -547,13 +547,57 @@ export default function RecentlyPlayed({
     showPlaylists,
   ]);
 
+  const mainContent = () => {
+    if (loading) {
+      return (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#FFFFFF" />
+          <Text style={styles.loadingText}>Loading playlist...</Text>
+        </View>
+      );
+    }
+
+    if (error) {
+      return (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>{error}</Text>
+          <TouchableOpacity onPress={handleRefresh} style={styles.retryButton}>
+            <Text style={styles.retryButtonText}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+
+    if (!currentShow || currentShow === DEFAULT_NAME) {
+      return (
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyText}>No playlists found</Text>
+        </View>
+      );
+    }
+
+    if (
+      showPlaylists.length > 0 &&
+      (showPlaylists[0].songs.length > 0 || showPlaylists.length > 1)
+    ) {
+      return <>{renderPlaylistContent()}</>;
+    }
+
+    return (
+      <View style={styles.emptyContainer}>
+        <Text style={styles.emptyText}>
+          No playlist found for {currentShow}
+        </Text>
+      </View>
+    );
+  };
+
   return (
     <>
       {/* Content */}
       <ScrollView
         ref={scrollViewRef}
         style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
         bounces={true}
         onScroll={handleScroll}
         scrollEventThrottle={400}
@@ -579,37 +623,7 @@ export default function RecentlyPlayed({
               <Text style={styles.currentShowSubtitle}>Now Playing</Text>
             </View>
           )}
-
-        {loading ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#FFFFFF" />
-            <Text style={styles.loadingText}>Loading playlist...</Text>
-          </View>
-        ) : error ? (
-          <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>{error}</Text>
-            <TouchableOpacity
-              onPress={handleRefresh}
-              style={styles.retryButton}
-            >
-              <Text style={styles.retryButtonText}>Retry</Text>
-            </TouchableOpacity>
-          </View>
-        ) : !currentShow || currentShow === DEFAULT_NAME ? (
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No playlists found</Text>
-          </View>
-        ) : showPlaylists.length > 0 &&
-          (showPlaylists[0].songs.length > 0 || showPlaylists.length > 1) ? (
-          <>{renderPlaylistContent()}</>
-        ) : (
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>
-              No playlist found for {currentShow}
-            </Text>
-          </View>
-        )}
-
+        {mainContent()}
         {/* Bottom padding for gesture area */}
         <View style={styles.bottomPadding} />
       </ScrollView>

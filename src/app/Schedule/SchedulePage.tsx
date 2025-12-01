@@ -8,8 +8,8 @@ import {
   SafeAreaView,
   StatusBar,
   ActivityIndicator,
+  TextInputChangeEvent,
   Alert,
-  TextInput,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
@@ -46,6 +46,21 @@ export default function SchedulePage() {
 
     return unsubscribe;
   }, [recentlyPlayedService]);
+
+  useEffect(() => {
+    navigation.setOptions({
+      headerSearchBarOptions: {
+        headerIconColor: COLORS.TEXT.PRIMARY,
+        autoCapitalize: 'none',
+        shouldShowHintSearchIcon: false,
+        placeholder: 'Search shows, hosts, or keywords',
+        hintTextColor: COLORS.TEXT.TERTIARY,
+        textColor: COLORS.TEXT.PRIMARY,
+        onChangeText: (event: TextInputChangeEvent) =>
+          setSearchQuery(event.nativeEvent.text),
+      },
+    });
+  }, [navigation, setSearchQuery]);
 
   const fetchSchedule = useCallback(async () => {
     setLoading(true);
@@ -311,35 +326,6 @@ export default function SchedulePage() {
         style={styles.gradient}
       >
         <SafeAreaView style={[styles.safeArea, { paddingTop: headerHeight }]}>
-          {/* Search Box */}
-          <View style={styles.searchContainer}>
-            <View style={styles.searchInputContainer}>
-              <Icon
-                name="search"
-                size={16}
-                color="#888"
-                style={styles.searchIcon}
-              />
-              <TextInput
-                style={styles.searchInput}
-                placeholder="Search shows, hosts, or keywords..."
-                placeholderTextColor="#888"
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-                autoCapitalize="none"
-                autoCorrect={false}
-              />
-              {searchQuery.length > 0 && (
-                <TouchableOpacity
-                  onPress={() => setSearchQuery('')}
-                  style={styles.clearButton}
-                >
-                  <Icon name="close-circle" size={16} color="#888" />
-                </TouchableOpacity>
-              )}
-            </View>
-          </View>
-
           <ScrollView
             ref={scrollViewRef}
             style={styles.scrollView}
@@ -387,38 +373,6 @@ const styles = StyleSheet.create({
   },
   safeArea: {
     flex: 1,
-  },
-  logoContainer: {
-    alignItems: 'center',
-    paddingTop: 20,
-    paddingBottom: 20,
-  },
-  searchContainer: {
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-  },
-  searchInputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-  },
-  searchIcon: {
-    marginRight: 8,
-  },
-  searchInput: {
-    flex: 1,
-    color: '#FFFFFF',
-    fontSize: 14,
-    paddingVertical: 4,
-  },
-  clearButton: {
-    marginLeft: 8,
-    padding: 2,
   },
   scrollView: {
     flex: 1,

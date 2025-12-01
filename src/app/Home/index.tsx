@@ -147,6 +147,11 @@ export default function HomeScreen() {
             title: DEFAULT_NAME,
             artist: currentShow || 'Live Radio',
           });
+
+          // Honestly unsure why this needs to be done again
+          await TrackPlayer.updateOptions({
+            capabilities: liveCapabilities,
+          });
         }
       } catch (error) {
         debugError('Error updating track metadata:', error);

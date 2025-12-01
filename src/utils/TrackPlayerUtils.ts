@@ -10,8 +10,4 @@ export const archiveCapabilities = [
   Capability.JumpBackward,
 ];
 
-/**
- * Strangely, the order seems to matter here. If Play comes before Stop, the
- * Stop button doesn't show up on the lock screen controls.
- */
-export const liveCapabilities = [Capability.Stop, Capability.Play];
+export const liveCapabilities = [Capability.Play, Capability.Stop];

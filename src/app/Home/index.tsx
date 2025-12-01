@@ -115,6 +115,7 @@ export default function HomeScreen() {
           await TrackPlayer.updateMetadataForTrack(0, {
             title: DEFAULT_NAME,
             artist: currentShow || 'Live Radio',
+            artwork: require('../../../assets/cover.png'),
           });
         }
       } catch (error) {

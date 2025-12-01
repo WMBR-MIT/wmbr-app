@@ -10,4 +10,4 @@ export const archiveCapabilities = [
   Capability.JumpBackward,
 ];
 
-export const liveCapabilities = [Capability.Play, Capability.Stop];
+export const liveCapabilities = [Capability.Stop, Capability.Play];

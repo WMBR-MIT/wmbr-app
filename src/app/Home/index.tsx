@@ -193,6 +193,7 @@ export default function HomeScreen() {
             title: DEFAULT_NAME,
             artist: currentShow || 'Live Radio',
             artwork: require('../../../assets/cover.png'),
+            isLiveStream: true,
           });
         }
 

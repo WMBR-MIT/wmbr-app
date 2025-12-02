@@ -3,6 +3,8 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import ArchivedShowView from './ArchivedShowView';
 import ShowDetailsPage from './ShowDetailsPage';
 import SchedulePage from './SchedulePage';
+import { Platform } from 'react-native';
+import { COLORS } from '@utils/Colors';
 
 const Stack = createNativeStackNavigator();
 
@@ -34,6 +36,13 @@ export const ScheduleStack = () => {
       screenOptions={{
         headerShown: true,
         headerTransparent: true,
+        // Android doesn't do header blur effects, so it needs a solid
+        // background color
+        ...(Platform.OS === 'android' && {
+          headerStyle: {
+            backgroundColor: COLORS.BACKGROUND.PRIMARY,
+          },
+        }),
         title: 'Schedule',
         headerTintColor: '#ffffff',
       }}

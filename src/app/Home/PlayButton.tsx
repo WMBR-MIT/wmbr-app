@@ -113,7 +113,7 @@ export default function PlayButton({
             style={[styles.playButton, isPlaying && styles.playButtonActive]}
             onPress={onPress}
             activeOpacity={0.8}
-            aria-label={playbackButtonLabel}
+            accessibilityLabel={playbackButtonLabel}
           >
             <View style={styles.buttonContent}>
               <View style={styles.iconContainer}>{playbackIcon}</View>

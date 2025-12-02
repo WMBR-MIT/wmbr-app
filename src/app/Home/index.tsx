@@ -12,10 +12,12 @@ import {
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 import TrackPlayer, {
-  Capability,
   State,
   usePlaybackState,
+  useProgress,
 } from 'react-native-track-player';
+import Icon from 'react-native-vector-icons/Ionicons';
+import { liveCapabilities, SKIP_INTERVAL } from '@utils/TrackPlayerUtils';
 import LinearGradient from 'react-native-linear-gradient';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SvgXml } from 'react-native-svg';
@@ -38,6 +40,7 @@ const streamUrl = 'https://wmbr.org:8002/hi';
 
 export default function HomeScreen() {
   const playbackState = usePlaybackState();
+  const progress = useProgress();
   const insets = useSafeAreaInsets();
   const [currentShow, setCurrentShow] = useState(DEFAULT_NAME);
   const [, setSongHistory] = useState<Song[]>([]);
@@ -57,6 +60,34 @@ export default function HomeScreen() {
 
   const navigation =
     useNavigation<NavigationProp<Record<WmbrRouteName, object | undefined>>>();
+
+  const bottomSpacerStyle = useMemo(
+    () => ({ height: Math.max(insets.bottom + 56, 56) }),
+    [insets.bottom],
+  );
+
+  const setupPlayer = useCallback(async () => {
+    try {
+      // If the player already exists, mark it initialized and skip setup
+      try {
+        await TrackPlayer.getPlaybackState();
+        setIsPlayerInitialized(true);
+        return;
+      } catch (e) {
+        // not initialized yet, proceed
+      }
+
+      await TrackPlayer.setupPlayer();
+
+      await TrackPlayer.updateOptions({
+        capabilities: liveCapabilities,
+      });
+
+      setIsPlayerInitialized(true);
+    } catch (error) {
+      debugError('Error setting up player:', error);
+    }
+  }, []);
 
   useEffect(() => {
     setupPlayer();
@@ -94,7 +125,7 @@ export default function HomeScreen() {
       unsubscribeSongs();
       unsubscribeArchive();
     };
-  }, []); // Empty dependency array - only run once on mount
+  }, [setupPlayer]);
 
   // Separate useEffect for updating track metadata when show changes
   useEffect(() => {
@@ -129,29 +160,6 @@ export default function HomeScreen() {
     isPlayerInitialized,
     playbackState?.state,
   ]);
-
-  const setupPlayer = async () => {
-    try {
-      // If the player already exists, mark it initialized and skip setup
-      try {
-        await TrackPlayer.getPlaybackState();
-        setIsPlayerInitialized(true);
-        return;
-      } catch (e) {
-        // not initialized yet, proceed
-      }
-
-      await TrackPlayer.setupPlayer();
-      await TrackPlayer.updateOptions({
-        capabilities: [Capability.Play, Capability.Pause, Capability.Stop],
-        compactCapabilities: [Capability.Play, Capability.Pause],
-      });
-
-      setIsPlayerInitialized(true);
-    } catch (error) {
-      debugError('Error setting up player:', error);
-    }
-  };
 
   const togglePlayback = useCallback(async () => {
     if (!isPlayerInitialized) {
@@ -201,6 +209,7 @@ export default function HomeScreen() {
   ]);
 
   const handleSplashEnd = () => setShowSplash(false);
+
   const handleSwitchToLive = useCallback(async () => {
     try {
       await ArchiveService.getInstance().switchToLive(currentShow);
@@ -209,10 +218,18 @@ export default function HomeScreen() {
     }
   }, [currentShow]);
 
-  const bottomSpacerStyle = useMemo(
-    () => ({ height: Math.max(insets.bottom + 56, 56) }),
-    [insets.bottom],
-  );
+  const handleSkipBackward = useCallback(async () => {
+    const newPosition = Math.max(progress.position - SKIP_INTERVAL, 0);
+    await TrackPlayer.seekTo(newPosition);
+  }, [progress.position]);
+
+  const handleSkipForward = useCallback(async () => {
+    const newPosition = Math.min(
+      progress.position + SKIP_INTERVAL,
+      progress.duration,
+    );
+    await TrackPlayer.seekTo(newPosition);
+  }, [progress.position, progress.duration]);
 
   const handleOpenShowDetails = useCallback(() => {
     const show = archiveState.currentShow;
@@ -298,10 +315,46 @@ export default function HomeScreen() {
                 </>
               )}
             </View>
-            <PlayButton
-              onPress={togglePlayback}
-              isPlayingArchive={archiveState.isPlayingArchive}
-            />
+            <View style={styles.playbackControls}>
+              {archiveState.isPlayingArchive && (
+                <TouchableOpacity
+                  style={styles.skipButton}
+                  onPress={handleSkipBackward}
+                  activeOpacity={0.7}
+                  accessibilityLabel={`Skip backward ${SKIP_INTERVAL} seconds`}
+                >
+                  <Icon
+                    name="refresh-outline"
+                    size={28}
+                    color={COLORS.TEXT.PRIMARY}
+                    style={styles.skipBackIcon}
+                  />
+                  <Text style={styles.skipText}>{SKIP_INTERVAL}</Text>
+                </TouchableOpacity>
+              )}
+              <PlayButton
+                onPress={togglePlayback}
+                isPlayingArchive={archiveState.isPlayingArchive}
+              />
+              {archiveState.isPlayingArchive && (
+                <TouchableOpacity
+                  style={styles.skipButton}
+                  onPress={handleSkipForward}
+                  activeOpacity={0.7}
+                  accessibilityLabel={`Skip forward ${SKIP_INTERVAL} seconds`}
+                >
+                  <Icon
+                    name="refresh-outline"
+                    size={28}
+                    color={COLORS.TEXT.PRIMARY}
+                    style={styles.skipForwardIcon}
+                  />
+                  <Text style={styles.skipText} aria-hidden={true}>
+                    {SKIP_INTERVAL}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </View>
             <View style={styles.bottomInfo}>
               {!archiveState.isPlayingArchive && showDescription && (
                 <Text
@@ -407,4 +460,27 @@ const styles = StyleSheet.create({
     borderColor: COLORS.BUTTON.SWITCH_ACTIVE.BORDER,
   },
   liveButtonTextPlaying: { color: COLORS.BUTTON.SWITCH_ACTIVE.TEXT },
+  playbackControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 32,
+  },
+  skipButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 48,
+    height: 48,
+  },
+  skipBackIcon: {
+    transform: [{ scaleX: -1 }],
+  },
+  skipForwardIcon: {
+    transform: [{ scaleX: 1 }],
+  },
+  skipText: {
+    color: COLORS.TEXT.PRIMARY,
+    fontSize: 10,
+    fontWeight: '600',
+  },
 });

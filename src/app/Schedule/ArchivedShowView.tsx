@@ -28,6 +28,7 @@ import { PlaylistService } from '@services/PlaylistService';
 import { ArchiveService } from '@services/ArchiveService';
 import { secondsToTime, formatTime } from '@utils/DateTime';
 import { COLORS } from '@utils/Colors';
+import { SKIP_INTERVAL } from '@utils/TrackPlayerUtils';
 import {
   generateDarkGradientColors,
   generateGradientColors,
@@ -205,6 +206,19 @@ export default function ArchivedShowView() {
     }
   };
 
+  const handleSkipBackward = async () => {
+    const newPosition = Math.max(progress.position - SKIP_INTERVAL, 0);
+    await TrackPlayer.seekTo(newPosition);
+  };
+
+  const handleSkipForward = async () => {
+    const newPosition = Math.min(
+      progress.position + SKIP_INTERVAL,
+      progress.duration,
+    );
+    await TrackPlayer.seekTo(newPosition);
+  };
+
   return (
     <>
       <StatusBar barStyle="light-content" backgroundColor={gradientStart} />
@@ -215,14 +229,29 @@ export default function ArchivedShowView() {
         style={styles.gradient}
       >
         <SafeAreaView style={[styles.safeArea, { paddingTop: headerHeight }]}>
-          <ScrollView
-            style={styles.scrollView}
-            showsVerticalScrollIndicator={false}
-          >
+          <ScrollView style={styles.scrollView}>
             <ShowImage showName={show.name} archiveDate={archive.date} />
 
-            {/* Play/Pause Button */}
+            {/* Playback Controls */}
             <View style={styles.playSection}>
+              {isArchivePlaying && (
+                <TouchableOpacity
+                  style={styles.skipButton}
+                  onPress={handleSkipBackward}
+                  activeOpacity={0.7}
+                  accessibilityLabel={`Skip backward ${SKIP_INTERVAL} seconds`}
+                >
+                  <Icon
+                    name="refresh-outline"
+                    size={28}
+                    color={COLORS.TEXT.PRIMARY}
+                    style={styles.skipBackIcon}
+                  />
+                  <Text style={styles.skipText} aria-hidden={true}>
+                    {SKIP_INTERVAL}
+                  </Text>
+                </TouchableOpacity>
+              )}
               <TouchableOpacity
                 style={styles.playButton}
                 onPress={handlePlayPause}
@@ -242,6 +271,24 @@ export default function ArchivedShowView() {
                   />
                 )}
               </TouchableOpacity>
+              {isArchivePlaying && (
+                <TouchableOpacity
+                  style={styles.skipButton}
+                  onPress={handleSkipForward}
+                  activeOpacity={0.7}
+                  accessibilityLabel={`Skip forward ${SKIP_INTERVAL} seconds`}
+                >
+                  <Icon
+                    name="refresh-outline"
+                    size={28}
+                    color={COLORS.TEXT.PRIMARY}
+                    style={styles.skipForwardIcon}
+                  />
+                  <Text style={styles.skipText} aria-hidden={true}>
+                    {SKIP_INTERVAL}
+                  </Text>
+                </TouchableOpacity>
+              )}
             </View>
 
             {/* Progress Bar - Only show when this archive is playing */}
@@ -350,11 +397,32 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   playSection: {
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     paddingVertical: 20,
+    gap: 24,
   },
   playButton: {
-    padding: 16,
+    padding: 8,
+  },
+  skipButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 48,
+    height: 48,
+  },
+  skipBackIcon: {
+    transform: [{ scaleX: -1 }],
+  },
+  skipForwardIcon: {
+    transform: [{ scaleX: 1 }],
+  },
+  skipText: {
+    color: COLORS.TEXT.PRIMARY,
+    fontSize: 10,
+    fontWeight: '600',
+    marginTop: 0,
   },
   playlistSection: {
     paddingHorizontal: 20,

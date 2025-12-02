@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     flex: 1,
     justifyContent: 'flex-end',
-    paddingLeft: 20,
+    paddingHorizontal: 16,
   },
   albumShowName: {
     color: CORE_COLORS.WHITE,

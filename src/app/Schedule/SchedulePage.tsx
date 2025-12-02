@@ -13,34 +13,39 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
-import { debugLog, debugError } from '../../utils/Debug';
+import { debugLog, debugError } from '@utils/Debug';
 import { RefreshControl } from 'react-native';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { useHeaderHeight } from '@react-navigation/elements';
-import { ScheduleShow, ScheduleResponse } from '../../types/Schedule';
-import { ScheduleService } from '../../services/ScheduleService';
-import { RecentlyPlayedService } from '../../services/RecentlyPlayedService';
-import { WmbrRouteName } from '../../types/Navigation';
-import { COLORS, CORE_COLORS } from '../../utils/Colors';
+import { ScheduleShow, ScheduleResponse } from '@customTypes/Schedule';
+import { ScheduleService } from '@services/ScheduleService';
+import { RecentlyPlayedService } from '@services/RecentlyPlayedService';
+import { WmbrRouteName } from '@customTypes/Navigation';
+import { COLORS, CORE_COLORS } from '@utils/Colors';
 
-interface SchedulePageProps {
-  currentShow?: string;
-}
-
-export default function SchedulePage({ currentShow }: SchedulePageProps) {
+export default function SchedulePage() {
   const navigation =
     useNavigation<NavigationProp<Record<WmbrRouteName, object | undefined>>>();
 
   const headerHeight = useHeaderHeight();
 
   const [schedule, setSchedule] = useState<ScheduleResponse | null>(null);
+  const [currentShowTitle, setCurrentShowTitle] = useState<string>();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const scrollViewRef = useRef<ScrollView>(null);
-  const currentShowRef = useRef<View>(null);
 
   const scheduleService = ScheduleService.getInstance();
+  const recentlyPlayedService = RecentlyPlayedService.getInstance();
+
+  useEffect(() => {
+    const unsubscribe = recentlyPlayedService.subscribeToCurrentShow(show => {
+      setCurrentShowTitle(show ?? undefined);
+    });
+
+    return unsubscribe;
+  }, [recentlyPlayedService]);
 
   const fetchSchedule = useCallback(async () => {
     setLoading(true);
@@ -81,9 +86,6 @@ export default function SchedulePage({ currentShow }: SchedulePageProps) {
 
   const handleShowPress = async (show: ScheduleShow) => {
     try {
-      // Fetch archives for this show from the recently played service
-      const recentlyPlayedService = RecentlyPlayedService.getInstance();
-
       // fetch show cache (xml only)
       await recentlyPlayedService.fetchShowsCacheOnly();
 
@@ -118,10 +120,11 @@ export default function SchedulePage({ currentShow }: SchedulePageProps) {
     show: ScheduleShow,
     dayName: string,
   ): boolean => {
-    if (!currentShow) return false;
+    if (!currentShowTitle) return false;
 
     // Match by name (case insensitive)
-    const isNameMatch = show.name.toLowerCase() === currentShow.toLowerCase();
+    const isNameMatch =
+      show.name.trim().toLowerCase() === currentShowTitle.trim().toLowerCase();
     if (!isNameMatch) return false;
 
     // Get current day info
@@ -203,7 +206,7 @@ export default function SchedulePage({ currentShow }: SchedulePageProps) {
                 style={[styles.showItem, isCurrent && styles.currentShowItem]}
                 onPress={() => handleShowPress(show)}
                 activeOpacity={0.7}
-                ref={isCurrent ? currentShowRef : null}
+                ref={null}
               >
                 <View style={styles.showContent}>
                   <View style={styles.showMainInfo}>
@@ -339,7 +342,6 @@ export default function SchedulePage({ currentShow }: SchedulePageProps) {
           <ScrollView
             ref={scrollViewRef}
             style={styles.scrollView}
-            showsVerticalScrollIndicator={false}
             refreshControl={
               <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
             }

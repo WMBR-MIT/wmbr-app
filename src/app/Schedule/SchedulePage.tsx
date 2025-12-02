@@ -5,7 +5,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
-  SafeAreaView,
   StatusBar,
   ActivityIndicator,
   TextInputChangeEvent,
@@ -325,14 +324,8 @@ export default function SchedulePage() {
         locations={[0, 0.5, 1]}
         style={styles.gradient}
       >
-        <SafeAreaView style={[styles.safeArea, { paddingTop: headerHeight }]}>
-          <ScrollView
-            ref={scrollViewRef}
-            style={styles.scrollView}
-            refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-            }
-          >
+        <ScrollView>
+          <View style={[{ paddingTop: headerHeight }]}>
             {loading ? (
               <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color="#FFFFFF" />
@@ -358,10 +351,8 @@ export default function SchedulePage() {
                 {renderShowsByDay()}
               </View>
             )}
-
-            <View style={styles.bottomPadding} />
-          </ScrollView>
-        </SafeAreaView>
+          </View>
+        </ScrollView>
       </LinearGradient>
     </>
   );
@@ -369,12 +360,6 @@ export default function SchedulePage() {
 
 const styles = StyleSheet.create({
   gradient: {
-    flex: 1,
-  },
-  safeArea: {
-    flex: 1,
-  },
-  scrollView: {
     flex: 1,
   },
   loadingContainer: {
@@ -493,9 +478,6 @@ const styles = StyleSheet.create({
   },
   currentShowDescription: {
     color: COLORS.TEXT.SECONDARY,
-  },
-  bottomPadding: {
-    height: 100,
   },
   debugText: {
     color: COLORS.TEXT.PRIMARY,

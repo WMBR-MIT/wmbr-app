@@ -5,6 +5,10 @@ const TrackPlayerService = async () => {
   TrackPlayer.addEventListener(Event.RemotePause, () => TrackPlayer.pause());
   TrackPlayer.addEventListener(Event.RemoteStop, () => TrackPlayer.reset());
 
+  TrackPlayer.addEventListener(Event.RemoteSeek, async ({ position }) => {
+    await TrackPlayer.seekTo(position);
+  });
+
   TrackPlayer.addEventListener(
     Event.RemoteJumpForward,
     async ({ interval }) => {

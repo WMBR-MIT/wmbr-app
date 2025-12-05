@@ -77,7 +77,9 @@ export default function HomeScreen() {
         // not initialized yet, proceed
       }
 
-      await TrackPlayer.setupPlayer();
+      await TrackPlayer.setupPlayer({
+        autoHandleInterruptions: true,
+      });
 
       await TrackPlayer.updateOptions({
         capabilities: liveCapabilities,
@@ -146,6 +148,12 @@ export default function HomeScreen() {
           await TrackPlayer.updateMetadataForTrack(0, {
             title: DEFAULT_NAME,
             artist: currentShow || 'Live Radio',
+            artwork: require('../../../assets/cover.png'),
+          });
+
+          // Honestly unsure why this needs to be done again
+          await TrackPlayer.updateOptions({
+            capabilities: liveCapabilities,
           });
         }
       } catch (error) {
@@ -193,6 +201,7 @@ export default function HomeScreen() {
             title: DEFAULT_NAME,
             artist: currentShow || 'Live Radio',
             artwork: require('../../../assets/cover.png'),
+            isLiveStream: true,
           });
         }
 

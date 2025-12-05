@@ -39,7 +39,7 @@ export const ScheduleStack = () => {
           headerShown: true,
           headerTransparent: true,
           title: 'Schedule',
-          headerTintColor: '#ffffff',
+          headerTintColor: COLORS.TEXT.PRIMARY,
         }}
       >
         <Stack.Screen name="ScheduleMain" component={SchedulePage} />

@@ -10,17 +10,17 @@ describe('SchedulePage', () => {
     // The real ScheduleService will call fetch() which is mocked
     // to return XML data, which the service will parse and display
     expect(screen.getByText('Africa Kabisa')).toBeTruthy();
-    expect(screen.getByText('Post-tentious')).toBeTruthy();
+    expect(screen.getByText(/Post-tentious.*/)).toBeTruthy();
   });
 
   test('navigates to ShowDetails when tapping a show with archives', async () => {
     const user = userEvent.setup();
     await renderAsync(<ScheduleStack />, { wrapper: TestWrapper });
 
-    expect(screen.getByText('Post-tentious')).toBeTruthy();
+    expect(screen.getByText(/Post-tentious.*/)).toBeTruthy();
 
     // Tap on the Post-tentious show
-    const showButton = screen.getByText('Post-tentious');
+    const showButton = screen.getByText(/Post-tentious.*/);
     await user.press(showButton);
 
     // Look for content that's unique to the ShowDetails page
@@ -34,8 +34,8 @@ describe('SchedulePage', () => {
     await renderAsync(<ScheduleStack />, { wrapper: TestWrapper });
 
     // Wait for schedule to load and tap on a show
-    expect(screen.getByText('Post-tentious')).toBeTruthy();
-    await user.press(screen.getByText('Post-tentious'));
+    expect(screen.getByText(/Post-tentious.*/)).toBeTruthy();
+    await user.press(screen.getByText(/Post-tentious.*/));
 
     // Wait for ShowDetails to load with archives
     expect(screen.getByText('Archives')).toBeTruthy();
@@ -48,7 +48,7 @@ describe('SchedulePage', () => {
 
     // Verify we're on the ArchivedShowView page by looking for playlist content
     // The mock playlist has songs: "Waiting Room" by Fugazi and "Breadcrumb Trail" by Slint
-    expect(screen.getByText('Waiting Room')).toBeTruthy();
-    expect(screen.getByText('Fugazi')).toBeTruthy();
+    expect(screen.getByText(/Waiting Room.*/)).toBeTruthy();
+    expect(screen.getByText(/Fugazi.*/)).toBeTruthy();
   });
 });

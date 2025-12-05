@@ -107,6 +107,7 @@ export class ArchiveService {
         title: DEFAULT_NAME,
         artist: currentShowTitle || 'Live Radio',
         artwork: require('../../assets/cover.png'),
+        isLiveStream: true,
       };
 
       await TrackPlayer.updateOptions({

@@ -148,6 +148,11 @@ export default function HomeScreen() {
             artist: currentShow || 'Live Radio',
             artwork: require('../../../assets/cover.png'),
           });
+
+          // Honestly unsure why this needs to be done again
+          await TrackPlayer.updateOptions({
+            capabilities: liveCapabilities,
+          });
         }
       } catch (error) {
         debugError('Error updating track metadata:', error);
@@ -194,6 +199,7 @@ export default function HomeScreen() {
             title: DEFAULT_NAME,
             artist: currentShow || 'Live Radio',
             artwork: require('../../../assets/cover.png'),
+            isLiveStream: true,
           });
         }
 

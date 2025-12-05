@@ -77,7 +77,9 @@ export default function HomeScreen() {
         // not initialized yet, proceed
       }
 
-      await TrackPlayer.setupPlayer();
+      await TrackPlayer.setupPlayer({
+        autoHandleInterruptions: true,
+      });
 
       await TrackPlayer.updateOptions({
         capabilities: liveCapabilities,

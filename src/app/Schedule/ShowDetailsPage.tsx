@@ -54,6 +54,7 @@ import {
   generateDarkGradientColors,
   generateGradientColors,
 } from '@utils/GradientColors';
+import { ScheduleShow } from '@customTypes/Schedule';
 
 const { width } = Dimensions.get('window');
 const CIRCLE_DIAMETER = 16;
@@ -61,7 +62,7 @@ const CIRCLE_DIAMETER = 16;
 // Route params for ShowDetailsPage
 export type ShowDetailsPageRouteParams = {
   show: Show;
-  showDescription: string;
+  scheduleShow: ScheduleShow;
 };
 
 export default function ShowDetailsPage() {
@@ -70,7 +71,7 @@ export default function ShowDetailsPage() {
 
   const route =
     useRoute<RouteProp<Record<string, ShowDetailsPageRouteParams>, string>>();
-  const { show, showDescription } = route.params;
+  const { show, scheduleShow } = route.params;
 
   const headerHeight = useHeaderHeight();
 
@@ -313,8 +314,10 @@ export default function ShowDetailsPage() {
                   <Text style={styles.showHosts}>Hosted by {show.hosts}</Text>
                 )}
               </View>
-              {showDescription && (
-                <Text style={styles.showDescription}>{showDescription}</Text>
+              {scheduleShow.description && (
+                <Text style={styles.showDescription}>
+                  {scheduleShow.description}
+                </Text>
               )}
               <Text style={styles.archiveCount}>
                 {archives.length} archived episode

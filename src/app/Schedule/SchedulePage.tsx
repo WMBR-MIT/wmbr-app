@@ -79,7 +79,7 @@ export default function SchedulePage({ currentShow }: SchedulePageProps) {
     }
   }, [scheduleService]);
 
-  const handleShowPress = async (show: ScheduleShow) => {
+  const handleShowPress = async (scheduleShow: ScheduleShow) => {
     try {
       // Fetch archives for this show from the recently played service
       const recentlyPlayedService = RecentlyPlayedService.getInstance();
@@ -88,22 +88,18 @@ export default function SchedulePage({ currentShow }: SchedulePageProps) {
       await recentlyPlayedService.fetchShowsCacheOnly();
 
       // find the show from the cache
-      const showWithArchiveData = recentlyPlayedService.getShowByName(
-        show.name,
-      );
+      const show = recentlyPlayedService.getShowByName(scheduleShow.name);
 
-      const showDetails = await scheduleService.getShowById(show.id);
-
-      if (showWithArchiveData && showWithArchiveData.archives.length > 0) {
+      if (show && show.archives.length > 0) {
         navigation.navigate('ShowDetails' as WmbrRouteName, {
-          show: showWithArchiveData,
-          showDescription: showDetails?.description || '',
+          show,
+          scheduleShow,
         });
       } else {
         // If no archives found, show info message
         Alert.alert(
-          show.name,
-          `No archived episodes found for "${show.name}". This show may not have been archived yet or may use a different name in the archive system.`,
+          scheduleShow.name,
+          `No archived episodes found for "${scheduleShow.name}". This show may not have been archived yet or may use a different name in the archive system.`,
           [{ text: 'OK' }],
         );
       }

@@ -242,10 +242,15 @@ export default function ShowDetailsPage() {
                           styles={styles.slider}
                           onValueChange={setCurrentPosition}
                           onSlidingStart={() => setIsSliding(true)}
-                          onSlidingComplete={value => {
-                            TrackPlayer.seekTo(
-                              value * (progress?.duration || 0),
-                            );
+                          onSlidingComplete={async value => {
+                            try {
+                              await TrackPlayer.seekTo(
+                                value * (progress?.duration || 0),
+                              );
+                            } catch (error) {
+                              debugError('TrackPlayer.seekTo failed', error);
+                            }
+
                             setIsSliding(false);
                           }}
                         />

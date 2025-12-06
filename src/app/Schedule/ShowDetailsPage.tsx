@@ -5,6 +5,7 @@ import React, {
   useRef,
   useMemo,
 } from 'react';
+import useFavorites from '@context/Favorites';
 import {
   useRoute,
   RouteProp,
@@ -67,6 +68,8 @@ export type ShowDetailsPageRouteParams = {
 export default function ShowDetailsPage() {
   const navigation =
     useNavigation<NavigationProp<Record<WmbrRouteName, object | undefined>>>();
+
+  const { isFavoriteShow, favoriteShowToggle } = useFavorites();
 
   const route =
     useRoute<RouteProp<Record<string, ShowDetailsPageRouteParams>, string>>();
@@ -319,6 +322,21 @@ export default function ShowDetailsPage() {
                 {archives.length} archived episode
                 {archives.length !== 1 ? 's' : ''}
               </Text>
+              <TouchableOpacity
+                onPress={async () => await favoriteShowToggle(show.id)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.favoriteButton}>
+                  <Icon
+                    name={isFavoriteShow(show.id) ? 'star' : 'star-outline'}
+                    style={[
+                      styles.favoriteStar,
+                      isFavoriteShow(show.id) && styles.favoriteStarActive,
+                    ]}
+                  />
+                  Favorite This Show
+                </Text>
+              </TouchableOpacity>
             </View>
 
             {/* Archives List */}
@@ -616,5 +634,14 @@ const styles = StyleSheet.create({
     color: COLORS.TEXT.TERTIARY,
     fontSize: 16,
     fontStyle: 'italic',
+  },
+  favoriteButton: {
+    color: COLORS.TEXT.PRIMARY,
+  },
+  favoriteStar: {
+    color: COLORS.TEXT.TERTIARY,
+  },
+  favoriteStarActive: {
+    color: '#FFD700',
   },
 });

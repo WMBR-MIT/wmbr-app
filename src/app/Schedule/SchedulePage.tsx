@@ -14,6 +14,7 @@ import {
 import Icon from '@components/Icon';
 import LinearGradient from 'react-native-linear-gradient';
 import { debugLog, debugError } from '@utils/Debug';
+import useFavorites from '@context/Favorites';
 import { dayNames, formatNextAirDate } from '@utils/DateTime';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { useHeaderHeight } from '@react-navigation/elements';
@@ -36,6 +37,8 @@ type ScheduleSectionItem = ScheduleShow & {
 export default function SchedulePage() {
   const navigation =
     useNavigation<NavigationProp<Record<WmbrRouteName, object | undefined>>>();
+
+  const { isFavoriteShow } = useFavorites();
 
   const headerHeight = useHeaderHeight();
 
@@ -220,6 +223,7 @@ export default function SchedulePage() {
     section: SectionListData<ScheduleSectionItem>;
   }) => {
     const isCurrent = isCurrentShowForDay(item, section.title);
+    const isFavorite = isFavoriteShow(item.id);
     const nextAirDate = scheduleService.getNextAirDate(
       item,
       new Date(item.sectionDate),
@@ -232,7 +236,12 @@ export default function SchedulePage() {
 
     return (
       <TouchableOpacity
-        style={[styles.showItem, isCurrent && styles.currentShowItem]}
+        key={`${item.id}-${item.sectionDate}`}
+        style={[
+          styles.showItem,
+          isCurrent && styles.currentShowItem,
+          isFavorite && styles.currentShowItemFavorite,
+        ]}
         onPress={() => handleShowPress(item)}
         activeOpacity={0.7}
       >
@@ -445,6 +454,9 @@ export const styles = StyleSheet.create({
     backgroundColor: COLORS.CARD.ACTIVE.BACKGROUND,
     borderColor: COLORS.CARD.ACTIVE.BORDER,
     borderWidth: 2,
+  },
+  currentShowItemFavorite: {
+    backgroundColor: 'rgba(255, 215, 0, 0.2)',
   },
   showContent: {
     flex: 1,

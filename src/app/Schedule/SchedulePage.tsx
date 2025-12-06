@@ -14,6 +14,7 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
 import { debugLog, debugError } from '@utils/Debug';
+import useFavorites from '@context/Favorites';
 import { RefreshControl } from 'react-native';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { useHeaderHeight } from '@react-navigation/elements';
@@ -26,6 +27,8 @@ import { COLORS, CORE_COLORS } from '@utils/Colors';
 export default function SchedulePage() {
   const navigation =
     useNavigation<NavigationProp<Record<WmbrRouteName, object | undefined>>>();
+
+  const { isFavoriteShow } = useFavorites();
 
   const headerHeight = useHeaderHeight();
 
@@ -200,10 +203,15 @@ export default function SchedulePage() {
           <Text style={styles.dayHeader}>{day}</Text>
           {dayShows.map((show, index) => {
             const isCurrent = isCurrentShowForDay(show, day);
+            const isFavorite = isFavoriteShow(show.id);
             return (
               <TouchableOpacity
                 key={`${show.id}-${index}`}
-                style={[styles.showItem, isCurrent && styles.currentShowItem]}
+                style={[
+                  styles.showItem,
+                  isCurrent && styles.currentShowItem,
+                  isFavorite && styles.currentShowItemFavorite,
+                ]}
                 onPress={() => handleShowPress(show)}
                 activeOpacity={0.7}
                 ref={null}
@@ -484,6 +492,9 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 132, 61, 0.2)',
     borderColor: CORE_COLORS.WMBR_GREEN,
     borderWidth: 2,
+  },
+  currentShowItemFavorite: {
+    backgroundColor: 'rgba(255, 215, 0, 0.2)',
   },
   showContent: {
     flex: 1,

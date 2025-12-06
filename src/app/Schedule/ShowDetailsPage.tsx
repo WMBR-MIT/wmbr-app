@@ -62,7 +62,7 @@ const CIRCLE_DIAMETER = 16;
 // Route params for ShowDetailsPage
 export type ShowDetailsPageRouteParams = {
   show: Show;
-  scheduleShow?: ScheduleShow;
+  scheduleShow: ScheduleShow;
 };
 
 export default function ShowDetailsPage() {
@@ -314,7 +314,7 @@ export default function ShowDetailsPage() {
                   <Text style={styles.showHosts}>Hosted by {show.hosts}</Text>
                 )}
               </View>
-              {scheduleShow?.description && (
+              {scheduleShow.description && (
                 <Text style={styles.showDescription}>
                   {scheduleShow.description}
                 </Text>

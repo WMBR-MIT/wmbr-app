@@ -35,6 +35,7 @@ import { COLORS, CORE_COLORS } from '@utils/Colors';
 import { formatArchiveDate } from '@utils/DateTime';
 
 import HomeNowPlaying from './HomeNowPlaying';
+import { ScheduleService } from '@services/ScheduleService';
 
 const streamUrl = 'https://wmbr.org:8002/hi';
 
@@ -55,6 +56,8 @@ export default function HomeScreen() {
     currentShow: null,
     liveStreamUrl: streamUrl,
   });
+
+  const scheduleService = ScheduleService.getInstance();
 
   const isPlaying = playbackState?.state === State.Playing;
 
@@ -231,9 +234,11 @@ export default function HomeScreen() {
     await TrackPlayer.seekTo(newPosition);
   }, [progress.position, progress.duration]);
 
-  const handleOpenShowDetails = useCallback(() => {
+  const handleOpenShowDetails = useCallback(async () => {
     const show = archiveState.currentShow;
     if (!show) return;
+
+    const scheduleShow = await scheduleService.getShowById(show.id);
 
     // Navigate to Schedule tab with complete stack state
     navigation.navigate('Schedule' as WmbrRouteName, {
@@ -241,7 +246,7 @@ export default function HomeScreen() {
       state: {
         routes: [
           { name: 'ScheduleMain' },
-          { name: 'ShowDetails', params: { show } },
+          { name: 'ShowDetails', params: { show, scheduleShow } },
           {
             name: 'ArchivedShowView',
             params: { show, archive: archiveState.currentArchive },
@@ -249,7 +254,12 @@ export default function HomeScreen() {
         ],
       },
     });
-  }, [archiveState.currentShow, archiveState.currentArchive, navigation]);
+  }, [
+    archiveState.currentShow,
+    archiveState.currentArchive,
+    scheduleService,
+    navigation,
+  ]);
 
   if (showSplash) return <SplashScreen onAnimationEnd={handleSplashEnd} />;
 

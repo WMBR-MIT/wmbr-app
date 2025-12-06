@@ -116,7 +116,6 @@ export default function ArchivedShowView() {
     !isSliding && setCurrentPosition(progress.position);
   }, [isSliding, progress.position]);
 
-  // Calculate current progress percentage
   const [gradientStart] = generateGradientColors(show.name);
   const [darkGradientStart, darkGradientEnd] = generateDarkGradientColors(
     show.name,

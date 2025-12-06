@@ -160,6 +160,7 @@ const styles = StyleSheet.create({
   playButton: {
     width: 180,
     height: 180,
+    // Weird hack to prevent octagon from appearing on Android
     borderRadius: Platform.select({ ios: 90, android: 89 }),
     backgroundColor: CORE_COLORS.WMBR_GREEN,
     justifyContent: 'center',

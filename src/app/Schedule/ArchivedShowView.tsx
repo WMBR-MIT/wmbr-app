@@ -208,7 +208,12 @@ export default function ArchivedShowView() {
 
   const handleSkipBackward = async () => {
     const newPosition = Math.max(progress.position - SKIP_INTERVAL, 0);
-    await TrackPlayer.seekTo(newPosition);
+
+    try {
+      await TrackPlayer.seekTo(newPosition);
+    } catch (e) {
+      debugError('Error skipping backward:', e);
+    }
   };
 
   const handleSkipForward = async () => {
@@ -216,7 +221,12 @@ export default function ArchivedShowView() {
       progress.position + SKIP_INTERVAL,
       progress.duration,
     );
-    await TrackPlayer.seekTo(newPosition);
+
+    try {
+      await TrackPlayer.seekTo(newPosition);
+    } catch (e) {
+      debugError('Error skipping forward:', e);
+    }
   };
 
   return (

@@ -5,12 +5,12 @@ import { COLORS, CORE_COLORS } from '../utils/Colors';
 import Slider from '@react-native-community/slider';
 
 export default function PlaybackSlider({
-  styles,
+  style,
   onValueChange,
   onSlidingComplete,
   onSlidingStart,
 }: {
-  styles?: StyleProp<ViewStyle>;
+  style?: StyleProp<ViewStyle>;
   // Returns value in seconds
   onValueChange?: (value: number) => void;
   // Returns value in percentage (0 to 1)
@@ -22,7 +22,7 @@ export default function PlaybackSlider({
 
   return (
     <Slider
-      style={styles}
+      style={style}
       minimumValue={0}
       maximumValue={1}
       onSlidingStart={onSlidingStart}

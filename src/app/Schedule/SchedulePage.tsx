@@ -1,11 +1,12 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
-  ScrollView,
   SafeAreaView,
+  SectionList,
+  SectionListData,
   StatusBar,
   ActivityIndicator,
   Alert,
@@ -14,7 +15,6 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
 import { debugLog, debugError } from '@utils/Debug';
-import { RefreshControl } from 'react-native';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { useHeaderHeight } from '@react-navigation/elements';
 import { ScheduleShow, ScheduleResponse } from '@customTypes/Schedule';
@@ -22,6 +22,15 @@ import { ScheduleService } from '@services/ScheduleService';
 import { RecentlyPlayedService } from '@services/RecentlyPlayedService';
 import { WmbrRouteName } from '@customTypes/Navigation';
 import { COLORS, CORE_COLORS } from '@utils/Colors';
+import { dayNames } from '@utils/DateTime';
+
+const now = new Date();
+const currentDay = now.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+
+// Order days starting from the current day index and wrapping around.
+// e.g., if today is Wednesday (index 3) the order will be [Wed, Thu, Fri, Sat, Sun, Mon, Tue]
+const startDay = Math.max(0, Math.min(currentDay, dayNames.length - 1));
+const daysOrder = [...dayNames.slice(startDay), ...dayNames.slice(0, startDay)];
 
 export default function SchedulePage() {
   const navigation =
@@ -34,7 +43,6 @@ export default function SchedulePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const scrollViewRef = useRef<ScrollView>(null);
 
   const scheduleService = ScheduleService.getInstance();
   const recentlyPlayedService = RecentlyPlayedService.getInstance();
@@ -128,17 +136,7 @@ export default function SchedulePage() {
     if (!isNameMatch) return false;
 
     // Get current day info
-    const now = new Date();
-    const currentDay = now.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
-    const currentDayName = [
-      'Sunday',
-      'Monday',
-      'Tuesday',
-      'Wednesday',
-      'Thursday',
-      'Friday',
-      'Saturday',
-    ][currentDay];
+    const currentDayName = dayNames[currentDay];
 
     // For weekday shows (day=7), only highlight if we're rendering the current day and it's a weekday
     if (show.day === 7) {
@@ -174,129 +172,109 @@ export default function SchedulePage() {
     }
   };
 
-  const renderShowsByDay = () => {
-    if (!schedule) {
-      return null;
-    }
+  const filteredShows = useMemo(() => {
+    if (!schedule) return [];
 
-    const filteredShows = filterShows(schedule?.shows, searchQuery);
-    const groupedShows = scheduleService.groupShowsByDay(filteredShows);
-    const daysOrder = [
-      'Monday',
-      'Tuesday',
-      'Wednesday',
-      'Thursday',
-      'Friday',
-      'Saturday',
-      'Sunday',
-    ];
-
-    return daysOrder.map(day => {
-      const dayShows = groupedShows[day];
-      if (!dayShows || dayShows.length === 0) return null;
-
-      return (
-        <View key={day} style={styles.daySection}>
-          <Text style={styles.dayHeader}>{day}</Text>
-          {dayShows.map((show, index) => {
-            const isCurrent = isCurrentShowForDay(show, day);
-            return (
-              <TouchableOpacity
-                key={`${show.id}-${index}`}
-                style={[styles.showItem, isCurrent && styles.currentShowItem]}
-                onPress={() => handleShowPress(show)}
-                activeOpacity={0.7}
-                ref={null}
-              >
-                <View style={styles.showContent}>
-                  <View style={styles.showMainInfo}>
-                    <Text
-                      style={[
-                        styles.showName,
-                        isCurrent && styles.currentShowName,
-                      ]}
-                      numberOfLines={1}
-                    >
-                      {show.name}
-                      {isCurrent && ' ● LIVE'}
-                    </Text>
-                    <Text
-                      style={[
-                        styles.showTime,
-                        isCurrent && styles.currentShowTime,
-                      ]}
-                    >
-                      {scheduleService.formatTime(show.time_str)}
-                    </Text>
-                  </View>
-
-                  {show.hosts && (
-                    <Text
-                      style={[
-                        styles.showHosts,
-                        isCurrent && styles.currentShowHosts,
-                      ]}
-                      numberOfLines={1}
-                    >
-                      with {show.hosts}
-                    </Text>
-                  )}
-
-                  <Text
-                    style={[
-                      styles.showFrequency,
-                      isCurrent && styles.currentShowFrequency,
-                    ]}
-                  >
-                    {getShowFrequency(show)}
-                  </Text>
-
-                  {show.description && (
-                    <Text
-                      style={[
-                        styles.showDescription,
-                        isCurrent && styles.currentShowDescription,
-                      ]}
-                      numberOfLines={2}
-                    >
-                      {show.description}
-                    </Text>
-                  )}
-                </View>
-
-                <Icon
-                  name="chevron-forward"
-                  size={20}
-                  color={isCurrent ? CORE_COLORS.WMBR_GREEN : '#888'}
-                />
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      );
-    });
-  };
-
-  const filterShows = (
-    shows: ScheduleShow[],
-    query: string,
-  ): ScheduleShow[] => {
     // First filter out TBA shows
-    const nonTBAShows = shows?.filter(
+    const nonTBAShows = schedule.shows.filter(
       show => show.name.toLowerCase() !== 'tba',
     );
 
     // Then apply search filter if query exists
-    if (!query.trim()) return nonTBAShows;
+    if (!searchQuery.trim()) return nonTBAShows;
 
-    const lowercaseQuery = query.toLowerCase().trim();
+    const lowercaseQuery = searchQuery.toLowerCase().trim();
     return nonTBAShows.filter(
       show =>
         show.name.toLowerCase().includes(lowercaseQuery) ||
         show.hosts.toLowerCase().includes(lowercaseQuery) ||
         show.description.toLowerCase().includes(lowercaseQuery),
     );
+  }, [schedule, searchQuery]);
+
+  const groupedShows = scheduleService.groupShowsByDay(filteredShows);
+
+  const scheduleViewData = daysOrder.map((day, index) => ({
+    title: day,
+    key: index.toString(),
+    data: groupedShows[day] || [],
+  }));
+
+  const renderShow = ({ item }: { item: ScheduleShow }) => {
+    const isCurrent = isCurrentShowForDay(item, item.day_str);
+    return (
+      <TouchableOpacity
+        style={[styles.showItem, isCurrent && styles.currentShowItem]}
+        onPress={() => handleShowPress(item)}
+        activeOpacity={0.7}
+      >
+        <View style={styles.showContent}>
+          <View style={styles.showMainInfo}>
+            <Text
+              style={[styles.showName, isCurrent && styles.currentShowName]}
+              numberOfLines={1}
+            >
+              {item.name}
+              {isCurrent && ' ● LIVE'}
+            </Text>
+            <Text
+              style={[styles.showTime, isCurrent && styles.currentShowTime]}
+            >
+              {scheduleService.formatTime(item.time_str)}
+            </Text>
+          </View>
+
+          {item.hosts && (
+            <Text
+              style={[styles.showHosts, isCurrent && styles.currentShowHosts]}
+              numberOfLines={1}
+            >
+              with {item.hosts}
+            </Text>
+          )}
+
+          <Text
+            style={[
+              styles.showFrequency,
+              isCurrent && styles.currentShowFrequency,
+            ]}
+          >
+            {getShowFrequency(item)}
+          </Text>
+
+          {item.description && (
+            <Text
+              style={[
+                styles.showDescription,
+                isCurrent && styles.currentShowDescription,
+              ]}
+              numberOfLines={2}
+            >
+              {item.description}
+            </Text>
+          )}
+        </View>
+
+        <Icon
+          name="chevron-forward"
+          size={20}
+          color={isCurrent ? CORE_COLORS.WMBR_GREEN : '#888'}
+        />
+      </TouchableOpacity>
+    );
   };
+
+  const renderSectionHeader = ({
+    section,
+  }: {
+    section: SectionListData<ScheduleShow>;
+  }) => (
+    <View
+      style={[styles.daySection, section.key === '0' && styles.firstDaySection]}
+    >
+      <Text style={styles.dayHeader}>{section.title}</Text>
+    </View>
+  );
 
   return (
     <>
@@ -340,13 +318,7 @@ export default function SchedulePage() {
             </View>
           </View>
 
-          <ScrollView
-            ref={scrollViewRef}
-            style={styles.scrollView}
-            refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-            }
-          >
+          <View style={styles.contentWrapper}>
             {loading ? (
               <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color="#FFFFFF" />
@@ -369,12 +341,18 @@ export default function SchedulePage() {
                     No shows were parsed from XML
                   </Text>
                 ) : null}
-                {renderShowsByDay()}
+                <SectionList
+                  stickySectionHeadersEnabled={false}
+                  refreshing={refreshing}
+                  onRefresh={onRefresh}
+                  sections={scheduleViewData}
+                  keyExtractor={(item, index) => item.name + index}
+                  renderItem={renderShow}
+                  renderSectionHeader={renderSectionHeader}
+                />
               </View>
             )}
-
-            <View style={styles.bottomPadding} />
-          </ScrollView>
+          </View>
         </SafeAreaView>
       </LinearGradient>
     </>
@@ -420,7 +398,7 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     padding: 2,
   },
-  scrollView: {
+  contentWrapper: {
     flex: 1,
   },
   loadingContainer: {
@@ -457,13 +435,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   daySection: {
-    marginBottom: 32,
+    marginBottom: 16,
+    marginTop: 24,
+  },
+  firstDaySection: {
+    marginTop: 0,
   },
   dayHeader: {
     color: COLORS.TEXT.PRIMARY,
     fontSize: 22,
     fontWeight: 'bold',
-    marginBottom: 16,
     paddingBottom: 8,
     borderBottomWidth: 1,
     borderBottomColor: '#333',

@@ -8,6 +8,7 @@ export const CORE_COLORS = {
   GRAY_950: '#2a2a2a',
   GRAY_975: '#1a1a1a',
   RED_500: '#FF4444',
+  GREEN_500: '#3EA95F', // Same Chroma and Hue as WMBR_GREEN in LCH; WCAG AAA for normal text on black
   WMBR_GREEN: '#00843D',
   OVERLAY_WHITE_05: 'rgba(255, 255, 255, 0.05)',
   OVERLAY_WHITE_10: 'rgba(255, 255, 255, 0.1)',
@@ -21,7 +22,7 @@ export const COLORS = {
     TERTIARY: CORE_COLORS.GRAY_600,
     ACTIVE: CORE_COLORS.GRAY_100,
     ALERT: CORE_COLORS.RED_500,
-    LINK: CORE_COLORS.WMBR_GREEN,
+    LINK: CORE_COLORS.GREEN_500,
     ACCENT: CORE_COLORS.WMBR_GREEN,
   },
   TEXT_SHADOW: {

@@ -51,7 +51,7 @@ export default function BottomMenuBar({
             <Icon
               name={iconName}
               size={22}
-              color={focused ? CORE_COLORS.WMBR_GREEN : '#888'}
+              color={focused ? CORE_COLORS.GREEN_500 : '#888'}
             />
             <Text style={[styles.label, focused && styles.labelActive]}>
               {route.name}
@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   labelActive: {
-    color: CORE_COLORS.WMBR_GREEN,
+    color: CORE_COLORS.GREEN_500,
     fontWeight: '600',
   },
 });

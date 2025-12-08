@@ -49,7 +49,7 @@ import {
   formatShowTime,
   secondsToTime,
 } from '@utils/DateTime';
-import { COLORS } from '@utils/Colors';
+import { COLORS, CORE_COLORS } from '@utils/Colors';
 import {
   generateDarkGradientColors,
   generateGradientColors,
@@ -292,7 +292,7 @@ export default function ShowDetailsPage() {
       <StatusBar barStyle="light-content" backgroundColor={gradientStart} />
 
       <LinearGradient
-        colors={[darkGradientStart, darkGradientEnd, '#000000']}
+        colors={[darkGradientStart, darkGradientEnd, CORE_COLORS.BLACK]}
         locations={[0, 0.3, 1]}
         style={styles.gradient}
       >
@@ -376,7 +376,7 @@ export default function ShowDetailsPage() {
                               : 'play-circle'
                           }
                           size={28}
-                          color={'#FFFFFF'}
+                          color={COLORS.TEXT.PRIMARY}
                         />
                       </TouchableOpacity>
 
@@ -508,14 +508,17 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 16,
     marginBottom: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: COLORS.CARD.SUBTLE.BACKGROUND,
+    borderColor: COLORS.CARD.SUBTLE.BORDER,
+    borderWidth: 1,
     borderRadius: 8,
     position: 'relative',
     overflow: 'hidden',
   },
   archiveItemPlaying: {
-    borderWidth: 2,
-    borderColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: COLORS.CARD.ACTIVE.BORDER,
+    backgroundColor: COLORS.CARD.ACTIVE.BACKGROUND,
   },
   archiveInfoContainer: {
     flex: 1,

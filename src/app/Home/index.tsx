@@ -275,7 +275,7 @@ export default function HomeScreen() {
         colors={
           isPlaying
             ? [CORE_COLORS.WMBR_GREEN, '#006B31', CORE_COLORS.WMBR_GREEN]
-            : ['#000000', '#1a1a1a', '#000000']
+            : [COLORS.BACKGROUND.SECONDARY, COLORS.BACKGROUND.PRIMARY]
         }
         style={styles.fullScreenGradient}
       >
@@ -380,7 +380,7 @@ export default function HomeScreen() {
                 <TouchableOpacity
                   style={[
                     styles.liveButton,
-                    isPlaying && styles.liveButtonActive,
+                    isPlaying && styles.liveButtonPlaying,
                   ]}
                   onPress={handleSwitchToLive}
                   activeOpacity={0.7}
@@ -388,7 +388,7 @@ export default function HomeScreen() {
                   <Text
                     style={[
                       styles.liveButtonText,
-                      isPlaying && styles.liveButtonTextActive,
+                      isPlaying && styles.liveButtonTextPlaying,
                     ]}
                   >
                     ← Switch to LIVE
@@ -448,27 +448,27 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     lineHeight: 16,
   },
-  showDescriptionActive: { color: '#D0D0D0' },
+  showDescriptionActive: { color: COLORS.TEXT.ACTIVE },
   liveButton: {
     marginTop: 16,
     paddingHorizontal: 20,
     paddingVertical: 12,
-    backgroundColor: 'rgba(255, 68, 68, 0.2)',
+    backgroundColor: COLORS.BUTTON.SWITCH.BACKGROUND,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#FF4444',
-  },
-  liveButtonActive: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    borderColor: '#FFFFFF',
+    borderColor: COLORS.BUTTON.SWITCH.BORDER,
   },
   liveButtonText: {
-    color: '#FF4444',
+    color: COLORS.BUTTON.SWITCH.TEXT,
     fontSize: 14,
     fontWeight: '600',
     textAlign: 'center',
   },
-  liveButtonTextActive: { color: '#FFFFFF' },
+  liveButtonPlaying: {
+    backgroundColor: COLORS.BUTTON.SWITCH_ACTIVE.BACKGROUND,
+    borderColor: COLORS.BUTTON.SWITCH_ACTIVE.BORDER,
+  },
+  liveButtonTextPlaying: { color: COLORS.BUTTON.SWITCH_ACTIVE.TEXT },
   playbackControls: {
     flexDirection: 'row',
     alignItems: 'center',

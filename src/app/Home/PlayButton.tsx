@@ -1,5 +1,11 @@
 import React, { useCallback, useMemo, useRef, useEffect } from 'react';
-import { View, TouchableOpacity, StyleSheet, Animated } from 'react-native';
+import {
+  View,
+  TouchableOpacity,
+  StyleSheet,
+  Animated,
+  Platform,
+} from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { State, usePlaybackState } from 'react-native-track-player';
 import { CORE_COLORS } from '@utils/Colors';
@@ -154,7 +160,8 @@ const styles = StyleSheet.create({
   playButton: {
     width: 180,
     height: 180,
-    borderRadius: 90,
+    // Weird hack to prevent octagon from appearing on Android
+    borderRadius: Platform.select({ ios: 90, android: 89 }),
     backgroundColor: CORE_COLORS.WMBR_GREEN,
     justifyContent: 'center',
     alignItems: 'center',

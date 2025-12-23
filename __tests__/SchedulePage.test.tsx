@@ -13,6 +13,24 @@ describe('SchedulePage', () => {
     expect(screen.getByText(/Post-tentious.*/)).toBeTruthy();
   });
 
+  test('displays formatted time for noon (12:00n -> 12:00pm)', async () => {
+    await renderAsync(<ScheduleStack />, { wrapper: TestWrapper });
+
+    // The mock data includes a show at noon with time_str="12:00n"
+    // which should be displayed as "12:00pm"
+    expect(screen.getByText('Noon Day Sun')).toBeTruthy();
+    expect(screen.getByText('12:00pm')).toBeTruthy();
+  });
+
+  test('displays formatted time for midnight (12:00m -> 12:00am)', async () => {
+    await renderAsync(<ScheduleStack />, { wrapper: TestWrapper });
+
+    // The mock data includes a show at midnight with time_str="12:00m"
+    // which should be displayed as "12:00am"
+    expect(screen.getByText('Midnight Special')).toBeTruthy();
+    expect(screen.getByText('12:00am')).toBeTruthy();
+  });
+
   test('navigates to ShowDetails when tapping a show with archives', async () => {
     const user = userEvent.setup();
     await renderAsync(<ScheduleStack />, { wrapper: TestWrapper });

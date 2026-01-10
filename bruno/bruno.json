@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "WMBR App Endpoints",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}

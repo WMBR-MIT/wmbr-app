@@ -5,6 +5,7 @@ import { SvgXml } from 'react-native-svg';
 import { formatDate } from '@utils/DateTime';
 import { getWMBRLogoSVG } from '@utils/WMBRLogo';
 import { generateGradientColors } from '@utils/GradientColors';
+import { COLORS, CORE_COLORS } from '@utils/Colors';
 
 const { width } = Dimensions.get('window');
 const ALBUM_SIZE = width * 0.6;
@@ -29,7 +30,11 @@ const ShowImage = ({
           <View style={styles.albumContent}>
             {/* Centered logo at top */}
             <View style={styles.albumLogoContainer}>
-              <SvgXml xml={getWMBRLogoSVG('#FFFFFF')} width={60} height={13} />
+              <SvgXml
+                xml={getWMBRLogoSVG(CORE_COLORS.WHITE)}
+                width={60}
+                height={13}
+              />
             </View>
 
             {/* Left-aligned content area */}
@@ -64,7 +69,7 @@ const styles = StyleSheet.create({
     width: ALBUM_SIZE,
     height: ALBUM_SIZE,
     borderRadius: 8,
-    shadowColor: '#000',
+    shadowColor: CORE_COLORS.BLACK,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.3,
     shadowRadius: 16,
@@ -94,17 +99,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   albumShowName: {
-    color: '#FFFFFF',
+    color: CORE_COLORS.WHITE,
     fontSize: 22,
     fontWeight: 'bold',
     textAlign: 'left',
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowColor: COLORS.TEXT_SHADOW.PRIMARY,
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 3,
     marginBottom: 4,
   },
   albumArchiveLabel: {
-    color: '#FFFFFF',
+    color: CORE_COLORS.WHITE,
     fontSize: 12,
     fontWeight: '600',
     letterSpacing: 1,
@@ -115,7 +120,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   albumDate: {
-    color: '#FFFFFF',
+    color: CORE_COLORS.WHITE,
     fontSize: 14,
     opacity: 0.8,
     textShadowColor: 'rgba(0, 0, 0, 0.3)',
@@ -124,7 +129,7 @@ const styles = StyleSheet.create({
     textAlign: 'left',
   },
   albumFrequency: {
-    color: '#FFFFFF',
+    color: CORE_COLORS.WHITE,
     fontSize: 14,
     opacity: 0.8,
     textShadowColor: 'rgba(0, 0, 0, 0.3)',

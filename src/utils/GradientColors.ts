@@ -26,8 +26,6 @@ export const colors: [string, string][] = [
   ['#55EFC4', '#74B9FF'], // Mint to Blue
 ];
 
-export const ABOUT_PAGE_GRADIENT: [string, string] = ['#0B0F1A', '#1a1a1a'];
-
 // Generate consistent gradient colors based on show name
 export const generateGradientColors = (showName: string): [string, string] => {
   // Use show name to consistently pick same colors

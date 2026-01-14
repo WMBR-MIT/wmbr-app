@@ -5,7 +5,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
-  SafeAreaView,
   StatusBar,
   ActivityIndicator,
   Alert,
@@ -310,43 +309,42 @@ export default function SchedulePage() {
         locations={[0, 0.5, 1]}
         style={styles.gradient}
       >
-        <SafeAreaView style={[styles.safeArea, { paddingTop: headerHeight }]}>
-          {/* Search Box */}
-          <View style={styles.searchContainer}>
-            <View style={styles.searchInputContainer}>
-              <Icon
-                name="search"
-                size={16}
-                color="#888"
-                style={styles.searchIcon}
-              />
-              <TextInput
-                style={styles.searchInput}
-                placeholder="Search shows, hosts, or keywords..."
-                placeholderTextColor="#888"
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-                autoCapitalize="none"
-                autoCorrect={false}
-              />
-              {searchQuery.length > 0 && (
-                <TouchableOpacity
-                  onPress={() => setSearchQuery('')}
-                  style={styles.clearButton}
-                >
-                  <Icon name="close-circle" size={16} color="#888" />
-                </TouchableOpacity>
-              )}
+        <ScrollView
+          ref={scrollViewRef}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+        >
+          <View style={[{ paddingTop: headerHeight }]}>
+            {/* Search Box */}
+            <View style={styles.searchContainer}>
+              <View style={styles.searchInputContainer}>
+                <Icon
+                  name="search"
+                  size={16}
+                  color="#888"
+                  style={styles.searchIcon}
+                />
+                <TextInput
+                  style={styles.searchInput}
+                  placeholder="Search shows, hosts, or keywords..."
+                  placeholderTextColor="#888"
+                  value={searchQuery}
+                  onChangeText={setSearchQuery}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                />
+                {searchQuery.length > 0 && (
+                  <TouchableOpacity
+                    onPress={() => setSearchQuery('')}
+                    style={styles.clearButton}
+                  >
+                    <Icon name="close-circle" size={16} color="#888" />
+                  </TouchableOpacity>
+                )}
+              </View>
             </View>
-          </View>
 
-          <ScrollView
-            ref={scrollViewRef}
-            style={styles.scrollView}
-            refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-            }
-          >
             {loading ? (
               <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color="#FFFFFF" />
@@ -372,10 +370,8 @@ export default function SchedulePage() {
                 {renderShowsByDay()}
               </View>
             )}
-
-            <View style={styles.bottomPadding} />
-          </ScrollView>
-        </SafeAreaView>
+          </View>
+        </ScrollView>
       </LinearGradient>
     </>
   );
@@ -383,9 +379,6 @@ export default function SchedulePage() {
 
 const styles = StyleSheet.create({
   gradient: {
-    flex: 1,
-  },
-  safeArea: {
     flex: 1,
   },
   logoContainer: {
@@ -419,9 +412,6 @@ const styles = StyleSheet.create({
   clearButton: {
     marginLeft: 8,
     padding: 2,
-  },
-  scrollView: {
-    flex: 1,
   },
   loadingContainer: {
     alignItems: 'center',
@@ -539,9 +529,6 @@ const styles = StyleSheet.create({
   },
   currentShowDescription: {
     color: COLORS.TEXT.SECONDARY,
-  },
-  bottomPadding: {
-    height: 100,
   },
   debugText: {
     color: COLORS.TEXT.PRIMARY,

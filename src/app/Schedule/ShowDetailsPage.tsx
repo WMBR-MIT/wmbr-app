@@ -19,7 +19,6 @@ import {
   StyleSheet,
   Dimensions,
   ScrollView,
-  SafeAreaView,
   StatusBar,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -296,8 +295,8 @@ export default function ShowDetailsPage() {
         locations={[0, 0.3, 1]}
         style={styles.gradient}
       >
-        <SafeAreaView style={[styles.safeArea, { paddingTop: headerHeight }]}>
-          <ScrollView style={styles.scrollView}>
+        <ScrollView>
+          <View style={[{ paddingTop: headerHeight }]}>
             <ShowImage showName={show.name} />
 
             {/* Show Info */}
@@ -448,10 +447,8 @@ export default function ShowDetailsPage() {
                 </View>
               )}
             </View>
-
-            <View style={styles.bottomPadding} />
-          </ScrollView>
-        </SafeAreaView>
+          </View>
+        </ScrollView>
       </LinearGradient>
     </>
   );
@@ -459,12 +456,6 @@ export default function ShowDetailsPage() {
 
 const styles = StyleSheet.create({
   gradient: {
-    flex: 1,
-  },
-  safeArea: {
-    flex: 1,
-  },
-  scrollView: {
     flex: 1,
   },
   infoSection: {
@@ -605,8 +596,5 @@ const styles = StyleSheet.create({
     color: COLORS.TEXT.TERTIARY,
     fontSize: 16,
     fontStyle: 'italic',
-  },
-  bottomPadding: {
-    height: 100,
   },
 });

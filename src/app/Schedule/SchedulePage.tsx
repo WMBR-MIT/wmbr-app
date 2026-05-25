@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
   ScrollView,
-  SafeAreaView,
   StatusBar,
   ActivityIndicator,
   TextInputChangeEvent,
@@ -14,7 +13,6 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
 import { debugLog, debugError } from '@utils/Debug';
-import { RefreshControl } from 'react-native';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { useHeaderHeight } from '@react-navigation/elements';
 import { ScheduleShow, ScheduleResponse } from '@customTypes/Schedule';
@@ -34,7 +32,6 @@ export default function SchedulePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const scrollViewRef = useRef<ScrollView>(null);
 
   const scheduleService = ScheduleService.getInstance();
   const recentlyPlayedService = RecentlyPlayedService.getInstance();
@@ -84,20 +81,6 @@ export default function SchedulePage() {
   useEffect(() => {
     fetchSchedule();
   }, [fetchSchedule]);
-
-  // Pull to refresh
-  const [refreshing, setRefreshing] = useState(false);
-  const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    try {
-      const scheduleData = await scheduleService.fetchSchedule();
-      if (scheduleData) setSchedule(scheduleData);
-    } catch (err) {
-      debugError('Error refreshing schedule:', err);
-    } finally {
-      setRefreshing(false);
-    }
-  }, [scheduleService]);
 
   const handleShowPress = async (scheduleShow: ScheduleShow) => {
     try {
@@ -323,14 +306,8 @@ export default function SchedulePage() {
         colors={[COLORS.BACKGROUND.SECONDARY, COLORS.BACKGROUND.PRIMARY]}
         style={styles.gradient}
       >
-        <SafeAreaView style={[styles.safeArea, { paddingTop: headerHeight }]}>
-          <ScrollView
-            ref={scrollViewRef}
-            style={styles.scrollView}
-            refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-            }
-          >
+        <ScrollView>
+          <View style={[{ paddingTop: headerHeight }]}>
             {loading ? (
               <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color={COLORS.TEXT.PRIMARY} />
@@ -356,10 +333,8 @@ export default function SchedulePage() {
                 {renderShowsByDay()}
               </View>
             )}
-
-            <View style={styles.bottomPadding} />
-          </ScrollView>
-        </SafeAreaView>
+          </View>
+        </ScrollView>
       </LinearGradient>
     </>
   );
@@ -367,12 +342,6 @@ export default function SchedulePage() {
 
 const styles = StyleSheet.create({
   gradient: {
-    flex: 1,
-  },
-  safeArea: {
-    flex: 1,
-  },
-  scrollView: {
     flex: 1,
   },
   loadingContainer: {
@@ -491,9 +460,6 @@ const styles = StyleSheet.create({
   },
   currentShowDescription: {
     color: COLORS.TEXT.SECONDARY,
-  },
-  bottomPadding: {
-    height: 100,
   },
   debugText: {
     color: COLORS.TEXT.PRIMARY,

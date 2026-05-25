@@ -1,0 +1,20 @@
+meta {
+  name: Release Group Cover Art
+  type: http
+  seq: 1
+}
+
+get {
+  url: https://coverartarchive.org/release-group/:mbid
+  body: none
+  auth: inherit
+}
+
+params:path {
+  mbid: cff68c1a-3298-390c-8445-840f8a46bd39
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

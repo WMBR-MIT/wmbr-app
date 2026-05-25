@@ -98,25 +98,24 @@ export default function SchedulePage() {
     }
   }, [scheduleService]);
 
-  const handleShowPress = async (show: ScheduleShow) => {
+  const handleShowPress = async (scheduleShow: ScheduleShow) => {
     try {
       // fetch show cache (xml only)
       await recentlyPlayedService.fetchShowsCacheOnly();
 
       // find the show from the cache
-      const showWithArchiveData = recentlyPlayedService.getShowByName(
-        show.name,
-      );
+      const show = recentlyPlayedService.getShowByName(scheduleShow.name);
 
-      if (showWithArchiveData && showWithArchiveData.archives.length > 0) {
+      if (show && show.archives.length > 0) {
         navigation.navigate('ShowDetails' as WmbrRouteName, {
-          show: showWithArchiveData,
+          show,
+          scheduleShow,
         });
       } else {
         // If no archives found, show info message
         Alert.alert(
-          show.name,
-          `No archived episodes found for "${show.name}". This show may not have been archived yet or may use a different name in the archive system.`,
+          scheduleShow.name,
+          `No archived episodes found for "${scheduleShow.name}". This show may not have been archived yet or may use a different name in the archive system.`,
           [{ text: 'OK' }],
         );
       }
@@ -320,15 +319,14 @@ export default function SchedulePage() {
       />
 
       <LinearGradient
-        colors={['#1a1a1a', '#0a0a0a', '#000000']}
-        locations={[0, 0.5, 1]}
+        colors={[COLORS.BACKGROUND.SECONDARY, COLORS.BACKGROUND.PRIMARY]}
         style={styles.gradient}
       >
         <ScrollView>
           <View style={[{ paddingTop: headerHeight }]}>
             {loading ? (
               <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color="#FFFFFF" />
+                <ActivityIndicator size="large" color={COLORS.TEXT.PRIMARY} />
                 <Text style={styles.loadingText}>Loading schedule...</Text>
               </View>
             ) : error ? (
@@ -377,19 +375,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   errorText: {
-    color: COLORS.TEXT.ERROR,
+    color: COLORS.TEXT.ALERT,
     textAlign: 'center',
     fontSize: 16,
     marginBottom: 20,
   },
   retryButton: {
-    backgroundColor: '#FF4444',
+    backgroundColor: COLORS.BUTTON.ALERT.BACKGROUND,
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 8,
   },
   retryButtonText: {
-    color: '#FFFFFF',
+    color: COLORS.BUTTON.ALERT.TEXT,
     fontWeight: '600',
   },
   scheduleContainer: {
@@ -405,7 +403,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     paddingBottom: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#333',
+    borderBottomColor: COLORS.BORDER.SUBTLE,
   },
   showItem: {
     flexDirection: 'row',
@@ -414,14 +412,14 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 16,
     marginBottom: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: COLORS.CARD.SUBTLE.BACKGROUND,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: COLORS.CARD.SUBTLE.BORDER,
   },
   currentShowItem: {
-    backgroundColor: 'rgba(0, 132, 61, 0.2)',
-    borderColor: CORE_COLORS.WMBR_GREEN,
+    backgroundColor: COLORS.CARD.ACTIVE.BACKGROUND,
+    borderColor: COLORS.CARD.ACTIVE.BORDER,
     borderWidth: 2,
   },
   showContent: {
@@ -446,7 +444,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   showTime: {
-    color: '#AAAAAA',
+    color: COLORS.TEXT.TERTIARY,
     fontSize: 14,
     fontWeight: '500',
   },
@@ -463,13 +461,13 @@ const styles = StyleSheet.create({
     color: COLORS.TEXT.PRIMARY,
   },
   showFrequency: {
-    color: COLORS.TEXT.META,
+    color: COLORS.TEXT.TERTIARY,
     fontSize: 11,
     fontStyle: 'italic',
     marginBottom: 4,
   },
   currentShowFrequency: {
-    color: '#BBBBBB',
+    color: COLORS.TEXT.SECONDARY,
   },
   showDescription: {
     color: COLORS.TEXT.TERTIARY,

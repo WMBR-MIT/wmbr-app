@@ -47,7 +47,7 @@ export const ScheduleStack = () => {
             },
           }),
           title: 'Schedule',
-          headerTintColor: '#ffffff',
+          headerTintColor: COLORS.TEXT.PRIMARY,
         }}
       >
         <Stack.Screen name="ScheduleMain" component={SchedulePage} />

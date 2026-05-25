@@ -1,0 +1,298 @@
+meta {
+  name: Release Group Query
+  type: http
+  seq: 1
+}
+
+get {
+  url: https://musicbrainz.org/ws/2/release-group?query=artist:Faust AND releasegroup:Faust AND firstreleasedate:1971
+  body: none
+  auth: inherit
+}
+
+params:query {
+  query: artist:Faust AND releasegroup:Faust AND firstreleasedate:1971
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
+
+docs {
+  https://musicbrainz.org/doc/MusicBrainz_API/Search#Release_Group
+}
+
+example {
+  name: Faust - Faust (1971)
+  
+  request: {
+    url: https://musicbrainz.org/ws/2/release-group?query=artist:Faust AND releasegroup:Faust AND firstreleasedate:1971
+    method: GET
+    mode: none
+    params:query: {
+      query: artist:Faust AND releasegroup:Faust AND firstreleasedate:1971
+    }
+  }
+  
+  response: {
+    headers: {
+      date: Sat, 06 Dec 2025 23:10:42 GMT
+      content-type: application/json
+      content-length: 938
+      connection: keep-alive
+      keep-alive: timeout=15
+      x-ratelimit-limit: 1200
+      x-ratelimit-remaining: 462
+      x-ratelimit-reset: 1765062643
+      set-cookie: musicbrainz_server_session=2f50a8231a2140d837a940c98c978f2a73c8dac0; path=/; expires=Sun, 07-Dec-2025 01:10:43 GMT; secure; HttpOnly; SameSite=Lax
+      content-security-policy: default-src 'none'; base-uri 'none'; connect-src 'self'; form-action 'self'; font-src 'self'; frame-ancestors 'none'; img-src 'self' data:; media-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; worker-src 'self';
+      x-content-type-options: nosniff
+      x-frame-options: SAMEORIGIN
+      x-xss-protection: 1; mode=block
+      last-modified: Sat, 06 Dec 2025 23:08:53 GMT
+      etag: "Yjk1NTQyMDAwMDAwMDAwMFNvbHI=--gzip"
+      vary: Accept-Encoding
+      x-cache-status: STALE
+      access-control-allow-origin: *
+    }
+  
+    status: {
+      code: 200
+      text: OK
+    }
+  
+    body: {
+      type: json
+      content: '''
+        {
+          "created": "2025-12-06T23:10:22.329Z",
+          "count": 1,
+          "offset": 0,
+          "release-groups": [
+            {
+              "id": "cff68c1a-3298-390c-8445-840f8a46bd39",
+              "type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+              "score": 100,
+              "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+              "artist-credit-id": "b0c1421b-8754-39a6-96f4-32eee98b0c65",
+              "count": 12,
+              "title": "Faust",
+              "first-release-date": "1971",
+              "primary-type": "Album",
+              "artist-credit": [
+                {
+                  "name": "Faust",
+                  "artist": {
+                    "id": "0568e321-d42b-4da4-a025-2643c9fc13dd",
+                    "name": "Faust",
+                    "sort-name": "Faust",
+                    "disambiguation": "German avant-garde group"
+                  }
+                }
+              ],
+              "releases": [
+                {
+                  "id": "51139a94-e47f-4cb3-aab6-71011d1ed644",
+                  "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+                  "title": "Faust",
+                  "status": "Official"
+                },
+                {
+                  "id": "8077c220-55ae-4435-a8aa-7574f508f040",
+                  "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+                  "title": "Faust",
+                  "status": "Official"
+                },
+                {
+                  "id": "cf67332a-4516-4415-ad35-8f3c42e7ab94",
+                  "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+                  "title": "Faust",
+                  "status": "Official"
+                },
+                {
+                  "id": "3ac20595-e8e6-46cf-b793-2e99bfeca50b",
+                  "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+                  "title": "Faust",
+                  "status": "Official"
+                },
+                {
+                  "id": "7df881a4-1148-35d9-929a-71916111a7a9",
+                  "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+                  "title": "Faust",
+                  "status": "Official"
+                },
+                {
+                  "id": "9c9fcb29-b17a-49c6-b656-8cd62dd5640e",
+                  "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+                  "title": "Faust",
+                  "status": "Official"
+                },
+                {
+                  "id": "c1d3e120-78e2-4d6b-a5b8-7452a5909c1c",
+                  "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+                  "title": "Faust",
+                  "status": "Official"
+                },
+                {
+                  "id": "3877ce2d-b049-4313-bdd6-ecca52725226",
+                  "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+                  "title": "Faust",
+                  "status": "Official"
+                },
+                {
+                  "id": "7db1e42c-02b1-472a-aa03-d2f848eca311",
+                  "title": "Faust"
+                },
+                {
+                  "id": "eb9a332e-2ca6-44cb-a475-1550628b4bd0",
+                  "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+                  "title": "Faust",
+                  "status": "Official"
+                },
+                {
+                  "id": "0eca1c9d-43b8-459b-8d8b-fc2d626b171d",
+                  "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+                  "title": "Faust",
+                  "status": "Official"
+                },
+                {
+                  "id": "b540be39-7bec-443a-ab1c-f61f88b61161",
+                  "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+                  "title": "Faust",
+                  "status": "Official"
+                }
+              ],
+              "tags": [
+                {
+                  "count": 0,
+                  "name": "electronic"
+                },
+                {
+                  "count": 2,
+                  "name": "krautrock"
+                },
+                {
+                  "count": 1,
+                  "name": "noisy"
+                },
+                {
+                  "count": 1,
+                  "name": "war"
+                },
+                {
+                  "count": 1,
+                  "name": "progressive"
+                },
+                {
+                  "count": 1,
+                  "name": "psychedelic"
+                },
+                {
+                  "count": 1,
+                  "name": "hypnotic"
+                },
+                {
+                  "count": 1,
+                  "name": "abstract"
+                },
+                {
+                  "count": 1,
+                  "name": "experimental rock"
+                },
+                {
+                  "count": 1,
+                  "name": "avant-garde"
+                },
+                {
+                  "count": 1,
+                  "name": "dark"
+                },
+                {
+                  "count": 1,
+                  "name": "sound collage"
+                },
+                {
+                  "count": 1,
+                  "name": "eclectic"
+                },
+                {
+                  "count": 1,
+                  "name": "atmospheric"
+                },
+                {
+                  "count": 1,
+                  "name": "sampling"
+                },
+                {
+                  "count": 1,
+                  "name": "philosophical"
+                },
+                {
+                  "count": 1,
+                  "name": "complex"
+                },
+                {
+                  "count": 1,
+                  "name": "repetitive"
+                },
+                {
+                  "count": 1,
+                  "name": "existential"
+                },
+                {
+                  "count": 1,
+                  "name": "surreal"
+                },
+                {
+                  "count": 1,
+                  "name": "male vocalist"
+                },
+                {
+                  "count": 1,
+                  "name": "playful"
+                },
+                {
+                  "count": 1,
+                  "name": "quirky"
+                },
+                {
+                  "count": 1,
+                  "name": "humorous"
+                },
+                {
+                  "count": 1,
+                  "name": "mysterious"
+                },
+                {
+                  "count": 1,
+                  "name": "ominous"
+                },
+                {
+                  "count": 1,
+                  "name": "chaotic"
+                },
+                {
+                  "count": 1,
+                  "name": "suspenseful"
+                },
+                {
+                  "count": 1,
+                  "name": "dissonant"
+                },
+                {
+                  "count": 1,
+                  "name": "crackly"
+                },
+                {
+                  "count": 1,
+                  "name": "cryptic"
+                }
+              ]
+            }
+          ]
+        }
+      '''
+    }
+  }
+}

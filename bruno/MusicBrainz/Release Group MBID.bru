@@ -1,0 +1,20 @@
+meta {
+  name: Release Group MBID
+  type: http
+  seq: 1
+}
+
+get {
+  url: https://musicbrainz.org/ws/2/release-group/:mbid
+  body: none
+  auth: inherit
+}
+
+params:path {
+  mbid: 83998f27-2f5d-33d8-83f4-fd9561755cb8
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

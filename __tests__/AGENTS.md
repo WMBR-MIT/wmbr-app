@@ -41,7 +41,9 @@ Render stacks/containers for navigation-dependent components. Example: prefer `r
 ## Async & Query Strategy
 
 - Prefer `await screen.findBy*()` queries for async/network-driven elements; avoid manual `waitFor` for simple appearance checks.
-- Use `userEvent` for interactions rather than `fireEvent`.
+- Use `userEvent` for interactions rather than `fireEvent`, and import
+    `userEvent` from `@testing-library/react-native`, not from
+    `@testing-library/user-event`.
 - Query preference: `getByRole` → `getByLabelText` → `getByText` → `getByTestId` (last).
 
 ## Mocks
@@ -117,8 +119,9 @@ if (urlStr.includes('alexandersimoes.com/get_playlist')) {
 
 Run tests from the repository root using npx (avoid npm argument forwarding). For machine-readable output (best for an LLM), run one test file and produce a JSON result. For example, to test `RecentlyPlayed.test.tsx`:
 
-````bash
+```bash
 npx jest __tests__/RecentlyPlayed.test.tsx --runInBand --json --testLocationInResults
+```
 
 ---
 Resources:

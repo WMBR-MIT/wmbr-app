@@ -40,10 +40,12 @@ import {
   generateGradientColors,
 } from '@utils/GradientColors';
 import PlaybackSlider from '@components/PlaybackSlider';
+import { ScheduleShow } from '@customTypes/Schedule';
 
 // Route params for ShowDetailsPage
 export type ShowDetailsPageRouteParams = {
   show: Show;
+  scheduleShow?: ScheduleShow;
 };
 
 export default function ShowDetailsPage() {
@@ -52,7 +54,7 @@ export default function ShowDetailsPage() {
 
   const route =
     useRoute<RouteProp<Record<string, ShowDetailsPageRouteParams>, string>>();
-  const show: Show = route.params!.show;
+  const { show, scheduleShow } = route.params;
 
   const headerHeight = useHeaderHeight();
 
@@ -161,9 +163,16 @@ export default function ShowDetailsPage() {
             {/* Show Info */}
             <View style={styles.infoSection}>
               <Text style={styles.showTitle}>{show.name}</Text>
-              <Text style={styles.showSchedule}>{formatShowTime(show)}</Text>
-              {show.hosts && (
-                <Text style={styles.showHosts}>Hosted by {show.hosts}</Text>
+              <View>
+                <Text style={styles.showSchedule}>{formatShowTime(show)}</Text>
+                {show.hosts && (
+                  <Text style={styles.showHosts}>Hosted by {show.hosts}</Text>
+                )}
+              </View>
+              {scheduleShow?.description && (
+                <Text style={styles.showDescription}>
+                  {scheduleShow.description}
+                </Text>
               )}
               <Text style={styles.archiveCount}>
                 {archives.length} archived episode
@@ -288,27 +297,29 @@ const styles = StyleSheet.create({
   infoSection: {
     paddingHorizontal: 20,
     paddingBottom: 30,
+    flexDirection: 'column',
+    rowGap: 8,
   },
   showTitle: {
     color: COLORS.TEXT.PRIMARY,
     fontSize: 32,
     fontWeight: 'bold',
-    marginBottom: 8,
   },
   showSchedule: {
-    color: COLORS.TEXT.SECONDARY,
-    fontSize: 16,
-    marginBottom: 4,
+    color: COLORS.TEXT.TERTIARY,
+    fontSize: 14,
   },
   showHosts: {
-    color: COLORS.TEXT.SECONDARY,
+    color: COLORS.TEXT.TERTIARY,
+    fontSize: 14,
+  },
+  showDescription: {
+    color: COLORS.TEXT.PRIMARY,
     fontSize: 16,
-    marginBottom: 8,
   },
   archiveCount: {
-    color: COLORS.TEXT.SECONDARY,
+    color: COLORS.TEXT.TERTIARY,
     fontSize: 14,
-    fontWeight: '500',
   },
   archivesSection: {
     paddingHorizontal: 20,

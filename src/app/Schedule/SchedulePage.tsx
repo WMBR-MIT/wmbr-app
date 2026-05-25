@@ -8,8 +8,8 @@ import {
   SafeAreaView,
   StatusBar,
   ActivityIndicator,
+  TextInputChangeEvent,
   Alert,
-  TextInput,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
@@ -46,6 +46,21 @@ export default function SchedulePage() {
 
     return unsubscribe;
   }, [recentlyPlayedService]);
+
+  useEffect(() => {
+    navigation.setOptions({
+      headerSearchBarOptions: {
+        headerIconColor: COLORS.TEXT.PRIMARY,
+        autoCapitalize: 'none',
+        shouldShowHintSearchIcon: false,
+        placeholder: 'Search shows, hosts, or keywords',
+        hintTextColor: COLORS.TEXT.TERTIARY,
+        textColor: COLORS.TEXT.PRIMARY,
+        onChangeText: (event: TextInputChangeEvent) =>
+          setSearchQuery(event.nativeEvent.text),
+      },
+    });
+  }, [navigation, setSearchQuery]);
 
   const fetchSchedule = useCallback(async () => {
     setLoading(true);
@@ -84,25 +99,24 @@ export default function SchedulePage() {
     }
   }, [scheduleService]);
 
-  const handleShowPress = async (show: ScheduleShow) => {
+  const handleShowPress = async (scheduleShow: ScheduleShow) => {
     try {
       // fetch show cache (xml only)
       await recentlyPlayedService.fetchShowsCacheOnly();
 
       // find the show from the cache
-      const showWithArchiveData = recentlyPlayedService.getShowByName(
-        show.name,
-      );
+      const show = recentlyPlayedService.getShowByName(scheduleShow.name);
 
-      if (showWithArchiveData && showWithArchiveData.archives.length > 0) {
+      if (show && show.archives.length > 0) {
         navigation.navigate('ShowDetails' as WmbrRouteName, {
-          show: showWithArchiveData,
+          show,
+          scheduleShow,
         });
       } else {
         // If no archives found, show info message
         Alert.alert(
-          show.name,
-          `No archived episodes found for "${show.name}". This show may not have been archived yet or may use a different name in the archive system.`,
+          scheduleShow.name,
+          `No archived episodes found for "${scheduleShow.name}". This show may not have been archived yet or may use a different name in the archive system.`,
           [{ text: 'OK' }],
         );
       }
@@ -311,35 +325,6 @@ export default function SchedulePage() {
         style={styles.gradient}
       >
         <SafeAreaView style={[styles.safeArea, { paddingTop: headerHeight }]}>
-          {/* Search Box */}
-          <View style={styles.searchContainer}>
-            <View style={styles.searchInputContainer}>
-              <Icon
-                name="search"
-                size={16}
-                color="#888"
-                style={styles.searchIcon}
-              />
-              <TextInput
-                style={styles.searchInput}
-                placeholder="Search shows, hosts, or keywords..."
-                placeholderTextColor="#888"
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-                autoCapitalize="none"
-                autoCorrect={false}
-              />
-              {searchQuery.length > 0 && (
-                <TouchableOpacity
-                  onPress={() => setSearchQuery('')}
-                  style={styles.clearButton}
-                >
-                  <Icon name="close-circle" size={16} color="#888" />
-                </TouchableOpacity>
-              )}
-            </View>
-          </View>
-
           <ScrollView
             ref={scrollViewRef}
             style={styles.scrollView}
@@ -387,38 +372,6 @@ const styles = StyleSheet.create({
   },
   safeArea: {
     flex: 1,
-  },
-  logoContainer: {
-    alignItems: 'center',
-    paddingTop: 20,
-    paddingBottom: 20,
-  },
-  searchContainer: {
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-  },
-  searchInputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-  },
-  searchIcon: {
-    marginRight: 8,
-  },
-  searchInput: {
-    flex: 1,
-    color: '#FFFFFF',
-    fontSize: 14,
-    paddingVertical: 4,
-  },
-  clearButton: {
-    marginLeft: 8,
-    padding: 2,
   },
   scrollView: {
     flex: 1,

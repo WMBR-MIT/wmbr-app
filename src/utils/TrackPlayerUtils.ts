@@ -8,6 +8,7 @@ export const archiveCapabilities = [
   Capability.Stop,
   Capability.JumpForward,
   Capability.JumpBackward,
+  Capability.SeekTo,
 ];
 
 export const liveCapabilities = [Capability.Play, Capability.Stop];

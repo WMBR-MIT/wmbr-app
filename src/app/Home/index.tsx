@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import he from 'he';
 import { debugError } from '@utils/Debug';
 import {
   View,
@@ -99,7 +100,7 @@ export default function HomeScreen() {
     const unsubscribeMetadata = metadataService.subscribe((data: ShowInfo) => {
       setShowInfo(data);
       setCurrentShow(data.showTitle);
-      setHosts(data.hosts);
+      setHosts(he.decode(data.hosts || ''));
       setShowDescription(data.description);
 
       try {

@@ -192,6 +192,19 @@ export class ScheduleService {
     return weeksSince % 2 === 0;
   }
 
+  async getShowById(showId: string): Promise<ScheduleShow | undefined> {
+    try {
+      const scheduleData = await this.fetchSchedule();
+
+      const matchingShow = scheduleData.shows.find(show => show.id === showId);
+
+      return matchingShow;
+    } catch (error) {
+      debugError('Error getting show by ID:', error);
+      return;
+    }
+  }
+
   // Helper method to find the previous show based on current time
   async findPreviousShow(
     currentShowName: string,

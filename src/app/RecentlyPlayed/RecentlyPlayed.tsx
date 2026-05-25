@@ -493,6 +493,8 @@ export default function RecentlyPlayed({
 
     const content = [];
 
+    console.log(showPlaylists[0]);
+
     if (showPlaylists.length === 1) {
       // Single show: render without header (current show only)
       content.push(
@@ -627,36 +629,6 @@ export default function RecentlyPlayed({
                 <Text style={styles.currentShowSubtitle}>Now Playing</Text>
               </View>
             )}
-
-          {loading ? (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color="#FFFFFF" />
-              <Text style={styles.loadingText}>Loading playlist...</Text>
-            </View>
-          ) : error ? (
-            <View style={styles.errorContainer}>
-              <Text style={styles.errorText}>{error}</Text>
-              <TouchableOpacity
-                onPress={handleRefresh}
-                style={styles.retryButton}
-              >
-                <Text style={styles.retryButtonText}>Retry</Text>
-              </TouchableOpacity>
-            </View>
-          ) : !currentShow || currentShow === DEFAULT_NAME ? (
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>No playlists found</Text>
-            </View>
-          ) : showPlaylists.length > 0 &&
-            (showPlaylists[0].songs.length > 0 || showPlaylists.length > 1) ? (
-            <>{renderPlaylistContent()}</>
-          ) : (
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>
-                No playlist found for {currentShow}
-              </Text>
-            </View>
-          )}
           {mainContent()}
           {/* Bottom padding for gesture area */}
           <View style={styles.bottomPadding} />

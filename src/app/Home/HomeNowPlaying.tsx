@@ -147,20 +147,20 @@ export default function HomeNowPlaying({ showInfo }: { showInfo?: ShowInfo }) {
 const styles = StyleSheet.create({
   liveText: {
     fontSize: 14,
-    color: '#FF4444',
+    color: COLORS.TEXT.ALERT,
     fontWeight: '500',
     marginBottom: 8,
   },
   nowPlayingContainer: { alignItems: 'center', marginTop: 4 },
   nowPlayingLabel: {
     fontSize: 10,
-    color: COLORS.TEXT.META,
+    color: COLORS.TEXT.TERTIARY,
     fontWeight: '500',
     marginBottom: 2,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
-  nowPlayingLabelActive: { color: '#BBBBBB' },
+  nowPlayingLabelActive: { color: COLORS.TEXT.SECONDARY },
   currentSongText: {
     fontSize: 12,
     color: COLORS.TEXT.SECONDARY,

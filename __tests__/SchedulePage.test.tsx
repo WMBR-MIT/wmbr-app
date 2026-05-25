@@ -27,6 +27,7 @@ describe('SchedulePage', () => {
     expect(screen.getByText('Archives')).toBeTruthy();
     expect(screen.getByText('88.1 FM')).toBeTruthy();
     expect(screen.getByText(/archived episode/)).toBeTruthy();
+    expect(screen.getByText('post music for post people.')).toBeTruthy();
   });
 
   test('navigates to ArchivedShowView when tapping an archive in ShowDetails', async () => {

@@ -25,12 +25,13 @@ target 'WmbrApp' do
       config[:reactNativePath],
       :mac_catalyst_enabled => false,
     )
-    
-    # Fix for Hermes dSYM issue during archive
+
+    # Fix for Xcode 26.4 build error
+    # https://stackoverflow.com/a/79921410
     installer.pods_project.targets.each do |target|
-      if target.name == 'hermes-engine'
+      if target.name == 'fmt'
         target.build_configurations.each do |config|
-          config.build_settings['DEBUG_INFORMATION_FORMAT'] = 'dwarf-with-dsym'
+          config.build_settings['CLANG_CXX_LANGUAGE_STANDARD'] = 'c++17'
         end
       end
     end

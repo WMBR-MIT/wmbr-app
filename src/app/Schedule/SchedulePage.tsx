@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -13,7 +13,6 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
 import { debugLog, debugError } from '@utils/Debug';
-import { RefreshControl } from 'react-native';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { useHeaderHeight } from '@react-navigation/elements';
 import { ScheduleShow, ScheduleResponse } from '@customTypes/Schedule';
@@ -33,7 +32,6 @@ export default function SchedulePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const scrollViewRef = useRef<ScrollView>(null);
 
   const scheduleService = ScheduleService.getInstance();
   const recentlyPlayedService = RecentlyPlayedService.getInstance();
@@ -83,20 +81,6 @@ export default function SchedulePage() {
   useEffect(() => {
     fetchSchedule();
   }, [fetchSchedule]);
-
-  // Pull to refresh
-  const [refreshing, setRefreshing] = useState(false);
-  const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    try {
-      const scheduleData = await scheduleService.fetchSchedule();
-      if (scheduleData) setSchedule(scheduleData);
-    } catch (err) {
-      debugError('Error refreshing schedule:', err);
-    } finally {
-      setRefreshing(false);
-    }
-  }, [scheduleService]);
 
   const handleShowPress = async (scheduleShow: ScheduleShow) => {
     try {

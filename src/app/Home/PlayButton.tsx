@@ -1,5 +1,11 @@
 import React, { useCallback, useMemo, useRef, useEffect } from 'react';
-import { View, TouchableOpacity, StyleSheet, Animated } from 'react-native';
+import {
+  View,
+  TouchableOpacity,
+  StyleSheet,
+  Animated,
+  Platform,
+} from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { State, usePlaybackState } from 'react-native-track-player';
 import { CORE_COLORS } from '@utils/Colors';
@@ -83,7 +89,7 @@ export default function PlayButton({
         return <Icon name="stop" size={64} color={CORE_COLORS.WMBR_GREEN} />;
       }
     } else {
-      return <Icon name="play" size={64} color="#FFFFFF" />;
+      return <Icon name="play" size={64} color={CORE_COLORS.WHITE} />;
     }
   }, [isPlaying, isPlayingArchive]);
 
@@ -154,7 +160,8 @@ const styles = StyleSheet.create({
   playButton: {
     width: 180,
     height: 180,
-    borderRadius: 90,
+    // Weird hack to prevent octagon from appearing on Android
+    borderRadius: Platform.select({ ios: 90, android: 89 }),
     backgroundColor: CORE_COLORS.WMBR_GREEN,
     justifyContent: 'center',
     alignItems: 'center',
@@ -165,8 +172,8 @@ const styles = StyleSheet.create({
     elevation: 12,
   },
   playButtonActive: {
-    backgroundColor: '#FFFFFF',
-    shadowColor: '#FFFFFF',
+    backgroundColor: CORE_COLORS.WHITE,
+    shadowColor: CORE_COLORS.WHITE,
   },
   buttonContent: {
     width: '100%',

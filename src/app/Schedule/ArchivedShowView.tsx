@@ -230,9 +230,9 @@ export default function ArchivedShowView() {
   const playbackButtonIcon = useMemo(
     () =>
       isArchivePlaying && playbackState?.state === State.Playing ? (
-        <Icon name="pause-circle" size={64} color="#FFFFFF" />
+        <Icon name="pause-circle" size={64} color={COLORS.TEXT.PRIMARY} />
       ) : (
-        <Icon name="play-circle" size={64} color="#FFFFFF" />
+        <Icon name="play-circle" size={64} color={COLORS.TEXT.PRIMARY} />
       ),
     [isArchivePlaying, playbackState?.state],
   );
@@ -242,15 +242,12 @@ export default function ArchivedShowView() {
       <StatusBar barStyle="light-content" backgroundColor={gradientStart} />
 
       <LinearGradient
-        colors={[darkGradientStart, darkGradientEnd, '#000000']}
+        colors={[darkGradientStart, darkGradientEnd, COLORS.BACKGROUND.PRIMARY]}
         locations={[0, 0.3, 1]}
         style={styles.gradient}
       >
         <SafeAreaView style={[styles.safeArea, { paddingTop: headerHeight }]}>
-          <ScrollView
-            style={styles.scrollView}
-            showsVerticalScrollIndicator={false}
-          >
+          <ScrollView style={styles.scrollView}>
             <ShowImage showName={show.name} archiveDate={archive.date} />
 
             {/* Playback Controls */}
@@ -349,7 +346,7 @@ export default function ArchivedShowView() {
 
               {loading ? (
                 <View style={styles.loadingContainer}>
-                  <ActivityIndicator size="large" color="#FFFFFF" />
+                  <ActivityIndicator size="large" color={COLORS.TEXT.PRIMARY} />
                   <Text style={styles.loadingText}>Loading playlist...</Text>
                 </View>
               ) : error ? (
@@ -451,7 +448,9 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 16,
     marginBottom: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: COLORS.CARD.SUBTLE.BACKGROUND,
+    borderWidth: 1,
+    borderColor: COLORS.CARD.SUBTLE.BORDER,
     borderRadius: 8,
   },
   songInfo: {
@@ -492,19 +491,19 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
   },
   errorText: {
-    color: COLORS.TEXT.ERROR,
+    color: COLORS.TEXT.ALERT,
     textAlign: 'center',
     fontSize: 16,
     marginBottom: 20,
   },
   retryButton: {
-    backgroundColor: '#FF4444',
+    backgroundColor: COLORS.BUTTON.ALERT.BACKGROUND,
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 8,
   },
   retryButtonText: {
-    color: '#FFFFFF',
+    color: COLORS.BUTTON.ALERT.TEXT,
     fontWeight: '600',
   },
   emptyContainer: {

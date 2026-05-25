@@ -1,0 +1,16 @@
+meta {
+  name: Schedule
+  type: http
+  seq: 2
+}
+
+get {
+  url: https://wmbr.org/cgi-bin/xmlsched
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

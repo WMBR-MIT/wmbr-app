@@ -8,39 +8,59 @@ import {
   SafeAreaView,
   StatusBar,
   ActivityIndicator,
+  TextInputChangeEvent,
   Alert,
-  TextInput,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
-import { debugLog, debugError } from '../../utils/Debug';
+import { debugLog, debugError } from '@utils/Debug';
 import { RefreshControl } from 'react-native';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { useHeaderHeight } from '@react-navigation/elements';
-import { ScheduleShow, ScheduleResponse } from '../../types/Schedule';
-import { ScheduleService } from '../../services/ScheduleService';
-import { RecentlyPlayedService } from '../../services/RecentlyPlayedService';
-import { WmbrRouteName } from '../../types/Navigation';
-import { COLORS, CORE_COLORS } from '../../utils/Colors';
+import { ScheduleShow, ScheduleResponse } from '@customTypes/Schedule';
+import { ScheduleService } from '@services/ScheduleService';
+import { RecentlyPlayedService } from '@services/RecentlyPlayedService';
+import { WmbrRouteName } from '@customTypes/Navigation';
+import { COLORS, CORE_COLORS } from '@utils/Colors';
 
-interface SchedulePageProps {
-  currentShow?: string;
-}
-
-export default function SchedulePage({ currentShow }: SchedulePageProps) {
+export default function SchedulePage() {
   const navigation =
     useNavigation<NavigationProp<Record<WmbrRouteName, object | undefined>>>();
 
   const headerHeight = useHeaderHeight();
 
   const [schedule, setSchedule] = useState<ScheduleResponse | null>(null);
+  const [currentShowTitle, setCurrentShowTitle] = useState<string>();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const scrollViewRef = useRef<ScrollView>(null);
-  const currentShowRef = useRef<View>(null);
 
   const scheduleService = ScheduleService.getInstance();
+  const recentlyPlayedService = RecentlyPlayedService.getInstance();
+
+  useEffect(() => {
+    const unsubscribe = recentlyPlayedService.subscribeToCurrentShow(show => {
+      setCurrentShowTitle(show ?? undefined);
+    });
+
+    return unsubscribe;
+  }, [recentlyPlayedService]);
+
+  useEffect(() => {
+    navigation.setOptions({
+      headerSearchBarOptions: {
+        headerIconColor: COLORS.TEXT.PRIMARY,
+        autoCapitalize: 'none',
+        shouldShowHintSearchIcon: false,
+        placeholder: 'Search shows, hosts, or keywords',
+        hintTextColor: COLORS.TEXT.TERTIARY,
+        textColor: COLORS.TEXT.PRIMARY,
+        onChangeText: (event: TextInputChangeEvent) =>
+          setSearchQuery(event.nativeEvent.text),
+      },
+    });
+  }, [navigation, setSearchQuery]);
 
   const fetchSchedule = useCallback(async () => {
     setLoading(true);
@@ -79,28 +99,24 @@ export default function SchedulePage({ currentShow }: SchedulePageProps) {
     }
   }, [scheduleService]);
 
-  const handleShowPress = async (show: ScheduleShow) => {
+  const handleShowPress = async (scheduleShow: ScheduleShow) => {
     try {
-      // Fetch archives for this show from the recently played service
-      const recentlyPlayedService = RecentlyPlayedService.getInstance();
-
       // fetch show cache (xml only)
       await recentlyPlayedService.fetchShowsCacheOnly();
 
       // find the show from the cache
-      const showWithArchiveData = recentlyPlayedService.getShowByName(
-        show.name,
-      );
+      const show = recentlyPlayedService.getShowByName(scheduleShow.name);
 
-      if (showWithArchiveData && showWithArchiveData.archives.length > 0) {
+      if (show && show.archives.length > 0) {
         navigation.navigate('ShowDetails' as WmbrRouteName, {
-          show: showWithArchiveData,
+          show,
+          scheduleShow,
         });
       } else {
         // If no archives found, show info message
         Alert.alert(
-          show.name,
-          `No archived episodes found for "${show.name}". This show may not have been archived yet or may use a different name in the archive system.`,
+          scheduleShow.name,
+          `No archived episodes found for "${scheduleShow.name}". This show may not have been archived yet or may use a different name in the archive system.`,
           [{ text: 'OK' }],
         );
       }
@@ -118,10 +134,11 @@ export default function SchedulePage({ currentShow }: SchedulePageProps) {
     show: ScheduleShow,
     dayName: string,
   ): boolean => {
-    if (!currentShow) return false;
+    if (!currentShowTitle) return false;
 
     // Match by name (case insensitive)
-    const isNameMatch = show.name.toLowerCase() === currentShow.toLowerCase();
+    const isNameMatch =
+      show.name.trim().toLowerCase() === currentShowTitle.trim().toLowerCase();
     if (!isNameMatch) return false;
 
     // Get current day info
@@ -203,7 +220,7 @@ export default function SchedulePage({ currentShow }: SchedulePageProps) {
                 style={[styles.showItem, isCurrent && styles.currentShowItem]}
                 onPress={() => handleShowPress(show)}
                 activeOpacity={0.7}
-                ref={isCurrent ? currentShowRef : null}
+                ref={null}
               >
                 <View style={styles.showContent}>
                   <View style={styles.showMainInfo}>
@@ -303,51 +320,20 @@ export default function SchedulePage({ currentShow }: SchedulePageProps) {
       />
 
       <LinearGradient
-        colors={['#1a1a1a', '#0a0a0a', '#000000']}
-        locations={[0, 0.5, 1]}
+        colors={[COLORS.BACKGROUND.SECONDARY, COLORS.BACKGROUND.PRIMARY]}
         style={styles.gradient}
       >
         <SafeAreaView style={[styles.safeArea, { paddingTop: headerHeight }]}>
-          {/* Search Box */}
-          <View style={styles.searchContainer}>
-            <View style={styles.searchInputContainer}>
-              <Icon
-                name="search"
-                size={16}
-                color="#888"
-                style={styles.searchIcon}
-              />
-              <TextInput
-                style={styles.searchInput}
-                placeholder="Search shows, hosts, or keywords..."
-                placeholderTextColor="#888"
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-                autoCapitalize="none"
-                autoCorrect={false}
-              />
-              {searchQuery.length > 0 && (
-                <TouchableOpacity
-                  onPress={() => setSearchQuery('')}
-                  style={styles.clearButton}
-                >
-                  <Icon name="close-circle" size={16} color="#888" />
-                </TouchableOpacity>
-              )}
-            </View>
-          </View>
-
           <ScrollView
             ref={scrollViewRef}
             style={styles.scrollView}
-            showsVerticalScrollIndicator={false}
             refreshControl={
               <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
             }
           >
             {loading ? (
               <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color="#FFFFFF" />
+                <ActivityIndicator size="large" color={COLORS.TEXT.PRIMARY} />
                 <Text style={styles.loadingText}>Loading schedule...</Text>
               </View>
             ) : error ? (
@@ -386,38 +372,6 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
   },
-  logoContainer: {
-    alignItems: 'center',
-    paddingTop: 20,
-    paddingBottom: 20,
-  },
-  searchContainer: {
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-  },
-  searchInputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-  },
-  searchIcon: {
-    marginRight: 8,
-  },
-  searchInput: {
-    flex: 1,
-    color: '#FFFFFF',
-    fontSize: 14,
-    paddingVertical: 4,
-  },
-  clearButton: {
-    marginLeft: 8,
-    padding: 2,
-  },
   scrollView: {
     flex: 1,
   },
@@ -436,19 +390,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   errorText: {
-    color: COLORS.TEXT.ERROR,
+    color: COLORS.TEXT.ALERT,
     textAlign: 'center',
     fontSize: 16,
     marginBottom: 20,
   },
   retryButton: {
-    backgroundColor: '#FF4444',
+    backgroundColor: COLORS.BUTTON.ALERT.BACKGROUND,
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 8,
   },
   retryButtonText: {
-    color: '#FFFFFF',
+    color: COLORS.BUTTON.ALERT.TEXT,
     fontWeight: '600',
   },
   scheduleContainer: {
@@ -464,7 +418,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     paddingBottom: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#333',
+    borderBottomColor: COLORS.BORDER.SUBTLE,
   },
   showItem: {
     flexDirection: 'row',
@@ -473,14 +427,14 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 16,
     marginBottom: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: COLORS.CARD.SUBTLE.BACKGROUND,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: COLORS.CARD.SUBTLE.BORDER,
   },
   currentShowItem: {
-    backgroundColor: 'rgba(0, 132, 61, 0.2)',
-    borderColor: CORE_COLORS.WMBR_GREEN,
+    backgroundColor: COLORS.CARD.ACTIVE.BACKGROUND,
+    borderColor: COLORS.CARD.ACTIVE.BORDER,
     borderWidth: 2,
   },
   showContent: {
@@ -505,7 +459,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   showTime: {
-    color: '#AAAAAA',
+    color: COLORS.TEXT.TERTIARY,
     fontSize: 14,
     fontWeight: '500',
   },
@@ -522,13 +476,13 @@ const styles = StyleSheet.create({
     color: COLORS.TEXT.PRIMARY,
   },
   showFrequency: {
-    color: COLORS.TEXT.META,
+    color: COLORS.TEXT.TERTIARY,
     fontSize: 11,
     fontStyle: 'italic',
     marginBottom: 4,
   },
   currentShowFrequency: {
-    color: '#BBBBBB',
+    color: COLORS.TEXT.SECONDARY,
   },
   showDescription: {
     color: COLORS.TEXT.TERTIARY,

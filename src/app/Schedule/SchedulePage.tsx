@@ -193,11 +193,13 @@ export default function SchedulePage() {
 
   const groupedShows = scheduleService.groupShowsByDay(filteredShows);
 
-  const scheduleViewData = daysOrder.map((day, index) => ({
-    title: day,
-    key: index.toString(),
-    data: groupedShows[day] || [],
-  }));
+  const scheduleViewData = daysOrder
+    .map((day, index) => ({
+      title: day,
+      key: index.toString(),
+      data: groupedShows[day] || [],
+    }))
+    .filter(section => section.data.length > 0); // Only include days that have shows
 
   const renderShow = ({ item }: { item: ScheduleShow }) => {
     const isCurrent = isCurrentShowForDay(item, item.day_str);

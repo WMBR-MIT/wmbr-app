@@ -2,7 +2,7 @@ import TrackPlayer, { Track } from 'react-native-track-player';
 import { Show, Archive } from '@customTypes/RecentlyPlayed';
 import { debugLog, debugError } from '@utils/Debug';
 import { DEFAULT_NAME } from '@customTypes/Playlist';
-import { getUserAgent } from '../utils/UserAgent';
+import { getUserAgent } from '@utils/UserAgent';
 import {
   archiveCapabilities,
   liveCapabilities,

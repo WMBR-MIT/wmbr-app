@@ -1,6 +1,6 @@
 import { Platform } from 'react-native';
 import packageJson from '../package.json';
-import { getUserAgent } from '../src/utils/UserAgent';
+import { getUserAgent } from '@utils/UserAgent';
 
 // Mock Platform from react-native
 jest.mock('react-native', () => ({

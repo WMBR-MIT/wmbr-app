@@ -2,7 +2,7 @@ import { Platform } from 'react-native';
 import packageJson from '../package.json';
 import { getUserAgent } from '@utils/UserAgent';
 
-// Mock Platform from react-native
+// Mock Platform from react-native.
 jest.mock('react-native', () => ({
   Platform: {
     OS: 'ios',
@@ -12,23 +12,35 @@ jest.mock('react-native', () => ({
 
 const version = packageJson.version;
 
+const setPlatform = (os: 'ios' | 'android', versionValue: string | number) => {
+  Object.defineProperty(Platform, 'OS', {
+    configurable: true,
+    value: os,
+  });
+
+  Object.defineProperty(Platform, 'Version', {
+    configurable: true,
+    value: versionValue,
+  });
+};
+
 describe('getUserAgent', () => {
+  beforeEach(() => {
+    setPlatform('ios', '17.0');
+  });
+
   afterEach(() => {
     jest.clearAllMocks();
   });
 
   test('should return iOS user agent when platform is iOS', () => {
-    Platform.OS = 'ios';
-    Platform.Version = '17.0';
-
     const userAgent = getUserAgent();
 
     expect(userAgent).toBe(`WMBRApp/${version} (iPhone; iOS 17.0)`);
   });
 
   test('should return Android user agent when platform is Android', () => {
-    Platform.OS = 'android';
-    Platform.Version = 33;
+    setPlatform('android', 33);
 
     const userAgent = getUserAgent();
 
@@ -36,8 +48,7 @@ describe('getUserAgent', () => {
   });
 
   test('should include correct SDK version for Android', () => {
-    Platform.OS = 'android';
-    Platform.Version = 30;
+    setPlatform('android', 30);
 
     const userAgent = getUserAgent();
 

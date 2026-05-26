@@ -5,7 +5,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
-  SafeAreaView,
   StatusBar,
   ActivityIndicator,
   Alert,
@@ -208,7 +207,12 @@ export default function ArchivedShowView() {
 
   const handleSkipBackward = async () => {
     const newPosition = Math.max(progress.position - SKIP_INTERVAL, 0);
-    await TrackPlayer.seekTo(newPosition);
+
+    try {
+      await TrackPlayer.seekTo(newPosition);
+    } catch (e) {
+      debugError('Error skipping backward:', e);
+    }
   };
 
   const handleSkipForward = async () => {
@@ -216,7 +220,12 @@ export default function ArchivedShowView() {
       progress.position + SKIP_INTERVAL,
       progress.duration,
     );
-    await TrackPlayer.seekTo(newPosition);
+
+    try {
+      await TrackPlayer.seekTo(newPosition);
+    } catch (e) {
+      debugError('Error skipping forward:', e);
+    }
   };
 
   const playbackButtonLabel = useMemo(
@@ -246,8 +255,8 @@ export default function ArchivedShowView() {
         locations={[0, 0.3, 1]}
         style={styles.gradient}
       >
-        <SafeAreaView style={[styles.safeArea, { paddingTop: headerHeight }]}>
-          <ScrollView style={styles.scrollView}>
+        <ScrollView>
+          <View style={[{ paddingTop: headerHeight }]}>
             <ShowImage showName={show.name} archiveDate={archive.date} />
 
             {/* Playback Controls */}
@@ -384,10 +393,8 @@ export default function ArchivedShowView() {
                 </View>
               )}
             </View>
-
-            <View style={styles.bottomPadding} />
-          </ScrollView>
-        </SafeAreaView>
+          </View>
+        </ScrollView>
       </LinearGradient>
     </>
   );
@@ -395,12 +402,6 @@ export default function ArchivedShowView() {
 
 const styles = StyleSheet.create({
   gradient: {
-    flex: 1,
-  },
-  safeArea: {
-    flex: 1,
-  },
-  scrollView: {
     flex: 1,
   },
   playSection: {
@@ -513,9 +514,6 @@ const styles = StyleSheet.create({
   emptyText: {
     color: COLORS.TEXT.TERTIARY,
     fontSize: 16,
-  },
-  bottomPadding: {
-    height: 100,
   },
   progressSection: {
     paddingHorizontal: 20,

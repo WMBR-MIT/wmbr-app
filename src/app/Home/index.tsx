@@ -33,6 +33,7 @@ import { WmbrRouteName } from '@customTypes/Navigation';
 import { DEFAULT_NAME } from '@customTypes/Playlist';
 import { COLORS, CORE_COLORS } from '@utils/Colors';
 import { formatArchiveDate } from '@utils/DateTime';
+import { getUserAgent } from '@utils/UserAgent';
 
 import HomeNowPlaying from './HomeNowPlaying';
 
@@ -202,6 +203,7 @@ export default function HomeScreen() {
             artist: currentShow || 'Live Radio',
             artwork: require('../../../assets/cover.png'),
             isLiveStream: true,
+            userAgent: getUserAgent(),
           });
         }
 

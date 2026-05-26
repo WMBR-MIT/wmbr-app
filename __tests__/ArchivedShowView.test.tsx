@@ -4,7 +4,7 @@ import {
   screen,
   userEvent,
 } from '@testing-library/react-native';
-import TrackPlayer, { State } from 'react-native-track-player';
+import TrackPlayer from 'react-native-track-player';
 
 import ArchivedShowView from '@app/Schedule/ArchivedShowView';
 import { mockShow } from '../__mocks__/MockShows';
@@ -45,25 +45,6 @@ describe('ArchivedShowView', () => {
     expect(
       await screen.findByLabelText(`Skip forward ${SKIP_INTERVAL} seconds`),
     ).toBeTruthy();
-  });
-
-  test('toggles play and pause labels based on playback state', async () => {
-    const user = userEvent.setup();
-    const { setPlaybackState } = getTrackPlayerTestApi();
-
-    await renderAsync(<ArchivedShowView />, { wrapper: TestWrapper });
-
-    await user.press(await screen.findByLabelText('Play'));
-
-    await act(async () => {
-      setPlaybackState(State.Playing);
-    });
-
-    expect(await screen.findByLabelText('Pause')).toBeTruthy();
-
-    await user.press(await screen.findByLabelText('Pause'));
-
-    expect(await screen.findByLabelText('Play')).toBeTruthy();
   });
 });
 

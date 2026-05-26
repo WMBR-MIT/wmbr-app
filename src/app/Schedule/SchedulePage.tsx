@@ -208,8 +208,14 @@ export default function SchedulePage() {
     }))
     .filter(section => section.data.length > 0); // Only include days that have shows
 
-  const renderShow = ({ item }: { item: ScheduleSectionItem }) => {
-    const isCurrent = isCurrentShowForDay(item, item.day_str);
+  const renderShow = ({
+    item,
+    section,
+  }: {
+    item: ScheduleSectionItem;
+    section: SectionListData<ScheduleSectionItem>;
+  }) => {
+    const isCurrent = isCurrentShowForDay(item, section.title);
     return (
       <TouchableOpacity
         style={[styles.showItem, isCurrent && styles.currentShowItem]}

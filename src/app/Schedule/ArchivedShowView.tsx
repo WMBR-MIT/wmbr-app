@@ -252,11 +252,14 @@ export default function ArchivedShowView() {
                     onSlidingStart={() => setIsSliding(true)}
                     onSlidingComplete={async value => {
                       try {
-                        TrackPlayer.seekTo(value * (progress?.duration || 0));
+                        await TrackPlayer.seekTo(
+                          value * (progress?.duration || 0),
+                        );
                       } catch (e) {
                         debugError('Error seeking to position:', e);
+                      } finally {
+                        setIsSliding(false);
                       }
-                      setIsSliding(false);
                     }}
                   />
 

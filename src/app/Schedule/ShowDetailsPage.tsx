@@ -257,9 +257,9 @@ export default function ShowDetailsPage() {
                               );
                             } catch (error) {
                               debugError('TrackPlayer.seekTo failed', error);
+                            } finally {
+                              setIsSliding(false);
                             }
-
-                            setIsSliding(false);
                           }}
                         />
                       )}

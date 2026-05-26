@@ -8,6 +8,8 @@
       "@utils/*": ["./src/utils/*"],
       "@customTypes/*": ["./src/types/*"],
       "@app/*": ["./src/app/*"]
-    }
+    },
+    "resolveJsonModule": true,
+    "esModuleInterop": true
   }
 }

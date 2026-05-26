@@ -197,16 +197,25 @@ export default function SchedulePage() {
 
   const groupedShows = scheduleService.groupShowsByDay(filteredShows);
 
-  const scheduleViewData = daysOrder
-    .map((day, index) => ({
-      title: day,
-      key: index.toString(),
-      data: (groupedShows[day] || []).map(show => ({
-        ...show,
-        sectionTitle: day,
-      })),
-    }))
-    .filter(section => section.data.length > 0); // Only include days that have shows
+  const scheduleViewData = useMemo(
+    () =>
+      daysOrder
+        .map((day, index) => ({
+          title: day,
+          key: index.toString(),
+          data: (groupedShows[day] || []).map(show => ({
+            ...show,
+            sectionTitle: day,
+          })),
+        }))
+        .filter(section => section.data.length > 0),
+    [groupedShows],
+  ); // Only include days that have shows
+
+  const firstSectionTitle = useMemo(
+    () => scheduleViewData[0]?.title,
+    [scheduleViewData],
+  );
 
   const renderShow = ({
     item,
@@ -284,7 +293,10 @@ export default function SchedulePage() {
     section: SectionListData<ScheduleSectionItem>;
   }) => (
     <View
-      style={[styles.daySection, section.key === '0' && styles.firstDaySection]}
+      style={[
+        styles.daySection,
+        section.title === firstSectionTitle && styles.firstDaySection,
+      ]}
     >
       <Text style={styles.dayHeader}>{section.title}</Text>
     </View>

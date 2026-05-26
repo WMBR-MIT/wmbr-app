@@ -31,6 +31,10 @@ const currentDay = now.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
 const startDay = Math.max(0, Math.min(currentDay, dayNames.length - 1));
 const daysOrder = [...dayNames.slice(startDay), ...dayNames.slice(0, startDay)];
 
+type ScheduleSectionItem = ScheduleShow & {
+  sectionTitle: string;
+};
+
 export default function SchedulePage() {
   const navigation =
     useNavigation<NavigationProp<Record<WmbrRouteName, object | undefined>>>();
@@ -197,11 +201,14 @@ export default function SchedulePage() {
     .map((day, index) => ({
       title: day,
       key: index.toString(),
-      data: groupedShows[day] || [],
+      data: (groupedShows[day] || []).map(show => ({
+        ...show,
+        sectionTitle: day,
+      })),
     }))
     .filter(section => section.data.length > 0); // Only include days that have shows
 
-  const renderShow = ({ item }: { item: ScheduleShow }) => {
+  const renderShow = ({ item }: { item: ScheduleSectionItem }) => {
     const isCurrent = isCurrentShowForDay(item, item.day_str);
     return (
       <TouchableOpacity
@@ -268,7 +275,7 @@ export default function SchedulePage() {
   const renderSectionHeader = ({
     section,
   }: {
-    section: SectionListData<ScheduleShow>;
+    section: SectionListData<ScheduleSectionItem>;
   }) => (
     <View
       style={[styles.daySection, section.key === '0' && styles.firstDaySection]}
@@ -314,7 +321,7 @@ export default function SchedulePage() {
               <SectionList
                 stickySectionHeadersEnabled={false}
                 sections={scheduleViewData}
-                keyExtractor={(item, index) => item.name + index}
+                keyExtractor={item => `${item.id}-${item.sectionTitle}`}
                 renderItem={renderShow}
                 renderSectionHeader={renderSectionHeader}
               />

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -142,7 +142,12 @@ export default function ArchivedShowView() {
 
   const handleSkipBackward = async () => {
     const newPosition = Math.max(progress.position - SKIP_INTERVAL, 0);
-    await TrackPlayer.seekTo(newPosition);
+
+    try {
+      await TrackPlayer.seekTo(newPosition);
+    } catch (e) {
+      debugError('Error skipping backward:', e);
+    }
   };
 
   const handleSkipForward = async () => {
@@ -150,8 +155,31 @@ export default function ArchivedShowView() {
       progress.position + SKIP_INTERVAL,
       progress.duration,
     );
-    await TrackPlayer.seekTo(newPosition);
+
+    try {
+      await TrackPlayer.seekTo(newPosition);
+    } catch (e) {
+      debugError('Error skipping forward:', e);
+    }
   };
+
+  const playbackButtonLabel = useMemo(
+    () =>
+      isArchivePlaying && playbackState?.state === State.Playing
+        ? 'Pause'
+        : 'Play',
+    [isArchivePlaying, playbackState?.state],
+  );
+
+  const playbackButtonIcon = useMemo(
+    () =>
+      isArchivePlaying && playbackState?.state === State.Playing ? (
+        <Icon name="pause-circle" size={64} color={COLORS.TEXT.PRIMARY} />
+      ) : (
+        <Icon name="play-circle" size={64} color={COLORS.TEXT.PRIMARY} />
+      ),
+    [isArchivePlaying, playbackState?.state],
+  );
 
   return (
     <>
@@ -190,20 +218,9 @@ export default function ArchivedShowView() {
                 style={styles.playButton}
                 onPress={handlePlayPause}
                 activeOpacity={0.8}
+                accessibilityLabel={playbackButtonLabel}
               >
-                {isArchivePlaying && playbackState?.state === State.Playing ? (
-                  <Icon
-                    name="pause-circle"
-                    size={64}
-                    color={COLORS.TEXT.PRIMARY}
-                  />
-                ) : (
-                  <Icon
-                    name="play-circle"
-                    size={64}
-                    color={COLORS.TEXT.PRIMARY}
-                  />
-                )}
+                {playbackButtonIcon}
               </TouchableOpacity>
               {isArchivePlaying && (
                 <TouchableOpacity

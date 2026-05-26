@@ -1,5 +1,9 @@
 import { render, screen, userEvent } from '@testing-library/react-native';
 import PlayButton from '@app/Home/PlayButton';
+import { getTrackPlayerTestApi } from '@utils/TestUtils';
+import { State } from 'react-native-track-player';
+
+const { setPlaybackState } = getTrackPlayerTestApi();
 
 const mockOnPress = jest.fn();
 
@@ -38,10 +42,7 @@ describe('PlayButton', () => {
   });
 
   test('shows stop icon when playing', () => {
-    // TODO: Test actual interaction, not mockReturnValue
-    const { usePlaybackState } = require('react-native-track-player');
-    const { State } = require('react-native-track-player');
-    usePlaybackState.mockReturnValue({ state: State.Playing });
+    setPlaybackState(State.Playing);
 
     render(<TestComponent />);
 

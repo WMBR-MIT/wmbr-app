@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -228,6 +228,24 @@ export default function ArchivedShowView() {
     }
   };
 
+  const playbackButtonLabel = useMemo(
+    () =>
+      isArchivePlaying && playbackState?.state === State.Playing
+        ? 'Pause'
+        : 'Play',
+    [isArchivePlaying, playbackState?.state],
+  );
+
+  const playbackButtonIcon = useMemo(
+    () =>
+      isArchivePlaying && playbackState?.state === State.Playing ? (
+        <Icon name="pause-circle" size={64} color={COLORS.TEXT.PRIMARY} />
+      ) : (
+        <Icon name="play-circle" size={64} color={COLORS.TEXT.PRIMARY} />
+      ),
+    [isArchivePlaying, playbackState?.state],
+  );
+
   return (
     <>
       <StatusBar barStyle="light-content" backgroundColor={gradientStart} />
@@ -265,20 +283,9 @@ export default function ArchivedShowView() {
                 style={styles.playButton}
                 onPress={handlePlayPause}
                 activeOpacity={0.8}
+                accessibilityLabel={playbackButtonLabel}
               >
-                {isArchivePlaying && playbackState?.state === State.Playing ? (
-                  <Icon
-                    name="pause-circle"
-                    size={64}
-                    color={COLORS.TEXT.PRIMARY}
-                  />
-                ) : (
-                  <Icon
-                    name="play-circle"
-                    size={64}
-                    color={COLORS.TEXT.PRIMARY}
-                  />
-                )}
+                {playbackButtonIcon}
               </TouchableOpacity>
               {isArchivePlaying && (
                 <TouchableOpacity

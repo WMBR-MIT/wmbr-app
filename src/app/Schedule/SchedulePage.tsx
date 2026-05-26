@@ -195,22 +195,20 @@ export default function SchedulePage() {
     );
   }, [schedule, searchQuery]);
 
-  const groupedShows = scheduleService.groupShowsByDay(filteredShows);
+  const scheduleViewData = useMemo(() => {
+    const groupedShows = scheduleService.groupShowsByDay(filteredShows);
 
-  const scheduleViewData = useMemo(
-    () =>
-      daysOrder
-        .map((day, index) => ({
-          title: day,
-          key: index.toString(),
-          data: (groupedShows[day] || []).map(show => ({
-            ...show,
-            sectionTitle: day,
-          })),
-        }))
-        .filter(section => section.data.length > 0),
-    [groupedShows],
-  ); // Only include days that have shows
+    return daysOrder
+      .map((day, index) => ({
+        title: day,
+        key: index.toString(),
+        data: (groupedShows[day] || []).map(show => ({
+          ...show,
+          sectionTitle: day,
+        })),
+      }))
+      .filter(section => section.data.length > 0);
+  }, [filteredShows, scheduleService]); // Only include days that have shows
 
   const firstSectionTitle = useMemo(
     () => scheduleViewData[0]?.title,

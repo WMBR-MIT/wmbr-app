@@ -1,15 +1,27 @@
+import { jest } from '@jest/globals';
 import { renderAsync, screen, userEvent } from '@testing-library/react-native';
-
 import { ScheduleStack } from '@app/Schedule';
+
 import { TestWrapper } from '@utils/TestUtils';
 
 describe('SchedulePage', () => {
+  beforeAll(() => {
+    // Freeze time so the schedule always starts on Tuesday, which keeps these
+    // tests deterministic even though the UI now starts at "today".
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2025-11-11T12:00:00Z'));
+  });
+
+  afterAll(() => {
+    jest.useRealTimers();
+  });
+
   test('displays shows after loading', async () => {
     await renderAsync(<ScheduleStack />, { wrapper: TestWrapper });
 
-    // The real ScheduleService will call fetch() which is mocked
-    // to return XML data, which the service will parse and display
-    expect(screen.getByText('Africa Kabisa')).toBeTruthy();
+    // With the date fixed to Tuesday, the first rendered section includes
+    // Tuesday shows from the mock schedule.
+    expect(screen.getByText('If 6 Was 9')).toBeTruthy();
     expect(screen.getByText(/Post-tentious.*/)).toBeTruthy();
   });
 

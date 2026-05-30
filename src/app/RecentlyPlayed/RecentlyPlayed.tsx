@@ -499,10 +499,12 @@ export default function RecentlyPlayed({
       return [];
     }
 
-    return (
       <SectionList
         onEndReached={loadPreviousShow}
         sections={playlistViewData}
+        keyExtractor={item =>
+          `${item.showName}-${item.title}-${item.artist}-${item.playedAt.getTime()}`
+        }
         renderItem={({ item }) => renderSong(item)}
         renderSectionHeader={renderShowHeader}
         renderSectionFooter={({ section }) =>

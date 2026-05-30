@@ -87,25 +87,6 @@ export default function RecentlyPlayed() {
     return unsubscribe;
   }, [recentlyPlayedService]);
 
-  const fetchShowPlaylist = useCallback(
-    async (showName: string, date: Date): Promise<ProcessedSong[]> => {
-      try {
-        const playlistData = await recentlyPlayedService.fetchPlaylistAsSongs(
-          showName,
-          date,
-        );
-
-        return playlistData;
-      } catch (err) {
-        debugError('Error fetching playlist:', err);
-        setError('Failed to load playlist. Please try again.');
-      }
-
-      return [];
-    },
-    [recentlyPlayedService],
-  );
-
   const fetchCurrentShowPlaylist = useCallback(
     async (isRefresh = false) => {
       if (!currentShow || currentShow === DEFAULT_NAME) return;
@@ -121,10 +102,14 @@ export default function RecentlyPlayed() {
       } else {
         setLoading(true);
       }
+
       setError(null);
 
       try {
-        const songs = await fetchShowPlaylist(currentShow, new Date());
+        const songs = await recentlyPlayedService.fetchPlaylistAsSongs(
+          currentShow,
+          new Date(),
+        );
         setShowPlaylists([{ showName: currentShow, songs }]);
       } catch (err) {
         setError(`Failed to load playlist for ${currentShow}`);
@@ -140,7 +125,7 @@ export default function RecentlyPlayed() {
         fetchInFlightRef.current = false;
       }
     },
-    [currentShow, fetchShowPlaylist],
+    [currentShow, recentlyPlayedService],
   );
 
   const loadPreviousShow = useCallback(async () => {
@@ -186,7 +171,7 @@ export default function RecentlyPlayed() {
       }
 
       try {
-        const songs = await fetchShowPlaylist(
+        const songs = await recentlyPlayedService.fetchPlaylistAsSongs(
           previousShow.show.name,
           previousShow.date,
         );
@@ -219,7 +204,7 @@ export default function RecentlyPlayed() {
     currentShow,
     loadingMore,
     hasReachedEndOfDay,
-    fetchShowPlaylist,
+    recentlyPlayedService,
   ]);
 
   // Clear playlist data when current show changes

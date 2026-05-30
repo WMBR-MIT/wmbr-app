@@ -70,7 +70,9 @@ export class RecentlyPlayedService {
       const formattedDate = getDateYMD(date);
       const encodedShowName = encodeURIComponent(showName);
       const url = `https://wmbr.alexandersimoes.com/get_playlist?show_name=${encodedShowName}&date=${formattedDate}`;
-      debugLog(`Fetching playlist (public) for "${showName}" on ${formattedDate}`);
+      debugLog(
+        `Fetching playlist (public) for "${showName}" on ${formattedDate}`,
+      );
 
       const response = await fetch(url, {
         headers: { 'Cache-Control': 'no-cache' },

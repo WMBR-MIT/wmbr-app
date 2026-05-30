@@ -359,10 +359,7 @@ export default function RecentlyPlayed({
       }
 
       return (
-        <View
-          key={`${song.showId}-${song.title}-${song.artist}-${song.playedAt.getTime()}`}
-          style={styles.songItem}
-        >
+        <View style={styles.songItem}>
           <View style={styles.songInfo}>
             <Text style={styles.songTitle} numberOfLines={2}>
               {song.title || 'Unknown Title'}
@@ -470,13 +467,13 @@ export default function RecentlyPlayed({
       <>
         {/* Add loading indicator if loading more */}
         {loadingMore ? (
-          <View key="loading-more" style={styles.loadingMoreContainer}>
+          <View style={styles.loadingMoreContainer}>
             <ActivityIndicator size="small" color={COLORS.TEXT.PRIMARY} />
             <Text style={styles.loadingMoreText}>Loading previous show...</Text>
           </View>
         ) : (
           hasReachedEndOfDay && (
-            <View key="end-of-day" style={styles.endOfDayContainer}>
+            <View style={styles.endOfDayContainer}>
               <Text style={styles.endOfDayText}>No more shows for today</Text>
               <TouchableOpacity
                 onPress={() => navigation.navigate('Schedule')}

@@ -32,18 +32,12 @@ import { WmbrRouteName } from '@customTypes/Navigation';
 import { DEFAULT_NAME } from '@customTypes/Playlist';
 import { COLORS } from '@utils/Colors';
 
-interface RecentlyPlayedProps {
-  refreshKey?: number;
-}
-
 interface ShowPlaylist {
   showName: string;
   songs: ProcessedSong[];
 }
 
-export default function RecentlyPlayed({
-  refreshKey,
-}: RecentlyPlayedProps = {}) {
+export default function RecentlyPlayed() {
   const navigation =
     useNavigation<NavigationProp<Record<WmbrRouteName, object | undefined>>>();
 
@@ -200,6 +194,11 @@ export default function RecentlyPlayed({
   );
 
   const loadPreviousShow = useCallback(async () => {
+    // Don't load previous show if we're currently refreshing
+    if (refreshing) {
+      return;
+    }
+
     // Determine which show to find the previous show for
     const lastLoadedShow =
       showPlaylists.length > 0
@@ -265,8 +264,9 @@ export default function RecentlyPlayed({
       setLoadingMore(false);
     }
   }, [
-    currentShow,
+    refreshing,
     showPlaylists,
+    currentShow,
     loadingMore,
     hasReachedEndOfDay,
     fetchShowPlaylist,
@@ -285,12 +285,6 @@ export default function RecentlyPlayed({
       fetchCurrentShowPlaylist();
     }
   }, [currentShow, fetchCurrentShowPlaylist]);
-
-  useEffect(() => {
-    if (typeof refreshKey === 'number') {
-      fetchCurrentShowPlaylist(true);
-    }
-  }, [refreshKey, fetchCurrentShowPlaylist]);
 
   // Auto-load previous show when current show has no songs
   useEffect(() => {
@@ -474,7 +468,7 @@ export default function RecentlyPlayed({
     () => (
       <>
         {/* Add loading indicator if loading more */}
-        {loadingMore ? (
+        {!refreshing && loadingMore ? (
           <View style={styles.loadingMoreContainer}>
             <ActivityIndicator size="small" color={COLORS.TEXT.PRIMARY} />
             <Text style={styles.loadingMoreText}>Loading previous show...</Text>
@@ -496,7 +490,7 @@ export default function RecentlyPlayed({
         )}
       </>
     ),
-    [hasReachedEndOfDay, loadingMore, navigation],
+    [hasReachedEndOfDay, loadingMore, navigation, refreshing],
   );
 
   const SectionFooterComponent = useCallback(
@@ -511,14 +505,13 @@ export default function RecentlyPlayed({
     [],
   );
 
-  const ListEmptyComponent = useCallback(
-    () => (
+  const ListEmptyComponent = useCallback(() => {
+    return !refreshing ? (
       <View style={styles.emptyContainer}>
         <Text style={styles.emptyText}>No playlists found</Text>
       </View>
-    ),
-    [],
-  );
+    ) : null;
+  }, [refreshing]);
 
   const keyExtractor = useCallback(
     (item: ProcessedSong, index: number) =>
@@ -526,66 +519,42 @@ export default function RecentlyPlayed({
     [],
   );
 
-  const mainContent = useCallback(() => {
-    if (loading) {
-      return (
+  return (
+    <LinearGradient
+      colors={[COLORS.BACKGROUND.SECONDARY, COLORS.BACKGROUND.PRIMARY]}
+      style={styles.gradient}
+    >
+      {loading && (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#FFFFFF" />
           <Text style={styles.loadingText}>Loading playlist...</Text>
         </View>
-      );
-    }
+      )}
 
-    if (error) {
-      return (
+      {error && (
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>{error}</Text>
           <TouchableOpacity onPress={handleRefresh} style={styles.retryButton}>
             <Text style={styles.retryButtonText}>Retry</Text>
           </TouchableOpacity>
         </View>
-      );
-    }
+      )}
 
-    return (
-      <SectionList
-        onEndReached={loadPreviousShow}
-        sections={playlistViewData}
-        keyExtractor={keyExtractor}
-        renderItem={renderSong}
-        renderSectionHeader={renderShowHeader}
-        renderSectionFooter={SectionFooterComponent}
-        onRefresh={handleRefresh}
-        refreshing={refreshing}
-        ListEmptyComponent={ListEmptyComponent}
-        ListFooterComponent={ListFooterComponent}
-      />
-    );
-  }, [
-    ListEmptyComponent,
-    ListFooterComponent,
-    SectionFooterComponent,
-    error,
-    handleRefresh,
-    keyExtractor,
-    loadPreviousShow,
-    loading,
-    playlistViewData,
-    refreshing,
-    renderShowHeader,
-    renderSong,
-  ]);
-
-  return (
-    <>
-      {/* Content */}
-      <LinearGradient
-        colors={[COLORS.BACKGROUND.SECONDARY, COLORS.BACKGROUND.PRIMARY]}
-        style={styles.gradient}
-      >
-        {mainContent()}
-      </LinearGradient>
-    </>
+      {!loading && !error && (
+        <SectionList
+          onEndReached={loadPreviousShow}
+          sections={playlistViewData}
+          keyExtractor={keyExtractor}
+          renderItem={renderSong}
+          renderSectionHeader={renderShowHeader}
+          renderSectionFooter={SectionFooterComponent}
+          onRefresh={handleRefresh}
+          refreshing={refreshing}
+          ListEmptyComponent={ListEmptyComponent}
+          ListFooterComponent={ListFooterComponent}
+        />
+      )}
+    </LinearGradient>
   );
 }
 

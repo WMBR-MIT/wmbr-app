@@ -6,9 +6,11 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
+import { COLORS } from '@utils/Colors';
+
 import BottomMenuBar from './_BottomMenuBar';
 
-import RecentlyPlayedPage from './RecentlyPlayed';
+import RecentlyPlayed from './RecentlyPlayed';
 import HomeScreen from './Home';
 import AboutPage from './About';
 import { ScheduleStack } from './Schedule';
@@ -22,11 +24,21 @@ export default function App() {
       <GestureHandlerRootView style={styles.gestureRoot}>
         <NavigationContainer>
           <Tab.Navigator
-            screenOptions={{ headerShown: false }}
+            screenOptions={{
+              headerShown: false,
+              headerStyle: { backgroundColor: COLORS.BACKGROUND.PRIMARY },
+              headerTintColor: COLORS.TEXT.PRIMARY,
+            }}
             tabBar={renderTabBar}
           >
             <Tab.Screen name="Home" component={HomeScreen} />
-            <Tab.Screen name="Recently Played" component={RecentlyPlayedPage} />
+            <Tab.Screen
+              name="Recently Played"
+              component={RecentlyPlayed}
+              options={{
+                headerShown: true,
+              }}
+            />
             <Tab.Screen name="Schedule" component={ScheduleStack} />
             <Tab.Screen name="About" component={AboutPage} />
           </Tab.Navigator>

@@ -352,7 +352,7 @@ export default function RecentlyPlayed({
   );
 
   const renderSong = useCallback(
-    (song: ProcessedSong) => {
+    ({ item: song }: { item: ProcessedSong }) => {
       // Validate song data
       if (!song.title || !song.artist) {
         return null;
@@ -494,28 +494,37 @@ export default function RecentlyPlayed({
     [hasReachedEndOfDay, loadingMore, navigation],
   );
 
+  const SectionFooterComponent = useCallback(
+    ({ section }: { section: SectionListData<ProcessedSong> }) =>
+      section.data.length === 0 ? (
+        <View style={styles.emptyShowContainer}>
+          <Text style={styles.emptyShowText}>
+            No playlist found for this show
+          </Text>
+        </View>
+      ) : null,
+    [],
+  );
+
+  const keyExtractor = useCallback(
+    (item: ProcessedSong, index: number) =>
+      `${item.showId}-${item.title}-${item.artist}-${item.playedAt.getTime()}-${index}`,
+    [],
+  );
+
   const renderPlaylistContent = useCallback(() => {
     if (!showPlaylists || showPlaylists.length === 0) {
       return [];
     }
 
+    return (
       <SectionList
         onEndReached={loadPreviousShow}
         sections={playlistViewData}
-        keyExtractor={item =>
-          `${item.showName}-${item.title}-${item.artist}-${item.playedAt.getTime()}`
-        }
-        renderItem={({ item }) => renderSong(item)}
+        keyExtractor={keyExtractor}
+        renderItem={renderSong}
         renderSectionHeader={renderShowHeader}
-        renderSectionFooter={({ section }) =>
-          section.data.length === 0 ? (
-            <View style={styles.emptyShowContainer}>
-              <Text style={styles.emptyShowText}>
-                No playlist found for this show
-              </Text>
-            </View>
-          ) : null
-        }
+        renderSectionFooter={SectionFooterComponent}
         onRefresh={handleRefresh}
         refreshing={refreshing}
         ListFooterComponent={ListFooterComponent}
@@ -523,7 +532,9 @@ export default function RecentlyPlayed({
     );
   }, [
     ListFooterComponent,
+    SectionFooterComponent,
     handleRefresh,
+    keyExtractor,
     loadPreviousShow,
     playlistViewData,
     refreshing,

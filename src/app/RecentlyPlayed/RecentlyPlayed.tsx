@@ -352,19 +352,13 @@ export default function RecentlyPlayed({
   );
 
   const renderSong = useCallback(
-    (song: ProcessedSong, section: SectionListData<ProcessedSong>) => {
+    (song: ProcessedSong) => {
       // Validate song data
       if (!song.title || !song.artist) {
         return null;
       }
 
-      return section.data.length === 0 ? (
-        <View style={styles.emptyShowContainer}>
-          <Text style={styles.emptyShowText}>
-            No playlist found for this show
-          </Text>
-        </View>
-      ) : (
+      return (
         <View
           key={`${song.showId}-${song.title}-${song.artist}-${song.playedAt.getTime()}`}
           style={styles.songItem}
@@ -509,8 +503,17 @@ export default function RecentlyPlayed({
       <SectionList
         onEndReached={loadPreviousShow}
         sections={playlistViewData}
-        renderItem={({ item, section }) => renderSong(item, section)}
+        renderItem={({ item }) => renderSong(item)}
         renderSectionHeader={renderShowHeader}
+        renderSectionFooter={({ section }) =>
+          section.data.length === 0 ? (
+            <View style={styles.emptyShowContainer}>
+              <Text style={styles.emptyShowText}>
+                No playlist found for this show
+              </Text>
+            </View>
+          ) : null
+        }
         onRefresh={handleRefresh}
         refreshing={refreshing}
         ListFooterComponent={ListFooterComponent}

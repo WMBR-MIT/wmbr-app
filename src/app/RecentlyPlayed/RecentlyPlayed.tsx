@@ -4,11 +4,11 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  ScrollView,
   ActivityIndicator,
   Alert,
-  RefreshControl,
   Appearance,
+  SectionListData,
+  SectionList,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { debugError } from '@utils/Debug';
@@ -24,7 +24,7 @@ import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { getDateYMD, parsePlaylistTimestamp } from '@utils/DateTime';
 import { WmbrRouteName } from '@customTypes/Navigation';
 import { DEFAULT_NAME } from '@customTypes/Playlist';
-import { COLORS, CORE_COLORS } from '@utils/Colors';
+import { COLORS } from '@utils/Colors';
 
 interface RecentlyPlayedProps {
   refreshKey?: number;
@@ -58,7 +58,6 @@ export default function RecentlyPlayed({
     url: null,
   });
 
-  const scrollViewRef = useRef<ScrollView>(null);
   const audioPreviewService = AudioPreviewService.getInstance();
   const [shouldAutoLoadPrevious, setShouldAutoLoadPrevious] = useState(false); // Trigger auto-load of previous show
   // Prevent concurrent fetches
@@ -309,33 +308,11 @@ export default function RecentlyPlayed({
     loadPreviousShow,
   ]);
 
-  const handleRefresh = () => {
+  const handleRefresh = useCallback(() => {
     setHasReachedEndOfDay(false);
     setLoadingMore(false);
     fetchCurrentShowPlaylist(true);
-  };
-
-  const handleScroll = useCallback(
-    (event: any) => {
-      const { layoutMeasurement, contentOffset, contentSize } =
-        event.nativeEvent;
-      const paddingToBottom = 50;
-
-      const distanceFromBottom =
-        contentSize.height - (layoutMeasurement.height + contentOffset.y);
-      const isNearBottom = distanceFromBottom <= paddingToBottom;
-      const canScroll = contentSize.height > layoutMeasurement.height;
-
-      // If content is shorter than the view, or user is near bottom, try to load more
-      if (
-        (isNearBottom && canScroll) ||
-        (!canScroll && showPlaylists.length === 1)
-      ) {
-        loadPreviousShow();
-      }
-    },
-    [loadPreviousShow, showPlaylists.length],
-  );
+  }, [fetchCurrentShowPlaylist]);
 
   const handlePlayPreview = useCallback(
     async (song: ProcessedSong) => {
@@ -375,15 +352,21 @@ export default function RecentlyPlayed({
   );
 
   const renderSong = useCallback(
-    (song: ProcessedSong, key: string) => {
+    (song: ProcessedSong, section: SectionListData<ProcessedSong>) => {
       // Validate song data
       if (!song.title || !song.artist) {
         return null;
       }
 
-      return (
+      return section.data.length === 0 ? (
+        <View style={styles.emptyShowContainer}>
+          <Text style={styles.emptyShowText}>
+            No playlist found for this show
+          </Text>
+        </View>
+      ) : (
         <View
-          key={`${key}-${song.title}-${song.artist}-${song.playedAt.getTime()}`}
+          key={`${song.showId}-${song.title}-${song.artist}-${song.playedAt.getTime()}`}
           style={styles.songItem}
         >
           <View style={styles.songInfo}>
@@ -455,35 +438,66 @@ export default function RecentlyPlayed({
     ],
   );
 
-  const renderShowGroup = useCallback(
-    (showPlaylist: ShowPlaylist, showIndex: number) => {
-      return (
-        <View key={`show-${showIndex}`} style={styles.showGroup}>
+  const playlistViewData: SectionListData<ProcessedSong>[] = showPlaylists.map(
+    showPlaylist => ({
+      title: showPlaylist.showName,
+      data: showPlaylist.songs,
+    }),
+  );
+
+  const renderShowHeader = useCallback(
+    ({ section }: { section: SectionListData<ProcessedSong> }) => (
+      <>
+        {currentShow &&
+        currentShow !== DEFAULT_NAME &&
+        showPlaylists.length === 1 &&
+        showPlaylists[0].songs.length > 0 ? (
+          <View style={styles.currentShowHeader}>
+            <Text style={styles.currentShowTitle}>{currentShow}</Text>
+            <Text style={styles.currentShowSubtitle}>Now Playing</Text>
+          </View>
+        ) : (
           <View style={styles.showHeader}>
-            <Text style={styles.showHeaderTitle}>{showPlaylist.showName}</Text>
+            <Text style={styles.showHeaderTitle}>{section.title}</Text>
             <Text style={styles.showHeaderSubtitle}>
-              {showPlaylist.songs.length > 0
-                ? `${showPlaylist.songs.length} song${showPlaylist.songs.length !== 1 ? 's' : ''}`
+              {section.data?.length > 0
+                ? `${section.data.length} song${section.data.length !== 1 ? 's' : ''}`
                 : 'No playlist available'}
             </Text>
           </View>
-          {showPlaylist.songs.length > 0 ? (
-            showPlaylist.songs
-              .map((song, songIndex) =>
-                renderSong(song, `${showIndex}-${songIndex}`),
-              )
-              .filter(Boolean)
-          ) : (
-            <View style={styles.emptyShowContainer}>
-              <Text style={styles.emptyShowText}>
-                No playlist found for this show
-              </Text>
+        )}
+      </>
+    ),
+    [currentShow, showPlaylists],
+  );
+
+  const ListFooterComponent = useCallback(
+    () => (
+      <>
+        {/* Add loading indicator if loading more */}
+        {loadingMore ? (
+          <View key="loading-more" style={styles.loadingMoreContainer}>
+            <ActivityIndicator size="small" color={COLORS.TEXT.PRIMARY} />
+            <Text style={styles.loadingMoreText}>Loading previous show...</Text>
+          </View>
+        ) : (
+          hasReachedEndOfDay && (
+            <View key="end-of-day" style={styles.endOfDayContainer}>
+              <Text style={styles.endOfDayText}>No more shows for today</Text>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('Schedule')}
+                style={styles.scheduleButton}
+              >
+                <Text style={styles.scheduleButtonText}>
+                  View Full Schedule
+                </Text>
+              </TouchableOpacity>
             </View>
-          )}
-        </View>
-      );
-    },
-    [renderSong],
+          )
+        )}
+      </>
+    ),
+    [hasReachedEndOfDay, loadingMore, navigation],
   );
 
   const renderPlaylistContent = useCallback(() => {
@@ -491,66 +505,29 @@ export default function RecentlyPlayed({
       return [];
     }
 
-    const content = [];
-
-    console.log(showPlaylists[0]);
-
-    if (showPlaylists.length === 1) {
-      // Single show: render without header (current show only)
-      content.push(
-        <View key="current-show">
-          {showPlaylists[0].songs
-            .map((song, songIndex) => renderSong(song, `current-${songIndex}`))
-            .filter(Boolean)}
-        </View>,
-      );
-    } else {
-      // Multiple shows: render all with headers for clarity
-      content.push(
-        <View key="all-shows">
-          {showPlaylists.map((showPlaylist, index) =>
-            renderShowGroup(showPlaylist, index),
-          )}
-        </View>,
-      );
-    }
-
-    // Add loading indicator if loading more
-    if (loadingMore) {
-      content.push(
-        <View key="loading-more" style={styles.loadingMoreContainer}>
-          <ActivityIndicator size="small" color={COLORS.TEXT.PRIMARY} />
-          <Text style={styles.loadingMoreText}>Loading previous show...</Text>
-        </View>,
-      );
-    }
-
-    // Add end-of-day message if we've reached the end
-    if (hasReachedEndOfDay && !loadingMore) {
-      content.push(
-        <View key="end-of-day" style={styles.endOfDayContainer}>
-          <Text style={styles.endOfDayText}>No more shows for today</Text>
-          <TouchableOpacity
-            onPress={() => navigation.navigate('Schedule')}
-            style={styles.scheduleButton}
-          >
-            <Text style={styles.scheduleButtonText}>View Full Schedule</Text>
-          </TouchableOpacity>
-        </View>,
-      );
-    }
-
-    return content;
+    return (
+      <SectionList
+        onEndReached={loadPreviousShow}
+        sections={playlistViewData}
+        renderItem={({ item, section }) => renderSong(item, section)}
+        renderSectionHeader={renderShowHeader}
+        onRefresh={handleRefresh}
+        refreshing={refreshing}
+        ListFooterComponent={ListFooterComponent}
+      />
+    );
   }, [
-    hasReachedEndOfDay,
-    loadingMore,
-    navigation,
-    renderShowGroup,
+    ListFooterComponent,
+    handleRefresh,
+    loadPreviousShow,
+    playlistViewData,
+    refreshing,
+    renderShowHeader,
     renderSong,
     showPlaylists,
   ]);
 
-  const mainContent = () => {
+  const mainContent = useCallback(() => {
     if (loading) {
       return (
         <View style={styles.loadingContainer}>
@@ -593,7 +570,14 @@ export default function RecentlyPlayed({
         </Text>
       </View>
     );
-  };
+  }, [
+    currentShow,
+    error,
+    handleRefresh,
+    loading,
+    renderPlaylistContent,
+    showPlaylists,
+  ]);
 
   return (
     <>
@@ -602,37 +586,7 @@ export default function RecentlyPlayed({
         colors={[COLORS.BACKGROUND.SECONDARY, COLORS.BACKGROUND.PRIMARY]}
         style={styles.gradient}
       >
-        <ScrollView
-          ref={scrollViewRef}
-          bounces={true}
-          onScroll={handleScroll}
-          scrollEventThrottle={400}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={handleRefresh}
-              tintColor={COLORS.TEXT.PRIMARY}
-              colors={[CORE_COLORS.WMBR_GREEN, COLORS.TEXT.PRIMARY]}
-              progressBackgroundColor={COLORS.BACKGROUND.PRIMARY}
-              titleColor={COLORS.TEXT.PRIMARY}
-              title=""
-            />
-          }
-        >
-          {/* Current Show Header - only show when there's a single show with songs */}
-          {currentShow &&
-            currentShow !== DEFAULT_NAME &&
-            showPlaylists.length === 1 &&
-            showPlaylists[0].songs.length > 0 && (
-              <View style={styles.currentShowHeader}>
-                <Text style={styles.currentShowTitle}>{currentShow}</Text>
-                <Text style={styles.currentShowSubtitle}>Now Playing</Text>
-              </View>
-            )}
-          {mainContent()}
-          {/* Bottom padding for gesture area */}
-          <View style={styles.bottomPadding} />
-        </ScrollView>
+        {mainContent()}
       </LinearGradient>
     </>
   );
@@ -641,9 +595,6 @@ export default function RecentlyPlayed({
 const styles = StyleSheet.create({
   gradient: {
     flex: 1,
-  },
-  showGroup: {
-    marginBottom: 20,
   },
   songItem: {
     flexDirection: 'row',
@@ -765,9 +716,6 @@ const styles = StyleSheet.create({
     color: COLORS.TEXT.TERTIARY,
     fontSize: 16,
     textAlign: 'center',
-  },
-  bottomPadding: {
-    height: 100,
   },
   currentShowHeader: {
     backgroundColor: COLORS.BACKGROUND.ELEVATED,

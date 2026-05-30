@@ -197,20 +197,21 @@ export default function SchedulePage() {
     );
   }, [schedule, searchQuery]);
 
-  const scheduleViewData = useMemo(() => {
-    const groupedShows = scheduleService.groupShowsByDay(filteredShows);
+  const scheduleViewData: SectionListData<ScheduleSectionItem>[] =
+    useMemo(() => {
+      const groupedShows = scheduleService.groupShowsByDay(filteredShows);
 
-    return daysOrder
-      .map((day, index) => ({
-        title: day,
-        key: index.toString(),
-        data: (groupedShows[day] || []).map(show => ({
-          ...show,
-          sectionTitle: day,
-        })),
-      }))
-      .filter(section => section.data.length > 0);
-  }, [daysOrder, filteredShows, scheduleService]); // Only include days that have shows
+      return daysOrder
+        .map((day, index) => ({
+          title: day,
+          key: index.toString(),
+          data: (groupedShows[day] || []).map(show => ({
+            ...show,
+            sectionTitle: day,
+          })),
+        }))
+        .filter(section => section.data.length > 0);
+    }, [daysOrder, filteredShows, scheduleService]); // Only include days that have shows
 
   const firstSectionTitle = useMemo(
     () => scheduleViewData[0]?.title,

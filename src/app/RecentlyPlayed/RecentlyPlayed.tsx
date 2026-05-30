@@ -1,14 +1,20 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, {
+  useEffect,
+  useMemo,
+  useState,
+  useRef,
+  useCallback,
+} from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
-  ScrollView,
   ActivityIndicator,
   Alert,
-  RefreshControl,
   Appearance,
+  SectionListData,
+  SectionList,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { debugError } from '@utils/Debug';
@@ -24,20 +30,14 @@ import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { getDateYMD, parsePlaylistTimestamp } from '@utils/DateTime';
 import { WmbrRouteName } from '@customTypes/Navigation';
 import { DEFAULT_NAME } from '@customTypes/Playlist';
-import { COLORS, CORE_COLORS } from '@utils/Colors';
-
-interface RecentlyPlayedProps {
-  refreshKey?: number;
-}
+import { COLORS } from '@utils/Colors';
 
 interface ShowPlaylist {
   showName: string;
   songs: ProcessedSong[];
 }
 
-export default function RecentlyPlayed({
-  refreshKey,
-}: RecentlyPlayedProps = {}) {
+export default function RecentlyPlayed() {
   const navigation =
     useNavigation<NavigationProp<Record<WmbrRouteName, object | undefined>>>();
 
@@ -58,9 +58,7 @@ export default function RecentlyPlayed({
     url: null,
   });
 
-  const scrollViewRef = useRef<ScrollView>(null);
   const audioPreviewService = AudioPreviewService.getInstance();
-  const [shouldAutoLoadPrevious, setShouldAutoLoadPrevious] = useState(false); // Trigger auto-load of previous show
   // Prevent concurrent fetches
   const fetchInFlightRef = useRef(false);
 
@@ -154,24 +152,15 @@ export default function RecentlyPlayed({
 
       if (isRefresh) {
         setRefreshing(true);
-        setShowPlaylists([]);
         setHasReachedEndOfDay(false);
-        setShouldAutoLoadPrevious(false); // Reset flag on refresh
       } else {
         setLoading(true);
       }
       setError(null);
 
-      let shouldTriggerAutoLoad = false;
-
       try {
         const songs = await fetchShowPlaylist(currentShow, new Date());
         setShowPlaylists([{ showName: currentShow, songs }]);
-
-        // If current show has no songs, mark for auto-load of previous show
-        if (songs.length === 0) {
-          shouldTriggerAutoLoad = true;
-        }
       } catch (err) {
         setError(`Failed to load playlist for ${currentShow}`);
         debugError('Error fetching current show playlist:', err);
@@ -183,11 +172,6 @@ export default function RecentlyPlayed({
           setLoading(false);
         }
 
-        // Trigger auto-load after loading state is cleared
-        if (shouldTriggerAutoLoad) {
-          setShouldAutoLoadPrevious(true);
-        }
-
         fetchInFlightRef.current = false;
       }
     },
@@ -195,6 +179,11 @@ export default function RecentlyPlayed({
   );
 
   const loadPreviousShow = useCallback(async () => {
+    // Don't load previous show if we're currently refreshing
+    if (refreshing) {
+      return;
+    }
+
     // Determine which show to find the previous show for
     const lastLoadedShow =
       showPlaylists.length > 0
@@ -260,8 +249,9 @@ export default function RecentlyPlayed({
       setLoadingMore(false);
     }
   }, [
-    currentShow,
+    refreshing,
     showPlaylists,
+    currentShow,
     loadingMore,
     hasReachedEndOfDay,
     fetchShowPlaylist,
@@ -271,7 +261,6 @@ export default function RecentlyPlayed({
   useEffect(() => {
     setShowPlaylists([]);
     setHasReachedEndOfDay(false);
-    setShouldAutoLoadPrevious(false);
     setError(null);
   }, [currentShow]);
 
@@ -281,61 +270,11 @@ export default function RecentlyPlayed({
     }
   }, [currentShow, fetchCurrentShowPlaylist]);
 
-  useEffect(() => {
-    if (typeof refreshKey === 'number') {
-      fetchCurrentShowPlaylist(true);
-    }
-  }, [refreshKey, fetchCurrentShowPlaylist]);
-
-  // Auto-load previous show when current show has no songs
-  useEffect(() => {
-    if (
-      shouldAutoLoadPrevious &&
-      showPlaylists.length === 1 &&
-      showPlaylists[0].songs.length === 0 &&
-      !loading &&
-      !loadingMore &&
-      !hasReachedEndOfDay
-    ) {
-      setShouldAutoLoadPrevious(false); // Reset flag before loading
-      loadPreviousShow();
-    }
-  }, [
-    shouldAutoLoadPrevious,
-    showPlaylists,
-    loading,
-    loadingMore,
-    hasReachedEndOfDay,
-    loadPreviousShow,
-  ]);
-
-  const handleRefresh = () => {
+  const handleRefresh = useCallback(() => {
     setHasReachedEndOfDay(false);
     setLoadingMore(false);
     fetchCurrentShowPlaylist(true);
-  };
-
-  const handleScroll = useCallback(
-    (event: any) => {
-      const { layoutMeasurement, contentOffset, contentSize } =
-        event.nativeEvent;
-      const paddingToBottom = 50;
-
-      const distanceFromBottom =
-        contentSize.height - (layoutMeasurement.height + contentOffset.y);
-      const isNearBottom = distanceFromBottom <= paddingToBottom;
-      const canScroll = contentSize.height > layoutMeasurement.height;
-
-      // If content is shorter than the view, or user is near bottom, try to load more
-      if (
-        (isNearBottom && canScroll) ||
-        (!canScroll && showPlaylists.length === 1)
-      ) {
-        loadPreviousShow();
-      }
-    },
-    [loadPreviousShow, showPlaylists.length],
-  );
+  }, [fetchCurrentShowPlaylist]);
 
   const handlePlayPreview = useCallback(
     async (song: ProcessedSong) => {
@@ -375,17 +314,14 @@ export default function RecentlyPlayed({
   );
 
   const renderSong = useCallback(
-    (song: ProcessedSong, key: string) => {
+    ({ item: song }: { item: ProcessedSong }) => {
       // Validate song data
       if (!song.title || !song.artist) {
         return null;
       }
 
       return (
-        <View
-          key={`${key}-${song.title}-${song.artist}-${song.playedAt.getTime()}`}
-          style={styles.songItem}
-        >
+        <View style={styles.songItem}>
           <View style={styles.songInfo}>
             <Text style={styles.songTitle} numberOfLines={2}>
               {song.title || 'Unknown Title'}
@@ -455,195 +391,139 @@ export default function RecentlyPlayed({
     ],
   );
 
-  const renderShowGroup = useCallback(
-    (showPlaylist: ShowPlaylist, showIndex: number) => {
-      return (
-        <View key={`show-${showIndex}`} style={styles.showGroup}>
+  const playlistViewData: SectionListData<ProcessedSong>[] = useMemo(
+    () =>
+      showPlaylists.map(showPlaylist => ({
+        title: showPlaylist.showName,
+        data: showPlaylist.songs,
+      })),
+    [showPlaylists],
+  );
+
+  const renderShowHeader = useCallback(
+    ({ section }: { section: SectionListData<ProcessedSong> }) => (
+      <>
+        {currentShow &&
+        currentShow !== DEFAULT_NAME &&
+        showPlaylists.length === 1 &&
+        showPlaylists[0].songs.length > 0 ? (
+          <View style={styles.currentShowHeader}>
+            <Text style={styles.currentShowTitle}>{currentShow}</Text>
+            <Text style={styles.currentShowSubtitle}>Now Playing</Text>
+          </View>
+        ) : (
           <View style={styles.showHeader}>
-            <Text style={styles.showHeaderTitle}>{showPlaylist.showName}</Text>
+            <Text style={styles.showHeaderTitle}>{section.title}</Text>
             <Text style={styles.showHeaderSubtitle}>
-              {showPlaylist.songs.length > 0
-                ? `${showPlaylist.songs.length} song${showPlaylist.songs.length !== 1 ? 's' : ''}`
+              {section.data?.length > 0
+                ? `${section.data.length} song${section.data.length !== 1 ? 's' : ''}`
                 : 'No playlist available'}
             </Text>
           </View>
-          {showPlaylist.songs.length > 0 ? (
-            showPlaylist.songs
-              .map((song, songIndex) =>
-                renderSong(song, `${showIndex}-${songIndex}`),
-              )
-              .filter(Boolean)
-          ) : (
-            <View style={styles.emptyShowContainer}>
-              <Text style={styles.emptyShowText}>
-                No playlist found for this show
-              </Text>
-            </View>
-          )}
-        </View>
-      );
-    },
-    [renderSong],
+        )}
+      </>
+    ),
+    [currentShow, showPlaylists],
   );
 
-  const renderPlaylistContent = useCallback(() => {
-    if (!showPlaylists || showPlaylists.length === 0) {
-      return [];
-    }
+  const ListFooterComponent = useCallback(
+    () => (
+      <>
+        {/* Add loading indicator if loading more */}
+        {!refreshing && loadingMore ? (
+          <View style={styles.loadingMoreContainer}>
+            <ActivityIndicator size="small" color={COLORS.TEXT.PRIMARY} />
+            <Text style={styles.loadingMoreText}>Loading previous show...</Text>
+          </View>
+        ) : (
+          hasReachedEndOfDay && (
+            <View style={styles.endOfDayContainer}>
+              <Text style={styles.endOfDayText}>No more shows for today</Text>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('Schedule')}
+                style={styles.scheduleButton}
+              >
+                <Text style={styles.scheduleButtonText}>
+                  View Full Schedule
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )
+        )}
+      </>
+    ),
+    [hasReachedEndOfDay, loadingMore, navigation, refreshing],
+  );
 
-    const content = [];
+  const SectionFooterComponent = useCallback(
+    ({ section }: { section: SectionListData<ProcessedSong> }) =>
+      section.data.length === 0 ? (
+        <View style={styles.emptyShowContainer}>
+          <Text style={styles.emptyShowText}>
+            No playlist found for {section.title}
+          </Text>
+        </View>
+      ) : null,
+    [],
+  );
 
-    console.log(showPlaylists[0]);
+  const ListEmptyComponent = useCallback(() => {
+    return !refreshing ? (
+      <View style={styles.emptyContainer}>
+        <Text style={styles.emptyText}>No playlists found</Text>
+      </View>
+    ) : null;
+  }, [refreshing]);
 
-    if (showPlaylists.length === 1) {
-      // Single show: render without header (current show only)
-      content.push(
-        <View key="current-show">
-          {showPlaylists[0].songs
-            .map((song, songIndex) => renderSong(song, `current-${songIndex}`))
-            .filter(Boolean)}
-        </View>,
-      );
-    } else {
-      // Multiple shows: render all with headers for clarity
-      content.push(
-        <View key="all-shows">
-          {showPlaylists.map((showPlaylist, index) =>
-            renderShowGroup(showPlaylist, index),
-          )}
-        </View>,
-      );
-    }
+  const keyExtractor = useCallback(
+    (item: ProcessedSong, index: number) =>
+      `${item.showId}-${item.title}-${item.artist}-${item.playedAt.getTime()}-${index}`,
+    [],
+  );
 
-    // Add loading indicator if loading more
-    if (loadingMore) {
-      content.push(
-        <View key="loading-more" style={styles.loadingMoreContainer}>
-          <ActivityIndicator size="small" color={COLORS.TEXT.PRIMARY} />
-          <Text style={styles.loadingMoreText}>Loading previous show...</Text>
-        </View>,
-      );
-    }
-
-    // Add end-of-day message if we've reached the end
-    if (hasReachedEndOfDay && !loadingMore) {
-      content.push(
-        <View key="end-of-day" style={styles.endOfDayContainer}>
-          <Text style={styles.endOfDayText}>No more shows for today</Text>
-          <TouchableOpacity
-            onPress={() => navigation.navigate('Schedule')}
-            style={styles.scheduleButton}
-          >
-            <Text style={styles.scheduleButtonText}>View Full Schedule</Text>
-          </TouchableOpacity>
-        </View>,
-      );
-    }
-
-    return content;
-  }, [
-    hasReachedEndOfDay,
-    loadingMore,
-    navigation,
-    renderShowGroup,
-    renderSong,
-    showPlaylists,
-  ]);
-
-  const mainContent = () => {
-    if (loading) {
-      return (
+  return (
+    <LinearGradient
+      colors={[COLORS.BACKGROUND.SECONDARY, COLORS.BACKGROUND.PRIMARY]}
+      style={styles.gradient}
+    >
+      {loading && (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#FFFFFF" />
           <Text style={styles.loadingText}>Loading playlist...</Text>
         </View>
-      );
-    }
+      )}
 
-    if (error) {
-      return (
+      {error && (
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>{error}</Text>
           <TouchableOpacity onPress={handleRefresh} style={styles.retryButton}>
             <Text style={styles.retryButtonText}>Retry</Text>
           </TouchableOpacity>
         </View>
-      );
-    }
+      )}
 
-    if (!currentShow || currentShow === DEFAULT_NAME) {
-      return (
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>No playlists found</Text>
-        </View>
-      );
-    }
-
-    if (
-      showPlaylists.length > 0 &&
-      (showPlaylists[0].songs.length > 0 || showPlaylists.length > 1)
-    ) {
-      return <>{renderPlaylistContent()}</>;
-    }
-
-    return (
-      <View style={styles.emptyContainer}>
-        <Text style={styles.emptyText}>
-          No playlist found for {currentShow}
-        </Text>
-      </View>
-    );
-  };
-
-  return (
-    <>
-      {/* Content */}
-      <LinearGradient
-        colors={[COLORS.BACKGROUND.SECONDARY, COLORS.BACKGROUND.PRIMARY]}
-        style={styles.gradient}
-      >
-        <ScrollView
-          ref={scrollViewRef}
-          bounces={true}
-          onScroll={handleScroll}
-          scrollEventThrottle={400}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={handleRefresh}
-              tintColor={COLORS.TEXT.PRIMARY}
-              colors={[CORE_COLORS.WMBR_GREEN, COLORS.TEXT.PRIMARY]}
-              progressBackgroundColor={COLORS.BACKGROUND.PRIMARY}
-              titleColor={COLORS.TEXT.PRIMARY}
-              title=""
-            />
-          }
-        >
-          {/* Current Show Header - only show when there's a single show with songs */}
-          {currentShow &&
-            currentShow !== DEFAULT_NAME &&
-            showPlaylists.length === 1 &&
-            showPlaylists[0].songs.length > 0 && (
-              <View style={styles.currentShowHeader}>
-                <Text style={styles.currentShowTitle}>{currentShow}</Text>
-                <Text style={styles.currentShowSubtitle}>Now Playing</Text>
-              </View>
-            )}
-          {mainContent()}
-          {/* Bottom padding for gesture area */}
-          <View style={styles.bottomPadding} />
-        </ScrollView>
-      </LinearGradient>
-    </>
+      {!loading && !error && (
+        <SectionList
+          onEndReached={loadPreviousShow}
+          onEndReachedThreshold={0.1}
+          sections={playlistViewData}
+          keyExtractor={keyExtractor}
+          renderItem={renderSong}
+          renderSectionHeader={renderShowHeader}
+          renderSectionFooter={SectionFooterComponent}
+          onRefresh={handleRefresh}
+          refreshing={refreshing}
+          ListEmptyComponent={ListEmptyComponent}
+          ListFooterComponent={ListFooterComponent}
+        />
+      )}
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
   gradient: {
     flex: 1,
-  },
-  showGroup: {
-    marginBottom: 20,
   },
   songItem: {
     flexDirection: 'row',
@@ -765,9 +645,6 @@ const styles = StyleSheet.create({
     color: COLORS.TEXT.TERTIARY,
     fontSize: 16,
     textAlign: 'center',
-  },
-  bottomPadding: {
-    height: 100,
   },
   currentShowHeader: {
     backgroundColor: COLORS.BACKGROUND.ELEVATED,

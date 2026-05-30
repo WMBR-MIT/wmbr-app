@@ -1,4 +1,10 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, {
+  useEffect,
+  useMemo,
+  useState,
+  useRef,
+  useCallback,
+} from 'react';
 import {
   View,
   Text,
@@ -429,11 +435,13 @@ export default function RecentlyPlayed({
     ],
   );
 
-  const playlistViewData: SectionListData<ProcessedSong>[] = showPlaylists.map(
-    showPlaylist => ({
-      title: showPlaylist.showName,
-      data: showPlaylist.songs,
-    }),
+  const playlistViewData: SectionListData<ProcessedSong>[] = useMemo(
+    () =>
+      showPlaylists.map(showPlaylist => ({
+        title: showPlaylist.showName,
+        data: showPlaylist.songs,
+      })),
+    [showPlaylists],
   );
 
   const renderShowHeader = useCallback(
@@ -496,10 +504,19 @@ export default function RecentlyPlayed({
       section.data.length === 0 ? (
         <View style={styles.emptyShowContainer}>
           <Text style={styles.emptyShowText}>
-            No playlist found for this show
+            No playlist found for {section.title}
           </Text>
         </View>
       ) : null,
+    [],
+  );
+
+  const ListEmptyComponent = useCallback(
+    () => (
+      <View style={styles.emptyContainer}>
+        <Text style={styles.emptyText}>No playlists found</Text>
+      </View>
+    ),
     [],
   );
 
@@ -508,37 +525,6 @@ export default function RecentlyPlayed({
       `${item.showId}-${item.title}-${item.artist}-${item.playedAt.getTime()}-${index}`,
     [],
   );
-
-  const renderPlaylistContent = useCallback(() => {
-    if (!showPlaylists || showPlaylists.length === 0) {
-      return [];
-    }
-
-    return (
-      <SectionList
-        onEndReached={loadPreviousShow}
-        sections={playlistViewData}
-        keyExtractor={keyExtractor}
-        renderItem={renderSong}
-        renderSectionHeader={renderShowHeader}
-        renderSectionFooter={SectionFooterComponent}
-        onRefresh={handleRefresh}
-        refreshing={refreshing}
-        ListFooterComponent={ListFooterComponent}
-      />
-    );
-  }, [
-    ListFooterComponent,
-    SectionFooterComponent,
-    handleRefresh,
-    keyExtractor,
-    loadPreviousShow,
-    playlistViewData,
-    refreshing,
-    renderShowHeader,
-    renderSong,
-    showPlaylists,
-  ]);
 
   const mainContent = useCallback(() => {
     if (loading) {
@@ -561,35 +547,33 @@ export default function RecentlyPlayed({
       );
     }
 
-    if (!currentShow || currentShow === DEFAULT_NAME) {
-      return (
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>No playlists found</Text>
-        </View>
-      );
-    }
-
-    if (
-      showPlaylists.length > 0 &&
-      (showPlaylists[0].songs.length > 0 || showPlaylists.length > 1)
-    ) {
-      return <>{renderPlaylistContent()}</>;
-    }
-
     return (
-      <View style={styles.emptyContainer}>
-        <Text style={styles.emptyText}>
-          No playlist found for {currentShow}
-        </Text>
-      </View>
+      <SectionList
+        onEndReached={loadPreviousShow}
+        sections={playlistViewData}
+        keyExtractor={keyExtractor}
+        renderItem={renderSong}
+        renderSectionHeader={renderShowHeader}
+        renderSectionFooter={SectionFooterComponent}
+        onRefresh={handleRefresh}
+        refreshing={refreshing}
+        ListEmptyComponent={ListEmptyComponent}
+        ListFooterComponent={ListFooterComponent}
+      />
     );
   }, [
-    currentShow,
+    ListEmptyComponent,
+    ListFooterComponent,
+    SectionFooterComponent,
     error,
     handleRefresh,
+    keyExtractor,
+    loadPreviousShow,
     loading,
-    renderPlaylistContent,
-    showPlaylists,
+    playlistViewData,
+    refreshing,
+    renderShowHeader,
+    renderSong,
   ]);
 
   return (

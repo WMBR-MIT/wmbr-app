@@ -63,13 +63,16 @@ export class RecentlyPlayedService {
    */
   async fetchPlaylistAsSongs(
     showName: string,
-    date: string,
+    date: Date,
     signal?: AbortSignal,
   ): Promise<ProcessedSong[]> {
     try {
+      const formattedDate = getDateYMD(date);
       const encodedShowName = encodeURIComponent(showName);
-      const url = `https://wmbr.alexandersimoes.com/get_playlist?show_name=${encodedShowName}&date=${date}`;
-      debugLog(`Fetching playlist (public) for "${showName}" on ${date}`);
+      const url = `https://wmbr.alexandersimoes.com/get_playlist?show_name=${encodedShowName}&date=${formattedDate}`;
+      debugLog(
+        `Fetching playlist (public) for "${showName}" on ${formattedDate}`,
+      );
 
       const response = await fetch(url, {
         headers: { 'Cache-Control': 'no-cache' },
@@ -81,8 +84,9 @@ export class RecentlyPlayedService {
       }
 
       const data = await response.json();
+
       if (data.error) {
-        return [];
+        throw new Error(data.error);
       }
 
       const playlist: PlaylistResponse = data as PlaylistResponse;
@@ -107,10 +111,10 @@ export class RecentlyPlayedService {
     } catch (err) {
       if ((err as any)?.name === 'AbortError') {
         debugLog('Playlist fetch aborted for', showName, date);
-        return [];
+        throw new Error(`Playlist fetch aborted for ${showName} ${date}`);
       }
       debugError(`Error fetching playlist for ${showName}:`, err);
-      return [];
+      throw new Error(`Error fetching playlist for ${showName}`);
     }
   }
 

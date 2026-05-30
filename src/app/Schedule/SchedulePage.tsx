@@ -23,19 +23,21 @@ import { WmbrRouteName } from '@customTypes/Navigation';
 import { COLORS, CORE_COLORS } from '@utils/Colors';
 import { dayNames } from '@utils/DateTime';
 
-const now = new Date();
-const currentDay = now.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
-
-// Order days starting from the current day index and wrapping around.
-// e.g., if today is Wednesday (index 3) the order will be [Wed, Thu, Fri, Sat, Sun, Mon, Tue]
-const startDay = Math.max(0, Math.min(currentDay, dayNames.length - 1));
-const daysOrder = [...dayNames.slice(startDay), ...dayNames.slice(0, startDay)];
-
 type ScheduleSectionItem = ScheduleShow & {
   sectionTitle: string;
 };
 
 export default function SchedulePage() {
+  const currentDay = new Date().getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+
+  // Order days starting from the current day index and wrapping around.
+  // e.g., if today is Wednesday (index 3) the order will be [Wed, Thu, Fri, Sat, Sun, Mon, Tue]
+  const startDay = Math.max(0, Math.min(currentDay, dayNames.length - 1));
+  const daysOrder = useMemo(
+    () => [...dayNames.slice(startDay), ...dayNames.slice(0, startDay)],
+    [startDay],
+  );
+
   const navigation =
     useNavigation<NavigationProp<Record<WmbrRouteName, object | undefined>>>();
 
@@ -208,7 +210,7 @@ export default function SchedulePage() {
         })),
       }))
       .filter(section => section.data.length > 0);
-  }, [filteredShows, scheduleService]); // Only include days that have shows
+  }, [daysOrder, filteredShows, scheduleService]); // Only include days that have shows
 
   const firstSectionTitle = useMemo(
     () => scheduleViewData[0]?.title,

@@ -28,10 +28,10 @@ import { ScheduleService } from '@services/ScheduleService';
 import { RecentlyPlayedService } from '@services/RecentlyPlayedService';
 import CircularProgress from './CircularProgress';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { parsePlaylistTimestamp } from '@utils/DateTime';
 import { WmbrRouteName } from '@customTypes/Navigation';
 import { DEFAULT_NAME } from '@customTypes/Playlist';
 import { COLORS } from '@utils/Colors';
-import { parsePlaylistTimestamp } from '@utils/DateTime';
 
 interface ShowPlaylist {
   showName: string;

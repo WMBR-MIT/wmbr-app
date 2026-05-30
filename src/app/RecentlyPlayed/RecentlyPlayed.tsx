@@ -153,7 +153,6 @@ export default function RecentlyPlayed() {
 
       if (isRefresh) {
         setRefreshing(true);
-        setShowPlaylists([]);
         setHasReachedEndOfDay(false);
         setShouldAutoLoadPrevious(false); // Reset flag on refresh
       } else {

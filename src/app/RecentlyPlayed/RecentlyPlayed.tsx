@@ -15,6 +15,7 @@ import {
   Appearance,
   SectionListData,
   SectionList,
+  StatusBar,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { debugError } from '@utils/Debug';
@@ -27,6 +28,7 @@ import { ScheduleService } from '@services/ScheduleService';
 import { RecentlyPlayedService } from '@services/RecentlyPlayedService';
 import CircularProgress from './CircularProgress';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { useHeaderHeight } from '@react-navigation/elements';
 import { WmbrRouteName } from '@customTypes/Navigation';
 import { DEFAULT_NAME } from '@customTypes/Playlist';
 import { COLORS } from '@utils/Colors';
@@ -39,6 +41,8 @@ interface ShowPlaylist {
 export default function RecentlyPlayed() {
   const navigation =
     useNavigation<NavigationProp<Record<WmbrRouteName, object | undefined>>>();
+
+  const headerHeight = useHeaderHeight();
 
   const recentlyPlayedService = RecentlyPlayedService.getInstance();
   const [currentShow, setCurrentShow] = useState<string | undefined>(undefined);
@@ -432,42 +436,54 @@ export default function RecentlyPlayed() {
   );
 
   return (
-    <LinearGradient
-      colors={[COLORS.BACKGROUND.SECONDARY, COLORS.BACKGROUND.PRIMARY]}
-      style={styles.gradient}
-    >
-      {loading && (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#FFFFFF" />
-          <Text style={styles.loadingText}>Loading playlist...</Text>
-        </View>
-      )}
+    <>
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor={COLORS.BACKGROUND.PRIMARY}
+      />
 
-      {error && (
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>{error}</Text>
-          <TouchableOpacity onPress={handleRefresh} style={styles.retryButton}>
-            <Text style={styles.retryButtonText}>Retry</Text>
-          </TouchableOpacity>
-        </View>
-      )}
+      <LinearGradient
+        colors={[COLORS.BACKGROUND.SECONDARY, COLORS.BACKGROUND.PRIMARY]}
+        style={styles.gradient}
+      >
+        <View style={[styles.contentWrapper, { paddingTop: headerHeight }]}>
+          {loading && (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color="#FFFFFF" />
+              <Text style={styles.loadingText}>Loading playlist...</Text>
+            </View>
+          )}
 
-      {!loading && !error && (
-        <SectionList
-          onEndReached={loadPreviousShow}
-          onEndReachedThreshold={0.1}
-          sections={playlistViewData}
-          keyExtractor={keyExtractor}
-          renderItem={renderSong}
-          renderSectionHeader={renderShowHeader}
-          renderSectionFooter={SectionFooterComponent}
-          onRefresh={handleRefresh}
-          refreshing={refreshing}
-          ListEmptyComponent={ListEmptyComponent}
-          ListFooterComponent={ListFooterComponent}
-        />
-      )}
-    </LinearGradient>
+          {error && (
+            <View style={styles.errorContainer}>
+              <Text style={styles.errorText}>{error}</Text>
+              <TouchableOpacity
+                onPress={handleRefresh}
+                style={styles.retryButton}
+              >
+                <Text style={styles.retryButtonText}>Retry</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {!loading && !error && (
+            <SectionList
+              onEndReached={loadPreviousShow}
+              onEndReachedThreshold={0.1}
+              sections={playlistViewData}
+              keyExtractor={keyExtractor}
+              renderItem={renderSong}
+              renderSectionHeader={renderShowHeader}
+              renderSectionFooter={SectionFooterComponent}
+              onRefresh={handleRefresh}
+              refreshing={refreshing}
+              ListEmptyComponent={ListEmptyComponent}
+              ListFooterComponent={ListFooterComponent}
+            />
+          )}
+        </View>
+      </LinearGradient>
+    </>
   );
 }
 
@@ -475,7 +491,11 @@ const styles = StyleSheet.create({
   gradient: {
     flex: 1,
   },
+  contentWrapper: {
+    flex: 1,
+  },
   songItem: {
+    backgroundColor: 'transparent',
     flexDirection: 'row',
     paddingHorizontal: 20,
     paddingVertical: 12,

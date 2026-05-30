@@ -86,7 +86,7 @@ export class RecentlyPlayedService {
       const data = await response.json();
 
       if (data.error) {
-        return [];
+        throw new Error(data.error);
       }
 
       const playlist: PlaylistResponse = data as PlaylistResponse;

@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
@@ -26,7 +26,14 @@ export default function App() {
           <Tab.Navigator
             screenOptions={{
               headerShown: false,
-              headerStyle: { backgroundColor: COLORS.BACKGROUND.PRIMARY },
+              headerTransparent: true,
+              // Android doesn't do header blur effects, so it needs a solid
+              // background color
+              ...(Platform.OS === 'android' && {
+                headerStyle: {
+                  backgroundColor: COLORS.BACKGROUND.PRIMARY,
+                },
+              }),
               headerTintColor: COLORS.TEXT.PRIMARY,
             }}
             tabBar={renderTabBar}

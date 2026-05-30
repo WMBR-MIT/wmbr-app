@@ -89,16 +89,19 @@ export default function RecentlyPlayed() {
 
   const fetchShowPlaylist = useCallback(
     async (showName: string, date: Date): Promise<ProcessedSong[]> => {
-      const playlistData = await recentlyPlayedService.fetchPlaylistAsSongs(
-        showName,
-        date,
-      );
+      try {
+        const playlistData = await recentlyPlayedService.fetchPlaylistAsSongs(
+          showName,
+          date,
+        );
 
-      if (playlistData.length === 0) {
+        return playlistData;
+      } catch (err) {
+        debugError('Error fetching playlist:', err);
         setError('Failed to load playlist. Please try again.');
       }
 
-      return playlistData;
+      return [];
     },
     [recentlyPlayedService],
   );

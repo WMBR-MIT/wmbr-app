@@ -59,7 +59,6 @@ export default function RecentlyPlayed() {
   });
 
   const audioPreviewService = AudioPreviewService.getInstance();
-  const [shouldAutoLoadPrevious, setShouldAutoLoadPrevious] = useState(false); // Trigger auto-load of previous show
   // Prevent concurrent fetches
   const fetchInFlightRef = useRef(false);
 
@@ -154,22 +153,14 @@ export default function RecentlyPlayed() {
       if (isRefresh) {
         setRefreshing(true);
         setHasReachedEndOfDay(false);
-        setShouldAutoLoadPrevious(false); // Reset flag on refresh
       } else {
         setLoading(true);
       }
       setError(null);
 
-      let shouldTriggerAutoLoad = false;
-
       try {
         const songs = await fetchShowPlaylist(currentShow, new Date());
         setShowPlaylists([{ showName: currentShow, songs }]);
-
-        // If current show has no songs, mark for auto-load of previous show
-        if (songs.length === 0) {
-          shouldTriggerAutoLoad = true;
-        }
       } catch (err) {
         setError(`Failed to load playlist for ${currentShow}`);
         debugError('Error fetching current show playlist:', err);
@@ -179,11 +170,6 @@ export default function RecentlyPlayed() {
           setRefreshing(false);
         } else {
           setLoading(false);
-        }
-
-        // Trigger auto-load after loading state is cleared
-        if (shouldTriggerAutoLoad) {
-          setShouldAutoLoadPrevious(true);
         }
 
         fetchInFlightRef.current = false;
@@ -275,7 +261,6 @@ export default function RecentlyPlayed() {
   useEffect(() => {
     setShowPlaylists([]);
     setHasReachedEndOfDay(false);
-    setShouldAutoLoadPrevious(false);
     setError(null);
   }, [currentShow]);
 
@@ -284,28 +269,6 @@ export default function RecentlyPlayed() {
       fetchCurrentShowPlaylist();
     }
   }, [currentShow, fetchCurrentShowPlaylist]);
-
-  // Auto-load previous show when current show has no songs
-  useEffect(() => {
-    if (
-      shouldAutoLoadPrevious &&
-      showPlaylists.length === 1 &&
-      showPlaylists[0].songs.length === 0 &&
-      !loading &&
-      !loadingMore &&
-      !hasReachedEndOfDay
-    ) {
-      setShouldAutoLoadPrevious(false); // Reset flag before loading
-      loadPreviousShow();
-    }
-  }, [
-    shouldAutoLoadPrevious,
-    showPlaylists,
-    loading,
-    loadingMore,
-    hasReachedEndOfDay,
-    loadPreviousShow,
-  ]);
 
   const handleRefresh = useCallback(() => {
     setHasReachedEndOfDay(false);

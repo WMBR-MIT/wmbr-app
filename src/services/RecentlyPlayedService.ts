@@ -111,10 +111,10 @@ export class RecentlyPlayedService {
     } catch (err) {
       if ((err as any)?.name === 'AbortError') {
         debugLog('Playlist fetch aborted for', showName, date);
-        return [];
+        throw new Error(`Playlist fetch aborted for ${showName} ${date}`);
       }
       debugError(`Error fetching playlist for ${showName}:`, err);
-      return [];
+      throw new Error(`Error fetching playlist for ${showName}`);
     }
   }
 

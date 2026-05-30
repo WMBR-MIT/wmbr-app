@@ -63,12 +63,13 @@ export class RecentlyPlayedService {
    */
   async fetchPlaylistAsSongs(
     showName: string,
-    date: string,
+    date: Date,
     signal?: AbortSignal,
   ): Promise<ProcessedSong[]> {
     try {
+      const formattedDate = getDateYMD(date);
       const encodedShowName = encodeURIComponent(showName);
-      const url = `https://wmbr.alexandersimoes.com/get_playlist?show_name=${encodedShowName}&date=${date}`;
+      const url = `https://wmbr.alexandersimoes.com/get_playlist?show_name=${encodedShowName}&date=${formattedDate}`;
       debugLog(`Fetching playlist (public) for "${showName}" on ${date}`);
 
       const response = await fetch(url, {

@@ -23,12 +23,10 @@ import {
   PreviewState,
 } from '@services/AudioPreviewService';
 import { ProcessedSong } from '@customTypes/RecentlyPlayed';
-import { PlaylistService } from '@services/PlaylistService';
 import { ScheduleService } from '@services/ScheduleService';
 import { RecentlyPlayedService } from '@services/RecentlyPlayedService';
 import CircularProgress from './CircularProgress';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import { parsePlaylistTimestamp } from '@utils/DateTime';
 import { WmbrRouteName } from '@customTypes/Navigation';
 import { DEFAULT_NAME } from '@customTypes/Playlist';
 import { COLORS } from '@utils/Colors';
@@ -59,7 +57,6 @@ export default function RecentlyPlayed() {
     url: null,
   });
 
-  const playlistService = PlaylistService.getInstance();
   const audioPreviewService = AudioPreviewService.getInstance();
   // Prevent concurrent fetches
   const fetchInFlightRef = useRef(false);
@@ -93,32 +90,12 @@ export default function RecentlyPlayed() {
   const fetchShowPlaylist = useCallback(
     async (showName: string, date: Date): Promise<ProcessedSong[]> => {
       try {
-        const playlistData = await playlistService.fetchPlaylist(
+        const playlistData = await recentlyPlayedService.fetchPlaylistAsSongs(
           showName,
           date,
         );
 
-        if (playlistData.songs && playlistData.songs.length > 0) {
-          // Convert playlist songs to ProcessedSong format
-          const processedSongs: ProcessedSong[] = playlistData.songs.map(
-            (song: any) => ({
-              title: song.song.trim(),
-              artist: song.artist.trim(),
-              album: song.album?.trim() || undefined,
-              released: undefined,
-              appleStreamLink: '', // Not provided in new API
-              playedAt: parsePlaylistTimestamp(song.time),
-              showName: showName,
-              showId: `${showName}-${date}`,
-            }),
-          );
-
-          // Sort by most recent first
-          processedSongs.sort(
-            (a, b) => b.playedAt.getTime() - a.playedAt.getTime(),
-          );
-          return processedSongs;
-        }
+        return playlistData;
       } catch (err) {
         debugError('Error fetching playlist:', err);
         setError('Failed to load playlist. Please try again.');
@@ -126,7 +103,7 @@ export default function RecentlyPlayed() {
 
       return [];
     },
-    [playlistService],
+    [recentlyPlayedService],
   );
 
   const fetchCurrentShowPlaylist = useCallback(

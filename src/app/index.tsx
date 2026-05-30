@@ -24,7 +24,11 @@ export default function App() {
       <GestureHandlerRootView style={styles.gestureRoot}>
         <NavigationContainer>
           <Tab.Navigator
-            screenOptions={{ headerShown: false }}
+            screenOptions={{
+              headerShown: false,
+              headerStyle: { backgroundColor: COLORS.BACKGROUND.PRIMARY },
+              headerTintColor: COLORS.TEXT.PRIMARY,
+            }}
             tabBar={renderTabBar}
           >
             <Tab.Screen name="Home" component={HomeScreen} />
@@ -33,8 +37,6 @@ export default function App() {
               component={RecentlyPlayed}
               options={{
                 headerShown: true,
-                headerStyle: { backgroundColor: COLORS.BACKGROUND.PRIMARY },
-                headerTintColor: COLORS.TEXT.PRIMARY,
               }}
             />
             <Tab.Screen name="Schedule" component={ScheduleStack} />

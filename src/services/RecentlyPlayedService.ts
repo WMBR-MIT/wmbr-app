@@ -633,7 +633,11 @@ export class RecentlyPlayedService {
     for (const show of shows) {
       const alternates = show.alternates;
 
-      let shouldPlay = isAlternatingShowActive(show, targetTime);
+      const shouldPlay = isAlternatingShowActive(
+        show,
+        targetTime,
+        this.seasonStart,
+      );
 
       if (shouldPlay) {
         debugLog(`Selected show: ${show.name} (alternates=${alternates})`);

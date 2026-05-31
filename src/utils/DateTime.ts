@@ -145,26 +145,26 @@ export const formatArchiveDate = (dateString: string) => {
 export const isAlternatingShowActive = (
   show: Show | ScheduleShow,
   targetDate: Date,
+  referenceDate: Date | null,
 ): boolean => {
   if (show.alternates === 0) {
     return true; // Non-alternating show is always active
   }
 
-  // For alternating shows, we need a reference date to calculate weeks.
-  // This should be updated to the first Monday of every season.
-  const referenceDate = new Date('2026-05-25T00:00:00-04:00'); // Eastern Time
+  if (!referenceDate) {
+    debugError('Reference date for alternating shows is not set.');
+    return false; // Default to inactive if we don't have a reference date
+  }
 
   const targetDateEastern = new Date(
     targetDate.toLocaleString('en-US', { timeZone: 'America/New_York' }),
   );
 
   // Calculate weeks since reference date.
-  const daysDiff = Math.floor(
+  const weeksSince = Math.floor(
     (targetDateEastern.getTime() - referenceDate.getTime()) /
-      (1000 * 60 * 60 * 24),
+      (7 * 24 * 60 * 60 * 1000),
   );
-
-  const weeksSince = Math.floor(daysDiff / 7);
 
   if (show.alternates < 3) {
     return weeksSince % 2 === show.alternates - 1; // 1 means active on odd weeks, 2 means active on even weeks

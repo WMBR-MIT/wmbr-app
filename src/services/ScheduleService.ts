@@ -206,9 +206,13 @@ export class ScheduleService {
           (scheduleDay >= 1 && scheduleDay <= 5 && show.day === 7),
       );
 
+      // For alternating shows, we need a reference date to calculate weeks.
+      // This should be updated to the first Monday of every season.
+      const referenceDate = new Date('2026-05-25T00:00:00-04:00'); // Eastern Time
+
       // Filter to only shows that are active this week (considering alternates)
       const todayShows = allTodayShows.filter(show =>
-        isAlternatingShowActive(show, easternNow),
+        isAlternatingShowActive(show, easternNow, referenceDate),
       );
 
       debugLog(`All shows for day ${scheduleDay}: ${allTodayShows.length}`);

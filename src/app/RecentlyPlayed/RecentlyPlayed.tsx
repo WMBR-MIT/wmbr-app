@@ -469,7 +469,6 @@ export default function RecentlyPlayed() {
           {!loading && !error && (
             <SectionList
               onEndReached={loadPreviousShow}
-              onEndReachedThreshold={0.1}
               sections={playlistViewData}
               keyExtractor={keyExtractor}
               renderItem={renderSong}

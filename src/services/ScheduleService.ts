@@ -1,7 +1,7 @@
 import { parseString } from 'react-native-xml2js';
 import { ScheduleShow, ScheduleResponse } from '@customTypes/Schedule';
 import { debugLog, debugError } from '@utils/Debug';
-import { dayNames } from '@utils/DateTime';
+import { dayNames, isAlternatingShowActive } from '@utils/DateTime';
 
 export class ScheduleService {
   private static instance: ScheduleService;
@@ -161,38 +161,6 @@ export class ScheduleService {
     return timeStr;
   }
 
-  // Helper method to determine if alternating show is active this week
-  private isAlternatingShowActive(
-    show: ScheduleShow,
-    targetDate: Date,
-  ): boolean {
-    if (show.alternates === 0) {
-      return true; // Non-alternating show is always active
-    }
-
-    // For alternating shows, we need a reference date to calculate weeks.
-    // This should be updated to the first Monday of every season.
-    const referenceDate = new Date('2026-05-24T00:00:00-04:00'); // Eastern Time
-
-    const targetDateEastern = new Date(
-      targetDate.toLocaleString('en-US', { timeZone: 'America/New_York' }),
-    );
-
-    // Calculate weeks since reference date.
-    const daysDiff = Math.floor(
-      (targetDateEastern.getTime() - referenceDate.getTime()) /
-        (1000 * 60 * 60 * 24),
-    );
-
-    const weeksSince = Math.floor(daysDiff / 7);
-
-    if (show.alternates < 3) {
-      return weeksSince % 2 === 2 - show.alternates; // 1 means active on odd weeks, 2 means active on even weeks
-    }
-
-    return weeksSince % 4 === show.alternates - 5; // 5 means active on week 1, 6 means active on week 2, etc.
-  }
-
   async getShowById(showId: string): Promise<ScheduleShow | undefined> {
     try {
       const scheduleData = await this.fetchSchedule();
@@ -240,7 +208,7 @@ export class ScheduleService {
 
       // Filter to only shows that are active this week (considering alternates)
       const todayShows = allTodayShows.filter(show =>
-        this.isAlternatingShowActive(show, easternNow),
+        isAlternatingShowActive(show, easternNow),
       );
 
       debugLog(`All shows for day ${scheduleDay}: ${allTodayShows.length}`);

@@ -8,7 +8,11 @@ import { ScheduleService } from './ScheduleService';
 import { ScheduleShow } from '@customTypes/Schedule';
 import { parseString } from 'react-native-xml2js';
 import { debugLog, debugError } from '@utils/Debug';
-import { getDateYMD, parsePlaylistTimestamp } from '@utils/DateTime';
+import {
+  getDateYMD,
+  isAlternatingShowActive,
+  parsePlaylistTimestamp,
+} from '@utils/DateTime';
 import { PlaylistSong, PlaylistResponse } from '@customTypes/Playlist';
 
 export class RecentlyPlayedService {
@@ -625,45 +629,11 @@ export class RecentlyPlayedService {
     const firstSlotTime = this.findFirstSlotTime(timeSlot, targetTime.getDay());
     if (!firstSlotTime) return shows[0];
 
-    // Calculate weeks since the first slot
-    const weeksSince = Math.floor(
-      (targetTime.getTime() - firstSlotTime.getTime()) /
-        (7 * 24 * 60 * 60 * 1000),
-    );
-    const cycleIndex = weeksSince % 4; // 0=week1, 1=week2, 2=week3, 3=week4
-
-    debugLog(
-      `Time slot ${timeSlot}: weeksSince=${weeksSince}, cycleIndex=${cycleIndex}`,
-    );
-
     // Find the show that matches this cycle
     for (const show of shows) {
       const alternates = show.alternates;
-      let shouldPlay = false;
 
-      switch (alternates) {
-        case 0: // Weekly show
-          shouldPlay = true;
-          break;
-        case 1: // Weeks 1 & 3 (first of every 2 weeks)
-          shouldPlay = weeksSince % 2 === 0;
-          break;
-        case 2: // Weeks 2 & 4 (second of every 2 weeks)
-          shouldPlay = weeksSince % 2 === 1;
-          break;
-        case 5: // Week 1 (first of every 4 weeks)
-          shouldPlay = cycleIndex === 0;
-          break;
-        case 6: // Week 2 (second of every 4 weeks)
-          shouldPlay = cycleIndex === 1;
-          break;
-        case 7: // Week 3 (third of every 4 weeks)
-          shouldPlay = cycleIndex === 2;
-          break;
-        case 8: // Week 4 (fourth of every 4 weeks)
-          shouldPlay = cycleIndex === 3;
-          break;
-      }
+      let shouldPlay = isAlternatingShowActive(show, targetTime);
 
       if (shouldPlay) {
         debugLog(`Selected show: ${show.name} (alternates=${alternates})`);

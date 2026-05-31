@@ -170,29 +170,27 @@ export class ScheduleService {
       return true; // Non-alternating show is always active
     }
 
-    const alternatingWeekIndex = show.alternates - 1; // Convert to 0-based index
-
-    // For alternating shows, we need a reference date to calculate weeks
-    // TODO: Needs to be checked each season and potentially updated
+    // For alternating shows, we need a reference date to calculate weeks.
+    // This should be checked each season and updated if the cycle changes.
     const referenceDate = new Date('2026-05-17T00:00:00-04:00'); // Eastern Time
 
     const targetDateEastern = new Date(
       targetDate.toLocaleString('en-US', { timeZone: 'America/New_York' }),
     );
 
-    // Calculate weeks since reference date
+    // Calculate weeks since reference date.
     const daysDiff = Math.floor(
       (targetDateEastern.getTime() - referenceDate.getTime()) /
         (1000 * 60 * 60 * 24),
     );
+
     const weeksSince = Math.floor(daysDiff / 7);
 
-    debugLog(
-      `Show "${show.name}" alternates: ${show.alternates}, weeks since ref: ${weeksSince}, active: ${weeksSince % 2 === alternatingWeekIndex}`,
-    );
+    if (show.alternates < 3) {
+      return weeksSince % 2 === show.alternates - 1; // 1 means active on even weeks, 2 means active on odd weeks
+    }
 
-    // Even weeks = first show in alternating pair, odd weeks = second show
-    return weeksSince % 2 === alternatingWeekIndex;
+    return weeksSince % 4 === show.alternates - 5; // 5 means active on week 0, 6 means active on week 1, etc.
   }
 
   async getShowById(showId: string): Promise<ScheduleShow | undefined> {

@@ -340,6 +340,7 @@ export default function SchedulePage() {
                 </View>
               ) : null}
               <SectionList
+                contentInsetAdjustmentBehavior="automatic"
                 style={styles.paddingContainer}
                 stickySectionHeadersEnabled={false}
                 sections={scheduleViewData}

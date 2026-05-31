@@ -636,7 +636,7 @@ export class RecentlyPlayedService {
       const shouldPlay = isAlternatingShowActive(
         show,
         targetTime,
-        this.seasonStart,
+        firstSlotTime,
       );
 
       if (shouldPlay) {

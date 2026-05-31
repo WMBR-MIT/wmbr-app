@@ -1,4 +1,5 @@
 import { parseString } from 'react-native-xml2js';
+import { RecentlyPlayedService } from '@services/RecentlyPlayedService';
 import { ScheduleShow, ScheduleResponse } from '@customTypes/Schedule';
 import { debugLog, debugError } from '@utils/Debug';
 import { dayNames, isAlternatingShowActive } from '@utils/DateTime';
@@ -52,6 +53,8 @@ export class ScheduleService {
       throw error;
     }
   }
+
+  private recentlyPlayedService = RecentlyPlayedService.getInstance();
 
   private parseShows(xmlResult: any): ScheduleShow[] {
     debugLog('parseShows input:', xmlResult);
@@ -206,13 +209,11 @@ export class ScheduleService {
           (scheduleDay >= 1 && scheduleDay <= 5 && show.day === 7),
       );
 
-      // For alternating shows, we need a reference date to calculate weeks.
-      // This should be updated to the first Monday of every season.
-      const referenceDate = new Date('2026-05-25T00:00:00-04:00'); // Eastern Time
+      const seasonStart = await this.recentlyPlayedService.getSeasonStart();
 
       // Filter to only shows that are active this week (considering alternates)
       const todayShows = allTodayShows.filter(show =>
-        isAlternatingShowActive(show, easternNow, referenceDate),
+        isAlternatingShowActive(show, easternNow, seasonStart),
       );
 
       debugLog(`All shows for day ${scheduleDay}: ${allTodayShows.length}`);

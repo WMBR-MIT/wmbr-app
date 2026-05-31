@@ -118,6 +118,20 @@ export class RecentlyPlayedService {
     }
   }
 
+  async getSeasonStart(): Promise<Date | null> {
+    if (this.seasonStart) {
+      return this.seasonStart;
+    }
+
+    try {
+      await this.fetchShowsCacheOnly();
+      return this.seasonStart;
+    } catch (error) {
+      debugError('Error fetching season start date:', error);
+      return null;
+    }
+  }
+
   getShowsCache(): Show[] {
     return this.showsCache;
   }

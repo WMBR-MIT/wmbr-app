@@ -128,40 +128,24 @@ export default function AboutPage() {
           </View>
 
           <View style={styles.socialRow}>
-            <TouchableOpacity
-              onPress={openInstagram}
-              activeOpacity={0.8}
-              style={styles.socialButton}
-            >
+            <TouchableOpacity onPress={openInstagram} activeOpacity={0.8}>
               <Icon
                 name="logo-instagram"
                 size={20}
                 color={COLORS.TEXT.PRIMARY}
               />
             </TouchableOpacity>
-            <TouchableOpacity
-              onPress={openTwitter}
-              activeOpacity={0.8}
-              style={styles.socialButton}
-            >
+            <TouchableOpacity onPress={openTwitter} activeOpacity={0.8}>
               <Icon name="logo-twitter" size={20} color={COLORS.TEXT.PRIMARY} />
             </TouchableOpacity>
-            <TouchableOpacity
-              onPress={openFacebook}
-              activeOpacity={0.8}
-              style={styles.socialButton}
-            >
+            <TouchableOpacity onPress={openFacebook} activeOpacity={0.8}>
               <Icon
                 name="logo-facebook"
                 size={20}
                 color={COLORS.TEXT.PRIMARY}
               />
             </TouchableOpacity>
-            <TouchableOpacity
-              onPress={openMastodon}
-              activeOpacity={0.8}
-              style={styles.socialButton}
-            >
+            <TouchableOpacity onPress={openMastodon} activeOpacity={0.8}>
               <Icon
                 name="logo-mastodon"
                 size={20}
@@ -217,8 +201,7 @@ const styles = StyleSheet.create({
     borderColor: COLORS.BUTTON.PRIMARY.BORDER,
   },
   buttonOutlineText: { color: COLORS.BUTTON.PRIMARY.TEXT },
-  socialRow: { flexDirection: 'row', marginTop: 18 },
-  socialButton: { marginRight: 12 },
+  socialRow: { flexDirection: 'row', marginTop: 18, columnGap: 12 },
   linkText: { color: COLORS.TEXT.LINK, textDecorationLine: 'underline' },
   smallText: { color: COLORS.TEXT.TERTIARY, fontSize: 12, marginTop: 2 },
   section: { marginTop: 12, marginBottom: 8 },

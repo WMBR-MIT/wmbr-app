@@ -156,13 +156,9 @@ export const isAlternatingShowActive = (
     return false; // Default to inactive if we don't have a reference date
   }
 
-  const targetDateEastern = new Date(
-    targetDate.toLocaleString('en-US', { timeZone: 'America/New_York' }),
-  );
-
   // Calculate weeks since reference date.
   const weeksSince = Math.floor(
-    (targetDateEastern.getTime() - referenceDate.getTime()) /
+    (targetDate.getTime() - referenceDate.getTime()) /
       (7 * 24 * 60 * 60 * 1000),
   );
 

@@ -45,8 +45,10 @@ export default function RecentlyPlayed() {
   const headerHeight = useHeaderHeight();
 
   const recentlyPlayedService = RecentlyPlayedService.getInstance();
-  const [currentShow, setCurrentShow] = useState<string | undefined>(undefined);
+  const scheduleService = ScheduleService.getInstance();
+  const audioPreviewService = AudioPreviewService.getInstance();
 
+  const [currentShow, setCurrentShow] = useState<string | undefined>(undefined);
   const [showPlaylists, setShowPlaylists] = useState<ShowPlaylist[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -61,7 +63,6 @@ export default function RecentlyPlayed() {
     url: null,
   });
 
-  const audioPreviewService = AudioPreviewService.getInstance();
   // Prevent concurrent fetches
   const fetchInFlightRef = useRef(false);
 
@@ -157,7 +158,6 @@ export default function RecentlyPlayed() {
     setLoadingMore(true);
 
     try {
-      const scheduleService = ScheduleService.getInstance();
       const previousShow =
         await scheduleService.findPreviousShow(lastLoadedShow);
 
@@ -208,6 +208,7 @@ export default function RecentlyPlayed() {
     currentShow,
     loadingMore,
     hasReachedEndOfDay,
+    scheduleService,
     recentlyPlayedService,
   ]);
 

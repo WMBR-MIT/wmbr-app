@@ -316,12 +316,12 @@ export default function SchedulePage() {
       >
         <View style={[styles.contentWrapper, { paddingTop: headerHeight }]}>
           {loading ? (
-            <View style={styles.loadingContainer}>
+            <View style={[styles.loadingContainer, styles.paddingContainer]}>
               <ActivityIndicator size="large" color={COLORS.TEXT.PRIMARY} />
               <Text style={styles.loadingText}>Loading schedule...</Text>
             </View>
           ) : error ? (
-            <View style={styles.errorContainer}>
+            <View style={[styles.errorContainer, styles.paddingContainer]}>
               <Text style={styles.errorText}>{error}</Text>
               <TouchableOpacity
                 onPress={fetchSchedule}
@@ -331,20 +331,23 @@ export default function SchedulePage() {
               </TouchableOpacity>
             </View>
           ) : (
-            <View style={styles.scheduleContainer}>
+            <>
               {schedule?.shows?.length === 0 ? (
-                <Text style={styles.debugText}>
-                  No shows were parsed from XML
-                </Text>
+                <View style={styles.paddingContainer}>
+                  <Text style={styles.debugText}>
+                    No shows were parsed from XML
+                  </Text>
+                </View>
               ) : null}
               <SectionList
+                style={styles.paddingContainer}
                 stickySectionHeadersEnabled={false}
                 sections={scheduleViewData}
                 keyExtractor={item => `${item.id}-${item.sectionTitle}`}
                 renderItem={renderShow}
                 renderSectionHeader={renderSectionHeader}
               />
-            </View>
+            </>
           )}
         </View>
       </LinearGradient>
@@ -371,7 +374,6 @@ const styles = StyleSheet.create({
   errorContainer: {
     alignItems: 'center',
     paddingVertical: 40,
-    paddingHorizontal: 20,
   },
   errorText: {
     color: COLORS.TEXT.ALERT,
@@ -389,7 +391,7 @@ const styles = StyleSheet.create({
     color: COLORS.BUTTON.ALERT.TEXT,
     fontWeight: '600',
   },
-  scheduleContainer: {
+  paddingContainer: {
     paddingHorizontal: 20,
   },
   daySection: {

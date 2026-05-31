@@ -170,9 +170,12 @@ export class ScheduleService {
       return true; // Non-alternating show is always active
     }
 
+    const alternatingWeekIndex = show.alternates - 1; // Convert to 0-based index
+
     // For alternating shows, we need a reference date to calculate weeks
-    // Using a fixed reference date of September 1, 2024 (start of fall semester)
-    const referenceDate = new Date('2024-09-01T00:00:00-04:00'); // Eastern Time
+    // TODO: Needs to be checked each season and potentially updated
+    const referenceDate = new Date('2026-05-17T00:00:00-04:00'); // Eastern Time
+
     const targetDateEastern = new Date(
       targetDate.toLocaleString('en-US', { timeZone: 'America/New_York' }),
     );
@@ -185,11 +188,11 @@ export class ScheduleService {
     const weeksSince = Math.floor(daysDiff / 7);
 
     debugLog(
-      `Show "${show.name}" alternates: ${show.alternates}, weeks since ref: ${weeksSince}, active: ${weeksSince % 2 === 0}`,
+      `Show "${show.name}" alternates: ${show.alternates}, weeks since ref: ${weeksSince}, active: ${weeksSince % 2 === alternatingWeekIndex}`,
     );
 
     // Even weeks = first show in alternating pair, odd weeks = second show
-    return weeksSince % 2 === 0;
+    return weeksSince % 2 === alternatingWeekIndex;
   }
 
   async getShowById(showId: string): Promise<ScheduleShow | undefined> {

@@ -97,8 +97,12 @@ export class AudioPreviewService {
     this.progressInterval = setInterval(async () => {
       if (this.isPreviewMode) {
         try {
-          const position = await TrackPlayer.getPosition();
-          const duration = await TrackPlayer.getDuration();
+          const position = await TrackPlayer.getProgress().then(
+            progress => progress.position,
+          );
+          const duration = await TrackPlayer.getProgress().then(
+            progress => progress.duration,
+          );
           const progress = duration > 0 ? position / duration : 0;
 
           this.currentState = {

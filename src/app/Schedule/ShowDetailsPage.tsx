@@ -7,6 +7,7 @@ import {
 } from '@react-navigation/native';
 import { useHeaderHeight } from '@react-navigation/elements';
 import {
+  Linking,
   View,
   Text,
   TouchableOpacity,
@@ -132,17 +133,53 @@ export default function ShowDetailsPage() {
             {/* Show Info */}
             <View style={styles.infoSection}>
               <Text style={styles.showTitle}>{show.name}</Text>
-              <View>
-                <Text style={styles.showSchedule}>{formatShowTime(show)}</Text>
-                {show.hosts && (
-                  <Text style={styles.showHosts}>Hosted by {show.hosts}</Text>
-                )}
+
+              <View style={styles.infoDetails}>
+                <View style={styles.infoMeta}>
+                  <Text style={styles.showSchedule}>
+                    {formatShowTime(show)}
+                  </Text>
+                  {show.hosts && (
+                    <Text style={styles.showHosts}>Hosted by {show.hosts}</Text>
+                  )}
+                </View>
+
+                <View style={styles.showContact}>
+                  {scheduleShow?.url && (
+                    <TouchableOpacity
+                      onPress={() => Linking.openURL(scheduleShow.url)}
+                      aria-label={`${show.name} website`}
+                    >
+                      <Icon
+                        name="globe-outline"
+                        size={24}
+                        style={styles.showContactLink}
+                      />
+                    </TouchableOpacity>
+                  )}
+                  {scheduleShow?.email && (
+                    <TouchableOpacity
+                      onPress={() =>
+                        Linking.openURL(`mailto:${scheduleShow.email}`)
+                      }
+                      aria-label={`Email ${show.name}`}
+                    >
+                      <Icon
+                        name="mail-outline"
+                        size={24}
+                        style={styles.showContactLink}
+                      />
+                    </TouchableOpacity>
+                  )}
+                </View>
               </View>
+
               {scheduleShow?.description && (
                 <Text style={styles.showDescription}>
                   {scheduleShow.description}
                 </Text>
               )}
+
               <Text style={styles.archiveCount}>
                 {archives.length} archived episode
                 {archives.length !== 1 ? 's' : ''}
@@ -255,6 +292,15 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     rowGap: 8,
   },
+  infoDetails: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 12,
+  },
+  infoMeta: {
+    flexShrink: 1,
+  },
   showTitle: {
     color: COLORS.TEXT.PRIMARY,
     fontSize: 32,
@@ -346,5 +392,13 @@ const styles = StyleSheet.create({
   slider: {
     width: '100%',
     height: 40,
+  },
+  showContact: {
+    justifyContent: 'center',
+    flexDirection: 'row',
+    gap: 8,
+  },
+  showContactLink: {
+    color: COLORS.TEXT.LINK,
   },
 });

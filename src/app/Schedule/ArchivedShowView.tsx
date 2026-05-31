@@ -83,25 +83,8 @@ export default function ArchivedShowView() {
   }, [archive.date, playlistService, show.name]);
 
   useEffect(() => {
-    const fp = async () => {
-      setLoading(true);
-      setError(null);
-
-      try {
-        const playlistData = await playlistService.fetchPlaylist(
-          show.name,
-          new Date(archive.date),
-        );
-        setPlaylist(playlistData);
-      } catch (err) {
-        debugError('Error fetching playlist:', err);
-        setError('Failed to load playlist. Please try again.');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fp();
-  }, [archive.date, playlistService, show.name]);
+    fetchPlaylist();
+  }, [fetchPlaylist]);
 
   useEffect(() => {
     // Subscribe to archive service state changes

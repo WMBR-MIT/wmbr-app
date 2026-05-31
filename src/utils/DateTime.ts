@@ -167,7 +167,7 @@ export const isAlternatingShowActive = (
   );
 
   if (show.alternates < 3) {
-    return weeksSince % 2 === show.alternates - 1; // 1 means active on odd weeks, 2 means active on even weeks
+    return weeksSince % 2 === show.alternates - 1; // 1 is active on the reference week, 2 on the following week
   }
 
   return weeksSince % 4 === show.alternates - 5; // 5 means active on week 1, 6 means active on week 2, etc.

@@ -68,16 +68,16 @@ export class ArchiveService {
         userAgent: getUserAgent(),
       };
 
+      // Add and play archive
+      await TrackPlayer.add(archiveTrack);
+      await TrackPlayer.play();
+
       await TrackPlayer.updateOptions({
         capabilities: archiveCapabilities,
         compactCapabilities: archiveCapabilities,
         forwardJumpInterval: SKIP_INTERVAL,
         backwardJumpInterval: SKIP_INTERVAL,
       });
-
-      // Add and play archive
-      await TrackPlayer.add(archiveTrack);
-      await TrackPlayer.play();
 
       // Update state
       this.currentState = {

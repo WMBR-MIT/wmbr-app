@@ -173,12 +173,12 @@ describe('isAlternatingShowActive', () => {
     archives: [],
   });
 
-  const referenceDate = new Date(2026, 4, 25);
-
   // These UTC values line up with midnight in New York during EDT,
   // which keeps the week-boundary math stable in test environments.
   const getEasternMidnightDate = (dateString: string) =>
     new Date(`${dateString}T04:00:00Z`);
+
+  const referenceDate = getEasternMidnightDate('2026-05-25');
 
   beforeEach(() => {
     jest.clearAllMocks();

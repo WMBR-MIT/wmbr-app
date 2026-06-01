@@ -1,5 +1,14 @@
 import { Show } from '@customTypes/RecentlyPlayed';
+import { ScheduleShow } from '@customTypes/Schedule';
 import { debugError } from '@utils/Debug';
+
+const getEasternCalendarDate = (date: Date): Date => {
+  const easternDateString = date.toLocaleDateString('en-CA', {
+    timeZone: 'America/New_York',
+  });
+
+  return new Date(`${easternDateString}T00:00:00.000Z`);
+};
 
 export const dayNames = [
   'Sunday',
@@ -139,4 +148,39 @@ export const formatArchiveDate = (dateString: string) => {
     day: 'numeric',
     year: 'numeric',
   });
+};
+
+export const isAlternatingShowActive = (
+  show: Show | ScheduleShow,
+  targetDate: Date,
+  referenceDate: Date | null,
+): boolean => {
+  if (show.alternates === 0) {
+    return true; // Non-alternating show is always active
+  }
+
+  if (!referenceDate) {
+    debugError('Reference date for alternating shows is not set.');
+    return false; // Default to inactive if we don't have a reference date
+  }
+
+  const normalizedTargetDate = getEasternCalendarDate(targetDate);
+  const normalizedReferenceDate = getEasternCalendarDate(referenceDate);
+
+  // Interpret both inputs by their Eastern calendar date.
+  // Callers pass real Date instants; the helper owns alternating-cycle
+  // normalization, and season_start is treated as the start of that Eastern
+  // calendar day rather than the literal XML timestamp.
+  // Compare Eastern calendar dates so the cycle changes on the Eastern week
+  // boundary instead of depending on local-device time.
+  const weeksSince = Math.floor(
+    (normalizedTargetDate.getTime() - normalizedReferenceDate.getTime()) /
+      (7 * 24 * 60 * 60 * 1000),
+  );
+
+  if (show.alternates < 3) {
+    return weeksSince % 2 === show.alternates - 1; // 1 is active on the reference week, 2 on the following week
+  }
+
+  return weeksSince % 4 === show.alternates - 5; // 5 means active on week 1, 6 means active on week 2, etc.
 };

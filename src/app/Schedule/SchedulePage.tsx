@@ -337,6 +337,7 @@ export default function SchedulePage() {
                 </Text>
               ) : null}
               <SectionList
+                contentInsetAdjustmentBehavior="automatic"
                 stickySectionHeadersEnabled={false}
                 sections={scheduleViewData}
                 keyExtractor={item => `${item.id}-${item.sectionTitle}`}

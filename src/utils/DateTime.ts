@@ -2,6 +2,14 @@ import { Show } from '@customTypes/RecentlyPlayed';
 import { ScheduleShow } from '@customTypes/Schedule';
 import { debugError } from '@utils/Debug';
 
+const getEasternCalendarDate = (date: Date): Date => {
+  const easternDateString = date.toLocaleDateString('en-CA', {
+    timeZone: 'America/New_York',
+  });
+
+  return new Date(`${easternDateString}T00:00:00.000Z`);
+};
+
 export const dayNames = [
   'Sunday',
   'Monday',
@@ -156,9 +164,17 @@ export const isAlternatingShowActive = (
     return false; // Default to inactive if we don't have a reference date
   }
 
-  // Calculate weeks since reference date.
+  const normalizedTargetDate = getEasternCalendarDate(targetDate);
+  const normalizedReferenceDate = getEasternCalendarDate(referenceDate);
+
+  // Interpret both inputs by their Eastern calendar date.
+  // Callers pass real Date instants; the helper owns alternating-cycle
+  // normalization, and season_start is treated as the start of that Eastern
+  // calendar day rather than the literal XML timestamp.
+  // Compare Eastern calendar dates so the cycle changes on the Eastern week
+  // boundary instead of depending on local-device time.
   const weeksSince = Math.floor(
-    (targetDate.getTime() - referenceDate.getTime()) /
+    (normalizedTargetDate.getTime() - normalizedReferenceDate.getTime()) /
       (7 * 24 * 60 * 60 * 1000),
   );
 

@@ -266,6 +266,8 @@ export class RecentlyPlayedService {
 
           // Parse season start date if available
           if (result?.wmbr_archives?.$ && result.wmbr_archives.$.season_start) {
+            // This is formatted as:
+            // `season_start="Mon, 25 May 2026 14:00:00 GMT"`
             this.seasonStart = new Date(result.wmbr_archives.$.season_start);
             debugLog('Season start:', this.seasonStart);
           }
@@ -647,14 +649,9 @@ export class RecentlyPlayedService {
     for (const show of shows) {
       const alternates = show.alternates;
 
-      const now = new Date();
-      const easternNow = new Date(
-        now.toLocaleString('en-US', { timeZone: 'America/New_York' }),
-      );
-
       const shouldPlay = isAlternatingShowActive(
         show,
-        easternNow,
+        targetTime,
         firstSlotTime,
       );
 

@@ -42,6 +42,8 @@ export class ScheduleService {
               result?.wmbr_archives?.$ &&
               result.wmbr_archives.$.season_start
             ) {
+              // This is formatted as:
+              // `season_start="Mon, 25 May 2026 14:00:00 GMT"`
               this.seasonStart = new Date(result.wmbr_archives.$.season_start);
             }
 
@@ -217,7 +219,7 @@ export class ScheduleService {
 
       // Filter to only shows that are active this week (considering alternates)
       const todayShows = allTodayShows.filter(show =>
-        isAlternatingShowActive(show, easternNow, this.seasonStart),
+        isAlternatingShowActive(show, now, this.seasonStart),
       );
 
       debugLog(`All shows for day ${scheduleDay}: ${allTodayShows.length}`);

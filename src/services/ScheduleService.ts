@@ -39,12 +39,12 @@ export class ScheduleService {
             debugLog('XML Parse Result:', JSON.stringify(result, null, 2));
 
             if (
-              result?.wmbr_archives?.$ &&
-              result.wmbr_archives.$.season_start
+              result?.wmbr_schedule?.$ &&
+              result.wmbr_schedule.$.season_start
             ) {
               // This is formatted as:
               // `season_start="Mon, 25 May 2026 14:00:00 GMT"`
-              this.seasonStart = new Date(result.wmbr_archives.$.season_start);
+              this.seasonStart = new Date(result.wmbr_schedule.$.season_start);
             }
 
             this.dayStart =

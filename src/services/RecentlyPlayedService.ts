@@ -647,13 +647,14 @@ export class RecentlyPlayedService {
     for (const show of shows) {
       const alternates = show.alternates;
 
-      const targetTimeEastern = new Date(
-        targetTime.toLocaleString('en-US', { timeZone: 'America/New_York' }),
+      const now = new Date();
+      const easternNow = new Date(
+        now.toLocaleString('en-US', { timeZone: 'America/New_York' }),
       );
 
       const shouldPlay = isAlternatingShowActive(
         show,
-        targetTimeEastern,
+        easternNow,
         firstSlotTime,
       );
 

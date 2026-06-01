@@ -1,11 +1,11 @@
 import { parseString } from 'react-native-xml2js';
-import { RecentlyPlayedService } from '@services/RecentlyPlayedService';
 import { ScheduleShow, ScheduleResponse } from '@customTypes/Schedule';
 import { debugLog, debugError } from '@utils/Debug';
 import { dayNames, isAlternatingShowActive } from '@utils/DateTime';
 
 export class ScheduleService {
   private static instance: ScheduleService;
+  private seasonStart: Date | null = null;
   private readonly scheduleUrl = 'https://wmbr.org/cgi-bin/xmlsched';
   // Store the current "start of the broadcast day" (in minutes after midnight)
   // given by the root element of the schedule XML.
@@ -37,6 +37,14 @@ export class ScheduleService {
 
           try {
             debugLog('XML Parse Result:', JSON.stringify(result, null, 2));
+
+            if (
+              result?.wmbr_archives?.$ &&
+              result.wmbr_archives.$.season_start
+            ) {
+              this.seasonStart = new Date(result.wmbr_archives.$.season_start);
+            }
+
             this.dayStart =
               parseInt(result?.wmbr_schedule?.$?.daystart, 10) || 0;
             const shows = this.parseShows(result);
@@ -53,8 +61,6 @@ export class ScheduleService {
       throw error;
     }
   }
-
-  private recentlyPlayedService = RecentlyPlayedService.getInstance();
 
   private parseShows(xmlResult: any): ScheduleShow[] {
     debugLog('parseShows input:', xmlResult);
@@ -209,11 +215,9 @@ export class ScheduleService {
           (scheduleDay >= 1 && scheduleDay <= 5 && show.day === 7),
       );
 
-      const seasonStart = await this.recentlyPlayedService.getSeasonStart();
-
       // Filter to only shows that are active this week (considering alternates)
       const todayShows = allTodayShows.filter(show =>
-        isAlternatingShowActive(show, easternNow, seasonStart),
+        isAlternatingShowActive(show, easternNow, this.seasonStart),
       );
 
       debugLog(`All shows for day ${scheduleDay}: ${allTodayShows.length}`);

@@ -86,6 +86,10 @@ export default function HomeScreen() {
         autoHandleInterruptions: true,
       });
 
+      await TrackPlayer.updateOptions({
+        capabilities: liveCapabilities,
+      });
+
       setIsPlayerInitialized(true);
     } catch (error) {
       debugError('Error setting up player:', error);
@@ -208,10 +212,6 @@ export default function HomeScreen() {
         }
 
         await TrackPlayer.play();
-
-        await TrackPlayer.updateOptions({
-          capabilities: liveCapabilities,
-        });
       }
     } catch (error) {
       debugError('Error toggling playback:', error);

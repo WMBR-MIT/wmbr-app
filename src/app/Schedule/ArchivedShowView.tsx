@@ -420,12 +420,6 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
   },
-  skipText: {
-    color: COLORS.TEXT.PRIMARY,
-    fontSize: 10,
-    fontWeight: '600',
-    marginTop: 0,
-  },
   playlistSection: {
     paddingHorizontal: 20,
     paddingTop: 20,

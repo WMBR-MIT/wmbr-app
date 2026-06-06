@@ -11,7 +11,7 @@ import {
   TextInputChangeEvent,
   Alert,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
+import Icon from '@components/Icon';
 import LinearGradient from 'react-native-linear-gradient';
 import { debugLog, debugError } from '@utils/Debug';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
@@ -280,7 +280,10 @@ export default function SchedulePage() {
         </View>
 
         <Icon
-          name="chevron-forward"
+          name={{
+            ios: 'chevron.right',
+            android: 'chevron-right',
+          }}
           size={20}
           color={isCurrent ? CORE_COLORS.WMBR_GREEN : '#888'}
         />

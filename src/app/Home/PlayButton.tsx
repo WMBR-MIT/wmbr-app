@@ -6,7 +6,7 @@ import {
   Animated,
   Platform,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
+import Icon from '@components/Icon';
 import { State, usePlaybackState } from 'react-native-track-player';
 import { CORE_COLORS } from '@utils/Colors';
 
@@ -81,17 +81,40 @@ export default function PlayButton({
     }
   }, [isPlaying, isPlayingArchive]);
 
-  const playbackIcon = useMemo(() => {
-    if (isPlaying) {
-      if (isPlayingArchive) {
-        return <Icon name="pause" size={64} color={CORE_COLORS.WMBR_GREEN} />;
-      } else {
-        return <Icon name="stop" size={64} color={CORE_COLORS.WMBR_GREEN} />;
-      }
-    } else {
-      return <Icon name="play" size={64} color={CORE_COLORS.WHITE} />;
-    }
-  }, [isPlaying, isPlayingArchive]);
+  const playbackIcon = useMemo(
+    () =>
+      isPlaying ? (
+        isPlayingArchive ? (
+          <Icon
+            name={{
+              ios: 'pause.fill',
+              android: 'pause',
+            }}
+            size={48}
+            color={CORE_COLORS.WMBR_GREEN}
+          />
+        ) : (
+          <Icon
+            name={{
+              ios: 'stop.fill',
+              android: 'stop',
+            }}
+            size={48}
+            color={CORE_COLORS.WMBR_GREEN}
+          />
+        )
+      ) : (
+        <Icon
+          name={{
+            ios: 'play.fill',
+            android: 'play-arrow',
+          }}
+          size={48}
+          color={CORE_COLORS.WHITE}
+        />
+      ),
+    [isPlaying, isPlayingArchive],
+  );
 
   useEffect(() => {
     if (playbackState?.state === State.Playing) {

@@ -1,10 +1,11 @@
 import { parseString } from 'react-native-xml2js';
 import { ScheduleShow, ScheduleResponse } from '@customTypes/Schedule';
 import { debugLog, debugError } from '@utils/Debug';
-import { dayNames } from '@utils/DateTime';
+import { dayNames, isAlternatingShowActive } from '@utils/DateTime';
 
 export class ScheduleService {
   private static instance: ScheduleService;
+  private seasonStart: Date | null = null;
   private readonly scheduleUrl = 'https://wmbr.org/cgi-bin/xmlsched';
   // Store the current "start of the broadcast day" (in minutes after midnight)
   // given by the root element of the schedule XML.
@@ -36,6 +37,16 @@ export class ScheduleService {
 
           try {
             debugLog('XML Parse Result:', JSON.stringify(result, null, 2));
+
+            if (
+              result?.wmbr_schedule?.$ &&
+              result.wmbr_schedule.$.season_start
+            ) {
+              // This is formatted as:
+              // `season_start="Mon, 25 May 2026 14:00:00 GMT"`
+              this.seasonStart = new Date(result.wmbr_schedule.$.season_start);
+            }
+
             this.dayStart =
               parseInt(result?.wmbr_schedule?.$?.daystart, 10) || 0;
             const shows = this.parseShows(result);
@@ -161,37 +172,6 @@ export class ScheduleService {
     return timeStr;
   }
 
-  // Helper method to determine if alternating show is active this week
-  private isAlternatingShowActive(
-    show: ScheduleShow,
-    targetDate: Date,
-  ): boolean {
-    if (show.alternates === 0) {
-      return true; // Non-alternating show is always active
-    }
-
-    // For alternating shows, we need a reference date to calculate weeks
-    // Using a fixed reference date of September 1, 2024 (start of fall semester)
-    const referenceDate = new Date('2024-09-01T00:00:00-04:00'); // Eastern Time
-    const targetDateEastern = new Date(
-      targetDate.toLocaleString('en-US', { timeZone: 'America/New_York' }),
-    );
-
-    // Calculate weeks since reference date
-    const daysDiff = Math.floor(
-      (targetDateEastern.getTime() - referenceDate.getTime()) /
-        (1000 * 60 * 60 * 24),
-    );
-    const weeksSince = Math.floor(daysDiff / 7);
-
-    debugLog(
-      `Show "${show.name}" alternates: ${show.alternates}, weeks since ref: ${weeksSince}, active: ${weeksSince % 2 === 0}`,
-    );
-
-    // Even weeks = first show in alternating pair, odd weeks = second show
-    return weeksSince % 2 === 0;
-  }
-
   async getShowById(showId: string): Promise<ScheduleShow | undefined> {
     try {
       const scheduleData = await this.fetchSchedule();
@@ -239,7 +219,7 @@ export class ScheduleService {
 
       // Filter to only shows that are active this week (considering alternates)
       const todayShows = allTodayShows.filter(show =>
-        this.isAlternatingShowActive(show, easternNow),
+        isAlternatingShowActive(show, now, this.seasonStart),
       );
 
       debugLog(`All shows for day ${scheduleDay}: ${allTodayShows.length}`);

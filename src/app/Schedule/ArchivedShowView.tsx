@@ -407,12 +407,9 @@ const styles = StyleSheet.create({
     gap: 24,
   },
   playButton: {
-    width: 48,
-    height: 48,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 8,
   },
   skipButton: {
     alignItems: 'center',

@@ -18,7 +18,7 @@ import TrackPlayer, {
   useProgress,
 } from 'react-native-track-player';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { liveCapabilities, SKIP_INTERVAL } from '@utils/TrackPlayerUtils';
+import { SKIP_INTERVAL } from '@utils/TrackPlayerUtils';
 import LinearGradient from 'react-native-linear-gradient';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SvgXml } from 'react-native-svg';
@@ -86,10 +86,6 @@ export default function HomeScreen() {
         autoHandleInterruptions: true,
       });
 
-      await TrackPlayer.updateOptions({
-        capabilities: liveCapabilities,
-      });
-
       setIsPlayerInitialized(true);
     } catch (error) {
       debugError('Error setting up player:', error);
@@ -155,11 +151,6 @@ export default function HomeScreen() {
             artist: currentShow || 'Live Radio',
             artwork: require('../../../assets/cover.png'),
           });
-
-          // Honestly unsure why this needs to be done again
-          await TrackPlayer.updateOptions({
-            capabilities: liveCapabilities,
-          });
         }
       } catch (error) {
         debugError('Error updating track metadata:', error);
@@ -199,16 +190,18 @@ export default function HomeScreen() {
 
         const hasLiveStream = queue.some(track => track.id === 'wmbr-stream');
 
+        const liveTrack = {
+          id: 'wmbr-stream',
+          url: streamUrl,
+          title: DEFAULT_NAME,
+          artist: currentShow || 'Live Radio',
+          artwork: require('../../../assets/cover.png'),
+          isLiveStream: true,
+          userAgent: getUserAgent(),
+        };
+
         if (!hasLiveStream) {
-          await TrackPlayer.add({
-            id: 'wmbr-stream',
-            url: streamUrl,
-            title: DEFAULT_NAME,
-            artist: currentShow || 'Live Radio',
-            artwork: require('../../../assets/cover.png'),
-            isLiveStream: true,
-            userAgent: getUserAgent(),
-          });
+          await TrackPlayer.add(liveTrack);
         }
 
         await TrackPlayer.play();

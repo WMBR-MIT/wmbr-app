@@ -105,7 +105,7 @@ adp uninstall com.wmbrapp
 If there are some Gradle package errors, try cleaning the Gradle cache:
 
 ```bash
-cd android && ./gradlew clean 
+cd android && ./gradlew clean
 ```
 
 Delete the `autolinking` directory:

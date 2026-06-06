@@ -1,13 +1,10 @@
 import { Platform } from 'react-native';
 import { SFSymbol } from 'react-native-sfsymbols';
-import {
-  MaterialIcons,
-  type MaterialIconsIconName,
-} from '@react-native-vector-icons/material-icons/static';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 export interface IconName {
   ios: string;
-  android: MaterialIconsIconName;
+  android: string;
 }
 
 export interface IconProps {

@@ -8,7 +8,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
-import Icon from 'react-native-vector-icons/Ionicons';
+import { MaterialDesignIcons } from '@react-native-vector-icons/material-design-icons';
+import Icon from '@components/Icon';
 import { getWMBRLogoSVG } from '@utils/WMBRLogo';
 import { COLORS } from '@utils/Colors';
 import { SvgXml } from 'react-native-svg';
@@ -57,7 +58,14 @@ export default function AboutPage() {
               onPress={() => openLink('tel:+16172538810')}
               activeOpacity={0.8}
             >
-              <Icon name="call-outline" size={20} color={COLORS.TEXT.PRIMARY} />
+              <Icon
+                name={{
+                  ios: 'phone',
+                  android: 'phone',
+                }}
+                size={20}
+                color={COLORS.TEXT.PRIMARY}
+              />
               <View style={styles.textBlock}>
                 <Text style={styles.linkText}>(617) 253-8810</Text>
                 <Text style={styles.smallText}>Requests Line</Text>
@@ -70,7 +78,14 @@ export default function AboutPage() {
               onPress={() => openLink('mailto:music@wmbr.org')}
               activeOpacity={0.8}
             >
-              <Icon name="mail-outline" size={20} color={COLORS.TEXT.PRIMARY} />
+              <Icon
+                name={{
+                  ios: 'envelope',
+                  android: 'email',
+                }}
+                size={20}
+                color={COLORS.TEXT.PRIMARY}
+              />
               <View style={styles.textBlock}>
                 <Text style={styles.linkText}>music@wmbr.org</Text>
                 <Text style={styles.smallText}>Music Department</Text>
@@ -82,7 +97,14 @@ export default function AboutPage() {
               onPress={() => openLink('mailto:press@wmbr.org')}
               activeOpacity={0.8}
             >
-              <Icon name="mail-outline" size={20} color={COLORS.TEXT.PRIMARY} />
+              <Icon
+                name={{
+                  ios: 'envelope',
+                  android: 'email',
+                }}
+                size={20}
+                color={COLORS.TEXT.PRIMARY}
+              />
               <View style={styles.textBlock}>
                 <Text style={styles.linkText}>press@wmbr.org</Text>
                 <Text style={styles.smallText}>News Department</Text>
@@ -106,7 +128,10 @@ export default function AboutPage() {
               activeOpacity={0.8}
             >
               <Icon
-                name="musical-notes-outline"
+                name={{
+                  ios: 'menucard',
+                  android: 'menu-book',
+                }}
                 size={18}
                 color={COLORS.BUTTON.ACCENT.TEXT}
               />
@@ -119,7 +144,10 @@ export default function AboutPage() {
               activeOpacity={0.8}
             >
               <Icon
-                name="globe-outline"
+                name={{
+                  ios: 'link',
+                  android: 'link',
+                }}
                 size={18}
                 color={COLORS.TEXT.PRIMARY}
               />
@@ -129,25 +157,29 @@ export default function AboutPage() {
 
           <View style={styles.socialRow}>
             <TouchableOpacity onPress={openInstagram} activeOpacity={0.8}>
-              <Icon
-                name="logo-instagram"
+              <MaterialDesignIcons
+                name="instagram"
                 size={20}
                 color={COLORS.TEXT.PRIMARY}
               />
             </TouchableOpacity>
             <TouchableOpacity onPress={openTwitter} activeOpacity={0.8}>
-              <Icon name="logo-twitter" size={20} color={COLORS.TEXT.PRIMARY} />
+              <MaterialDesignIcons
+                name="twitter"
+                size={20}
+                color={COLORS.TEXT.PRIMARY}
+              />
             </TouchableOpacity>
             <TouchableOpacity onPress={openFacebook} activeOpacity={0.8}>
-              <Icon
-                name="logo-facebook"
+              <MaterialDesignIcons
+                name="facebook"
                 size={20}
                 color={COLORS.TEXT.PRIMARY}
               />
             </TouchableOpacity>
             <TouchableOpacity onPress={openMastodon} activeOpacity={0.8}>
-              <Icon
-                name="logo-mastodon"
+              <MaterialDesignIcons
+                name="mastodon"
                 size={20}
                 color={COLORS.TEXT.PRIMARY}
               />

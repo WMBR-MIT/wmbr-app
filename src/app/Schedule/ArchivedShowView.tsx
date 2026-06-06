@@ -9,7 +9,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
+import Icon from '@components/Icon';
 import LinearGradient from 'react-native-linear-gradient';
 import { useRoute, RouteProp } from '@react-navigation/native';
 import { useHeaderHeight } from '@react-navigation/elements';
@@ -222,9 +222,23 @@ export default function ArchivedShowView() {
   const playbackButtonIcon = useMemo(
     () =>
       isArchivePlaying && playbackState?.state === State.Playing ? (
-        <Icon name="pause-circle" size={64} color={COLORS.TEXT.PRIMARY} />
+        <Icon
+          name={{
+            ios: 'pause.fill',
+            android: 'pause',
+          }}
+          size={48}
+          color={COLORS.TEXT.PRIMARY}
+        />
       ) : (
-        <Icon name="play-circle" size={64} color={COLORS.TEXT.PRIMARY} />
+        <Icon
+          name={{
+            ios: 'play.fill',
+            android: 'play-arrow',
+          }}
+          size={48}
+          color={COLORS.TEXT.PRIMARY}
+        />
       ),
     [isArchivePlaying, playbackState?.state],
   );
@@ -252,14 +266,13 @@ export default function ArchivedShowView() {
                   accessibilityLabel={`Skip backward ${SKIP_INTERVAL} seconds`}
                 >
                   <Icon
-                    name="refresh-outline"
+                    name={{
+                      ios: '30.arrow.trianglehead.counterclockwise',
+                      android: 'replay-30',
+                    }}
                     size={28}
                     color={COLORS.TEXT.PRIMARY}
-                    style={styles.skipBackIcon}
                   />
-                  <Text style={styles.skipText} aria-hidden={true}>
-                    {SKIP_INTERVAL}
-                  </Text>
                 </TouchableOpacity>
               )}
               <TouchableOpacity
@@ -278,14 +291,13 @@ export default function ArchivedShowView() {
                   accessibilityLabel={`Skip forward ${SKIP_INTERVAL} seconds`}
                 >
                   <Icon
-                    name="refresh-outline"
+                    name={{
+                      ios: '30.arrow.trianglehead.clockwise',
+                      android: 'forward-30',
+                    }}
                     size={28}
                     color={COLORS.TEXT.PRIMARY}
-                    style={styles.skipForwardIcon}
                   />
-                  <Text style={styles.skipText} aria-hidden={true}>
-                    {SKIP_INTERVAL}
-                  </Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -395,25 +407,15 @@ const styles = StyleSheet.create({
     gap: 24,
   },
   playButton: {
-    padding: 8,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   skipButton: {
     alignItems: 'center',
     justifyContent: 'center',
     width: 48,
     height: 48,
-  },
-  skipBackIcon: {
-    transform: [{ scaleX: -1 }],
-  },
-  skipForwardIcon: {
-    transform: [{ scaleX: 1 }],
-  },
-  skipText: {
-    color: COLORS.TEXT.PRIMARY,
-    fontSize: 10,
-    fontWeight: '600',
-    marginTop: 0,
   },
   playlistSection: {
     paddingHorizontal: 20,

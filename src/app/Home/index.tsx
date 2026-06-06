@@ -17,7 +17,7 @@ import TrackPlayer, {
   usePlaybackState,
   useProgress,
 } from 'react-native-track-player';
-import Icon from 'react-native-vector-icons/Ionicons';
+import Icon from '@components/Icon';
 import { SKIP_INTERVAL } from '@utils/TrackPlayerUtils';
 import LinearGradient from 'react-native-linear-gradient';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -339,12 +339,13 @@ export default function HomeScreen() {
                   accessibilityLabel={`Skip backward ${SKIP_INTERVAL} seconds`}
                 >
                   <Icon
-                    name="refresh-outline"
+                    name={{
+                      ios: '30.arrow.trianglehead.counterclockwise',
+                      android: 'replay-30',
+                    }}
                     size={28}
                     color={COLORS.TEXT.PRIMARY}
-                    style={styles.skipBackIcon}
                   />
-                  <Text style={styles.skipText}>{SKIP_INTERVAL}</Text>
                 </TouchableOpacity>
               )}
               <PlayButton
@@ -359,14 +360,13 @@ export default function HomeScreen() {
                   accessibilityLabel={`Skip forward ${SKIP_INTERVAL} seconds`}
                 >
                   <Icon
-                    name="refresh-outline"
+                    name={{
+                      ios: '30.arrow.trianglehead.clockwise',
+                      android: 'forward-30',
+                    }}
                     size={28}
                     color={COLORS.TEXT.PRIMARY}
-                    style={styles.skipForwardIcon}
                   />
-                  <Text style={styles.skipText} aria-hidden={true}>
-                    {SKIP_INTERVAL}
-                  </Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -486,16 +486,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     width: 48,
     height: 48,
-  },
-  skipBackIcon: {
-    transform: [{ scaleX: -1 }],
-  },
-  skipForwardIcon: {
-    transform: [{ scaleX: 1 }],
-  },
-  skipText: {
-    color: COLORS.TEXT.PRIMARY,
-    fontSize: 10,
-    fontWeight: '600',
   },
 });

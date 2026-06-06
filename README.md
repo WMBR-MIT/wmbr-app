@@ -102,6 +102,20 @@ If the Android app won't build, with the message "INSTALL_FAILED_VERSION_DOWNGRA
 adp uninstall com.wmbrapp
 ```
 
+If there are some Gradle package errors, try cleaning the Gradle cache:
+
+```bash
+cd android && ./gradlew clean
+```
+
+Delete the `autolinking` directory:
+
+```bash
+rm -rf android/app/build/generated/autolinking
+```
+
+Then click the elephant icon ("Sync Project with Gradle Files").
+
 ### General Issues
 
 1. Clear Metro cache:

@@ -11,9 +11,9 @@ export interface IconName {
 }
 
 export interface IconProps {
-  /** SF Symbol name (iOS) or Material Symbol name (Android), or platform-specific object */
+  /** Platform-specific icon names: SF Symbols on iOS, Material Icons on Android */
   name: IconName;
-  /** Point size for SF Symbol configuration (iOS only) */
+  /** Icon size (used on both platforms) */
   size: number;
   color: string;
 }

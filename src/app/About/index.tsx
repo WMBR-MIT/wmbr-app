@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
-import { MaterialDesignIcons } from '@react-native-vector-icons/material-design-icons';
+import { Ionicons } from '@react-native-vector-icons/ionicons';
 import Icon from '@components/Icon';
 import { getWMBRLogoSVG } from '@utils/WMBRLogo';
 import { COLORS } from '@utils/Colors';
@@ -157,29 +157,29 @@ export default function AboutPage() {
 
           <View style={styles.socialRow}>
             <TouchableOpacity onPress={openInstagram} activeOpacity={0.8}>
-              <MaterialDesignIcons
-                name="instagram"
+              <Ionicons
+                name="logo-instagram"
                 size={20}
                 color={COLORS.TEXT.PRIMARY}
               />
             </TouchableOpacity>
             <TouchableOpacity onPress={openTwitter} activeOpacity={0.8}>
-              <MaterialDesignIcons
-                name="twitter"
+              <Ionicons
+                name="logo-twitter"
                 size={20}
                 color={COLORS.TEXT.PRIMARY}
               />
             </TouchableOpacity>
             <TouchableOpacity onPress={openFacebook} activeOpacity={0.8}>
-              <MaterialDesignIcons
-                name="facebook"
+              <Ionicons
+                name="logo-facebook"
                 size={20}
                 color={COLORS.TEXT.PRIMARY}
               />
             </TouchableOpacity>
             <TouchableOpacity onPress={openMastodon} activeOpacity={0.8}>
-              <MaterialDesignIcons
-                name="mastodon"
+              <Ionicons
+                name="logo-mastodon"
                 size={20}
                 color={COLORS.TEXT.PRIMARY}
               />

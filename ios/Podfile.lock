@@ -1665,7 +1665,7 @@ PODS:
   - react-native-track-player (4.1.1):
     - React-Core
     - SwiftAudioEx (= 1.1.0)
-  - react-native-vector-icons-material-design-icons (13.1.2)
+  - react-native-vector-icons-ionicons (13.1.2)
   - react-native-vector-icons-material-icons (13.1.2)
   - React-NativeModulesApple (0.80.1):
     - boost
@@ -2444,7 +2444,7 @@ DEPENDENCIES:
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
   - react-native-sfsymbols (from `../node_modules/react-native-sfsymbols`)
   - react-native-track-player (from `../node_modules/react-native-track-player`)
-  - "react-native-vector-icons-material-design-icons (from `../node_modules/@react-native-vector-icons/material-design-icons`)"
+  - "react-native-vector-icons-ionicons (from `../node_modules/@react-native-vector-icons/ionicons`)"
   - "react-native-vector-icons-material-icons (from `../node_modules/@react-native-vector-icons/material-icons`)"
   - React-NativeModulesApple (from `../node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios`)
   - React-oscompat (from `../node_modules/react-native/ReactCommon/oscompat`)
@@ -2575,8 +2575,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-sfsymbols"
   react-native-track-player:
     :path: "../node_modules/react-native-track-player"
-  react-native-vector-icons-material-design-icons:
-    :path: "../node_modules/@react-native-vector-icons/material-design-icons"
+  react-native-vector-icons-ionicons:
+    :path: "../node_modules/@react-native-vector-icons/ionicons"
   react-native-vector-icons-material-icons:
     :path: "../node_modules/@react-native-vector-icons/material-icons"
   React-NativeModulesApple:
@@ -2694,7 +2694,7 @@ SPEC CHECKSUMS:
   react-native-safe-area-context: 8a49d796bc2fda5d22207da244713de67b4b8895
   react-native-sfsymbols: 3309f24c98d32705568c84b714268f3ec62017c7
   react-native-track-player: 6dc2e2633265704b8ab6d8124b80239d4ed1f911
-  react-native-vector-icons-material-design-icons: a4b6ec02814573c09203a725ee3767a7e8d5eb77
+  react-native-vector-icons-ionicons: 6831196cf1486bfd26b715d749c5c9a7d67bc0eb
   react-native-vector-icons-material-icons: bc2d8d3847160ef62b3f66c671bcdcd50d362474
   React-NativeModulesApple: 00beb364b4dd0a64d91b07658a43628672e888cb
   React-oscompat: 114036cd8f064558c9c1a0c04fc9ae5e1453706a

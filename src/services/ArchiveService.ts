@@ -3,11 +3,6 @@ import { Show, Archive } from '@customTypes/RecentlyPlayed';
 import { debugLog, debugError } from '@utils/Debug';
 import { DEFAULT_NAME } from '@customTypes/Playlist';
 import { getUserAgent } from '@utils/UserAgent';
-import {
-  archiveCapabilities,
-  liveCapabilities,
-  SKIP_INTERVAL,
-} from '@utils/TrackPlayerUtils';
 
 export interface ArchivePlaybackState {
   isPlayingArchive: boolean;
@@ -58,22 +53,24 @@ export class ArchiveService {
       await TrackPlayer.stop();
       await TrackPlayer.reset();
 
-      // Create archive track
+      // Create archive track.
+      //
+      // We set an explicit `duration` (show length is in minutes) so iOS has a
+      // known duration the instant the track becomes active. Without it, iOS
+      // treats the item as indeterminate until AVPlayer parses the duration off
+      // the network, and on a fast cold start it renders the lock-screen
+      // controls before that happens — showing play/pause/stop but hiding the
+      // skip-interval buttons and scrubber for the rest of the session. RNTP
+      // corrects this value once the real duration is known.
       const archiveTrack: Track = {
-        id: 'archive',
+        id: `${show.name}-${archive.date}`,
         url: archive.url,
         title: `${show.name} - Archive`,
         artist: `${DEFAULT_NAME} - ${archive.date}`,
         artwork: require('../../assets/cover.png'),
         userAgent: getUserAgent(),
+        ...(show.length > 0 && { duration: show.length * 60 }),
       };
-
-      await TrackPlayer.updateOptions({
-        capabilities: archiveCapabilities,
-        compactCapabilities: archiveCapabilities,
-        forwardJumpInterval: SKIP_INTERVAL,
-        backwardJumpInterval: SKIP_INTERVAL,
-      });
 
       // Add and play archive
       await TrackPlayer.add(archiveTrack);
@@ -112,11 +109,6 @@ export class ArchiveService {
         isLiveStream: true,
         userAgent: getUserAgent(),
       };
-
-      await TrackPlayer.updateOptions({
-        capabilities: liveCapabilities,
-        compactCapabilities: liveCapabilities,
-      });
 
       // Add and play live stream
       await TrackPlayer.add(liveTrack);

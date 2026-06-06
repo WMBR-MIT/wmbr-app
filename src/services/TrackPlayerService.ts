@@ -1,3 +1,8 @@
+import {
+  archiveCapabilities,
+  liveCapabilities,
+  SKIP_INTERVAL,
+} from '@utils/TrackPlayerUtils';
 import TrackPlayer, { Event } from 'react-native-track-player';
 
 const TrackPlayerService = async () => {
@@ -21,6 +26,22 @@ const TrackPlayerService = async () => {
       } else {
         TrackPlayer.pause();
       }
+    },
+  );
+
+  TrackPlayer.addEventListener(
+    Event.PlaybackActiveTrackChanged,
+    async ({ track }) => {
+      const capabilities = track?.isLiveStream
+        ? liveCapabilities
+        : archiveCapabilities;
+
+      await TrackPlayer.updateOptions({
+        capabilities: capabilities,
+        compactCapabilities: capabilities,
+        forwardJumpInterval: SKIP_INTERVAL,
+        backwardJumpInterval: SKIP_INTERVAL,
+      });
     },
   );
 

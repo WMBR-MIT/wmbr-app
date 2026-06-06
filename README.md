@@ -111,7 +111,7 @@ cd android && ./gradlew clean
 Delete the `autolinking` directory:
 
 ```bash
-rm -rf android/app/build/generated/autolinking
+rm -rf app/build/generated/autolinking
 ```
 
 Then click the elephant icon ("Sync Project with Gradle Files").

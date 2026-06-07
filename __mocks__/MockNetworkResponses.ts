@@ -3,6 +3,7 @@ import {
   generatePlaylistResponse,
 } from '../src/utils/TestUtils';
 import { PlaylistResponse } from '../src/types/Playlist';
+import { getDateYMD } from '../src/utils/DateTime';
 
 // Sample schedule XML from wmbr.org/cgi-bin/xmlsched
 const scheduleXml = `<?xml version="1.0" encoding="utf-8" ?>
@@ -258,6 +259,41 @@ const nowPlayingXml = generateNowPlayingXml();
 const mockPlaylistResponse = generatePlaylistResponse();
 
 /**
+ * Generate the Track Blaster pl_recent_shows.php XML response for a given
+ * show name and ISO date string (YYYY-MM-DD).
+ */
+function generateRecentShowsXml(showName: string, dateStr: string): string {
+  return `<?xml version="1.0" ?>
+<showlist timestamp="${dateStr} 12:00:00">
+<show id="test-pl-123">
+<show_start>${dateStr} 21:00:00</show_start>
+<dj_name>Test DJ</dj_name>
+<program_name>${showName}</program_name>
+</show>
+</showlist>`;
+}
+
+/**
+ * Convert a PlaylistResponse to the tab-separated format returned by
+ * pl_download.php, so mock tests exercise the real CSV parsing code path.
+ */
+function generatePlaylistCsv(playlist: PlaylistResponse): string {
+  const header0 =
+    'DJ Name\tDate\tStart Time\tEnd Time\tProgram Name\tHeader\tSubheader';
+  const header1 = `Test DJ\tToday\t21:00\t22:00\t${playlist.show_name}\t\t`;
+  const header2 =
+    'Hidden\tBreak\tTime\tArtist\tArtistLink\tComposer\tSong\tVersion\tAlbum\tFormat\tLabel\tLabelLink\tYear\tMisc\tNew\tComp\tINT\tComment';
+
+  const rows = playlist.songs.map(song => {
+    // song.time is "YYYY/MM/DD HH:MM:SS" — extract just the HH:MM portion
+    const hhmm = song.time.split(' ')[1]?.substring(0, 5) ?? '00:00';
+    return `0\t0\t${hhmm}\t${song.artist}\t\t\t${song.song}\t\t${song.album ?? ''}\t\t\t\t\t\t0\t0\t0\t0\t`;
+  });
+
+  return [header0, header1, header2, ...rows].join('\n');
+}
+
+/**
  * Mock fetch implementation that returns appropriate responses based on URL
  *
  * To use custom data in a test, create a new jest spy with createMockFetch
@@ -315,22 +351,26 @@ export function createMockFetch(options?: {
       } as Response);
     }
 
-    // Playlist endpoint
-    if (urlStr.includes('alexandersimoes.com/get_playlist')) {
-      // Check if the show name in the URL is one we have mock data for
-      if (urlStr.includes('Post-tentious') || urlStr.includes('Post')) {
-        return Promise.resolve({
-          ok: true,
-          status: 200,
-          json: () => Promise.resolve(effectivePlaylistResponse),
-        } as Response);
-      }
-
-      // Return empty playlist for other shows
+    // Track Blaster recent shows list — return XML with today's show so the
+    // name+date lookup in PlaylistService.fetchPlaylist finds a match
+    if (urlStr.includes('track-blaster.com/wmbr/pl_recent_shows.php')) {
+      // Use getDateYMD (local date) to match what PlaylistService uses for lookup
+      const dateStr = getDateYMD(new Date());
       return Promise.resolve({
         ok: true,
         status: 200,
-        json: () => Promise.resolve({ error: 'No playlist found' }),
+        text: () =>
+          Promise.resolve(generateRecentShowsXml('Post-tentious', dateStr)),
+      } as Response);
+    }
+
+    // Track Blaster playlist CSV download
+    if (urlStr.includes('track-blaster.com/wmbr/pl_download.php')) {
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        text: () =>
+          Promise.resolve(generatePlaylistCsv(effectivePlaylistResponse)),
       } as Response);
     }
 

@@ -9,11 +9,11 @@ import { ScheduleShow } from '@customTypes/Schedule';
 import { parseString } from 'react-native-xml2js';
 import { debugLog, debugError } from '@utils/Debug';
 import {
-  getDateYMD,
   isAlternatingShowActive,
   parsePlaylistTimestamp,
 } from '@utils/DateTime';
 import { PlaylistSong, PlaylistResponse } from '@customTypes/Playlist';
+import { PlaylistService } from './PlaylistService';
 
 export class RecentlyPlayedService {
   private static instance: RecentlyPlayedService;
@@ -71,29 +71,19 @@ export class RecentlyPlayedService {
     signal?: AbortSignal,
   ): Promise<ProcessedSong[]> {
     try {
-      const formattedDate = getDateYMD(date);
-      const encodedShowName = encodeURIComponent(showName);
-      const url = `https://wmbr.alexandersimoes.com/get_playlist?show_name=${encodedShowName}&date=${formattedDate}`;
-      debugLog(
-        `Fetching playlist (public) for "${showName}" on ${formattedDate}`,
+      debugLog(`Fetching playlist (public) for "${showName}" on ${date}`);
+
+      // signal is not used by PlaylistService but we honour AbortError below
+      // in case the caller cancels before we get a chance to start
+      if (signal?.aborted) {
+        throw new DOMException('Aborted', 'AbortError');
+      }
+
+      const playlist = await PlaylistService.getInstance().fetchPlaylist(
+        showName,
+        date,
       );
 
-      const response = await fetch(url, {
-        headers: { 'Cache-Control': 'no-cache' },
-        signal,
-      });
-      if (!response.ok) {
-        debugError(`Playlist fetch failed for ${showName}: ${response.status}`);
-        return [];
-      }
-
-      const data = await response.json();
-
-      if (data.error) {
-        throw new Error(data.error);
-      }
-
-      const playlist: PlaylistResponse = data as PlaylistResponse;
       if (!playlist.songs || playlist.songs.length === 0) return [];
 
       // Map to ProcessedSong (we don't have scheduleShow here, so use showName-date as showId)
@@ -368,43 +358,15 @@ export class RecentlyPlayedService {
     date: Date,
   ): Promise<PlaylistResponse | null> {
     try {
-      const dateStr = getDateYMD(date);
-      const encodedShowName = encodeURIComponent(showName);
-      const url = `https://wmbr.alexandersimoes.com/get_playlist?show_name=${encodedShowName}&date=${dateStr}`;
-
-      debugLog(`Fetching playlist for "${showName}" on ${dateStr}`);
-
-      const response = await fetch(url, {
-        headers: { 'Cache-Control': 'no-cache' },
-      });
-
-      if (!response.ok) {
-        debugError(`Playlist fetch failed for ${showName}: ${response.status}`);
-        return null;
-      }
-
-      const data = await response.json();
-
-      // If the response has an "error" key, treat as empty playlist
-      if (data.error) {
-        debugLog(
-          `No playlist found for "${showName}" (${data.error}), treating as empty`,
-        );
-        return {
-          show_name: showName,
-          date: getDateYMD(date),
-          playlist_id: '',
-          songs: [],
-        };
-      }
-
-      const playlistData = data as PlaylistResponse;
-      debugLog(
-        `Got ${playlistData.songs?.length || 0} songs for "${showName}"`,
+      const playlist = await PlaylistService.getInstance().fetchPlaylist(
+        showName,
+        date,
       );
-
-      return playlistData;
+      debugLog(`Got ${playlist.songs?.length || 0} songs for "${showName}"`);
+      return playlist;
     } catch (err) {
+      // A missing playlist (show not found in recent list) is expected for some
+      // shows, so we log and return null rather than propagating the error.
       debugError(`Error fetching playlist for ${showName}:`, err);
       return null;
     }

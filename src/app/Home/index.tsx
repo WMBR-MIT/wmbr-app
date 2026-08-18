@@ -147,8 +147,10 @@ export default function HomeScreen() {
         // Only update if we're not playing an archive
         if (!archiveState.isPlayingArchive) {
           await TrackPlayer.updateMetadataForTrack(0, {
-            title: DEFAULT_NAME,
-            artist: currentShow || 'Live Radio',
+            title: currentShow || DEFAULT_NAME,
+            artist: showInfo
+              ? `${showInfo?.currentArtist} - ${showInfo.currentSong}`
+              : 'Live Radio',
             artwork: require('../../../assets/cover.png'),
           });
         }
@@ -162,7 +164,8 @@ export default function HomeScreen() {
     currentShow,
     archiveState.isPlayingArchive,
     isPlayerInitialized,
-    playbackState?.state,
+    playbackState.state,
+    showInfo,
   ]);
 
   const togglePlayback = useCallback(async () => {

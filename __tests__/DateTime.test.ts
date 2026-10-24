@@ -1,4 +1,6 @@
 import {
+  getEasternCalendarDate,
+  getEasternCalendarDateAtNoonUTC,
   isAlternatingShowActive,
   parsePlaylistTimestamp,
 } from '@utils/DateTime';
@@ -159,6 +161,70 @@ describe('parsePlaylistTimestamp', () => {
   });
 });
 
+describe('getEasternCalendarDate', () => {
+  test('changes date at Eastern midnight in standard and daylight time', () => {
+    const cases = [
+      { timestamp: '2026-01-06T04:59:59Z', expectedDate: '2026-01-05' },
+      { timestamp: '2026-01-06T05:00:00Z', expectedDate: '2026-01-06' },
+      { timestamp: '2026-07-07T03:59:59Z', expectedDate: '2026-07-06' },
+      { timestamp: '2026-07-07T04:00:00Z', expectedDate: '2026-07-07' },
+    ];
+
+    for (const { timestamp, expectedDate } of cases) {
+      expect(getEasternCalendarDate(new Date(timestamp))).toEqual(
+        new Date(`${expectedDate}T00:00:00Z`),
+      );
+    }
+  });
+
+  test('preserves the Eastern date across both DST clock changes', () => {
+    const cases = [
+      { timestamp: '2026-03-08T06:59:59Z', expectedDate: '2026-03-08' },
+      { timestamp: '2026-03-08T07:00:00Z', expectedDate: '2026-03-08' },
+      { timestamp: '2026-11-01T05:59:59Z', expectedDate: '2026-11-01' },
+      { timestamp: '2026-11-01T06:00:00Z', expectedDate: '2026-11-01' },
+    ];
+
+    for (const { timestamp, expectedDate } of cases) {
+      expect(getEasternCalendarDate(new Date(timestamp))).toEqual(
+        new Date(`${expectedDate}T00:00:00Z`),
+      );
+    }
+  });
+});
+
+describe('getEasternCalendarDateAtNoonUTC', () => {
+  test.each([
+    ['2026-01-06T04:59:59Z', '2026-01-05'],
+    ['2026-07-07T03:59:59Z', '2026-07-06'],
+  ])('represents the Eastern date of %s at noon UTC', (timestamp, date) => {
+    const input = new Date(timestamp);
+    const result = getEasternCalendarDateAtNoonUTC(input);
+
+    expect(result).toEqual(new Date(`${date}T12:00:00Z`));
+    expect(getEasternCalendarDate(result)).toEqual(
+      new Date(`${date}T00:00:00Z`),
+    );
+    expect(input).toEqual(new Date(timestamp));
+  });
+
+  test('supports calendar-day arithmetic across both DST transitions', () => {
+    const cases = [
+      { timestamp: '2026-03-07T12:00:00Z', nextDate: '2026-03-08' },
+      { timestamp: '2026-10-31T12:00:00Z', nextDate: '2026-11-01' },
+    ];
+
+    for (const { timestamp, nextDate } of cases) {
+      const result = getEasternCalendarDateAtNoonUTC(new Date(timestamp));
+      result.setUTCDate(result.getUTCDate() + 1);
+
+      expect(getEasternCalendarDate(result)).toEqual(
+        new Date(`${nextDate}T00:00:00Z`),
+      );
+    }
+  });
+});
+
 describe('isAlternatingShowActive', () => {
   const createShow = (alternates: number): Show => ({
     id: 'show-id',
@@ -203,79 +269,29 @@ describe('isAlternatingShowActive', () => {
     );
   });
 
-  test('treats alternates=1 as active on reference week and inactive the next week', () => {
-    const show = createShow(1);
+  // Dates represent weeks 1-4, with week 1 beginning on the reference date.
+  const cycleDates = ['2026-05-25', '2026-06-01', '2026-06-08', '2026-06-15'];
 
-    expect(
-      isAlternatingShowActive(
-        show,
-        getEasternMidnightDate('2026-05-25'),
-        referenceDate,
-      ),
-    ).toBe(true);
-    expect(
-      isAlternatingShowActive(
-        show,
-        getEasternMidnightDate('2026-06-01'),
-        referenceDate,
-      ),
-    ).toBe(false);
-  });
+  test.each([
+    { alternates: 1, expectedActiveWeeks: [true, false, true, false] },
+    { alternates: 2, expectedActiveWeeks: [false, true, false, true] },
+    { alternates: 5, expectedActiveWeeks: [true, false, false, false] },
+    { alternates: 6, expectedActiveWeeks: [false, true, false, false] },
+    { alternates: 7, expectedActiveWeeks: [false, false, true, false] },
+    { alternates: 8, expectedActiveWeeks: [false, false, false, true] },
+  ])(
+    'selects the correct weeks for alternates=$alternates across four weeks',
+    ({ alternates, expectedActiveWeeks }) => {
+      const show = createShow(alternates);
+      const activeWeeks = cycleDates.map(date =>
+        isAlternatingShowActive(
+          show,
+          getEasternMidnightDate(date),
+          referenceDate,
+        ),
+      );
 
-  test('treats alternates=2 as inactive on reference week and active the next week', () => {
-    const show = createShow(2);
-
-    expect(
-      isAlternatingShowActive(
-        show,
-        getEasternMidnightDate('2026-05-25'),
-        referenceDate,
-      ),
-    ).toBe(false);
-    expect(
-      isAlternatingShowActive(
-        show,
-        getEasternMidnightDate('2026-06-01'),
-        referenceDate,
-      ),
-    ).toBe(true);
-  });
-
-  test('treats alternates=5 as active on the first week of a four-week cycle', () => {
-    const show = createShow(5);
-
-    expect(
-      isAlternatingShowActive(
-        show,
-        getEasternMidnightDate('2026-05-25'),
-        referenceDate,
-      ),
-    ).toBe(true);
-    expect(
-      isAlternatingShowActive(
-        show,
-        getEasternMidnightDate('2026-06-01'),
-        referenceDate,
-      ),
-    ).toBe(false);
-  });
-
-  test('treats alternates=8 as active only on the fourth week of a four-week cycle', () => {
-    const show = createShow(8);
-
-    expect(
-      isAlternatingShowActive(
-        show,
-        getEasternMidnightDate('2026-06-15'),
-        referenceDate,
-      ),
-    ).toBe(true);
-    expect(
-      isAlternatingShowActive(
-        show,
-        getEasternMidnightDate('2026-06-08'),
-        referenceDate,
-      ),
-    ).toBe(false);
-  });
+      expect(activeWeeks).toEqual(expectedActiveWeeks);
+    },
+  );
 });

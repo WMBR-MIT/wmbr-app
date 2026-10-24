@@ -21,23 +21,12 @@ import { ScheduleService } from '@services/ScheduleService';
 import { RecentlyPlayedService } from '@services/RecentlyPlayedService';
 import { WmbrRouteName } from '@customTypes/Navigation';
 import { COLORS, CORE_COLORS } from '@utils/Colors';
-import { dayNames } from '@utils/DateTime';
 
 type ScheduleSectionItem = ScheduleShow & {
   sectionTitle: string;
 };
 
 export default function SchedulePage() {
-  const currentDay = new Date().getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
-
-  // Order days starting from the current day index and wrapping around.
-  // e.g., if today is Wednesday (index 3) the order will be [Wed, Thu, Fri, Sat, Sun, Mon, Tue]
-  const startDay = Math.max(0, Math.min(currentDay, dayNames.length - 1));
-  const daysOrder = useMemo(
-    () => [...dayNames.slice(startDay), ...dayNames.slice(0, startDay)],
-    [startDay],
-  );
-
   const navigation =
     useNavigation<NavigationProp<Record<WmbrRouteName, object | undefined>>>();
 
@@ -140,17 +129,9 @@ export default function SchedulePage() {
       show.name.trim().toLowerCase() === currentShowTitle.trim().toLowerCase();
     if (!isNameMatch) return false;
 
-    // Get current day info
-    const currentDayName = dayNames[currentDay];
-
-    // For weekday shows (day=7), only highlight if we're rendering the current day and it's a weekday
-    if (show.day === 7) {
-      const isWeekday = currentDay >= 1 && currentDay <= 5;
-      return isWeekday && dayName === currentDayName;
-    } else {
-      // For single-day shows, only highlight if we're rendering the current day
-      return dayName === currentDayName;
-    }
+    // The service puts weekday shows only in their matching calendar sections.
+    // Highlight a matching show only in today's section.
+    return dayName === currentDayName;
   };
 
   const getShowFrequency = (show: ScheduleShow): string => {
@@ -197,21 +178,22 @@ export default function SchedulePage() {
     );
   }, [schedule, searchQuery]);
 
-  const scheduleViewData: SectionListData<ScheduleSectionItem>[] =
-    useMemo(() => {
-      const groupedShows = scheduleService.groupShowsByDay(filteredShows);
+  const scheduleDays = scheduleService.getRollingScheduleDays(
+    filteredShows,
+    new Date(),
+  );
+  const currentDayName = scheduleDays[0]?.dayName;
 
-      return daysOrder
-        .map((day, index) => ({
-          title: day,
-          key: index.toString(),
-          data: (groupedShows[day] || []).map(show => ({
-            ...show,
-            sectionTitle: day,
-          })),
-        }))
-        .filter(section => section.data.length > 0);
-    }, [daysOrder, filteredShows, scheduleService]); // Only include days that have shows
+  const scheduleViewData: SectionListData<ScheduleSectionItem>[] = scheduleDays
+    .map(({ dayName, shows }) => ({
+      title: dayName,
+      key: dayName,
+      data: shows.map(show => ({
+        ...show,
+        sectionTitle: dayName,
+      })),
+    }))
+    .filter(section => section.data.length > 0); // Only include days that have shows
 
   const firstSectionTitle = useMemo(
     () => scheduleViewData[0]?.title,

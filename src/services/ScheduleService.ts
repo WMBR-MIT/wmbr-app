@@ -1,7 +1,12 @@
 import { parseString } from 'react-native-xml2js';
 import { ScheduleShow, ScheduleResponse } from '@customTypes/Schedule';
 import { debugLog, debugError } from '@utils/Debug';
-import { dayNames, isAlternatingShowActive } from '@utils/DateTime';
+import {
+  dayNames,
+  weekdays,
+  isAlternatingShowActive,
+  getEasternCalendarDateAtNoonUTC,
+} from '@utils/DateTime';
 
 export class ScheduleService {
   private static instance: ScheduleService;
@@ -97,20 +102,82 @@ export class ScheduleService {
     }));
   }
 
-  // Helper method to group shows by day
-  groupShowsByDay(shows: ScheduleShow[]): { [key: string]: ScheduleShow[] } {
+  /**
+   * Build seven Eastern calendar days starting today, including empty days.
+   * Each day's shows use that date's alternating cycle and broadcast cutoff.
+   * Pass a real timestamp for now.
+   */
+  getRollingScheduleDays(
+    shows: ScheduleShow[],
+    now: Date,
+  ): { dayName: string; shows: ScheduleShow[] }[] {
+    const todayDate = getEasternCalendarDateAtNoonUTC(now);
+    const groupedShows = this.groupShowsByDay(shows);
+
+    return Array.from({ length: dayNames.length }, (_, dayOffset) => {
+      const sectionDate = new Date(todayDate);
+      sectionDate.setUTCDate(sectionDate.getUTCDate() + dayOffset);
+      const dayName = dayNames[sectionDate.getUTCDay()];
+
+      return {
+        dayName,
+        shows: this.filterActiveShows(groupedShows[dayName] || [], sectionDate),
+      };
+    });
+  }
+
+  /**
+   * Filters shows in a calendar-day section using that section's actual date
+   * and each show's `alternates` value relative to the season start.
+   *
+   * @param {ScheduleShow[]} shows The list of shows to filter.
+   * @param {Date} targetDate The calendar date represented by the section.
+   * @returns {ScheduleShow[]} A filtered list of active shows.
+   */
+  private filterActiveShows(
+    shows: ScheduleShow[],
+    targetDate: Date,
+  ): ScheduleShow[] {
+    if (shows.length === 0) {
+      return shows;
+    }
+
+    if (!this.seasonStart) {
+      debugError('Season start date is not set. Cannot filter active shows.');
+      return shows; // Return all shows if season start is unknown
+    }
+
+    const sectionDate = getEasternCalendarDateAtNoonUTC(targetDate);
+
+    // Alternating cycles are anchored to the XML season-start date.
+
+    return shows.filter(show => {
+      const broadcastDate = new Date(sectionDate);
+
+      // An early-morning show stays in its calendar-day section, but belongs
+      // to the previous broadcast day's alternating cycle (e.g. Sunday night
+      // airing at 1am Monday). Use the XML cutoff rather than hard-coding 4am.
+      if (parseInt(show.time, 10) < this.dayStart) {
+        broadcastDate.setUTCDate(broadcastDate.getUTCDate() - 1);
+      }
+
+      return isAlternatingShowActive(show, broadcastDate, this.seasonStart);
+    });
+  }
+
+  /**
+   * Helper method to group shows by day
+   *
+   * @param {ScheduleShow[]} shows - The list of shows to filter.
+   */
+  private groupShowsByDay(shows: ScheduleShow[]): {
+    [key: string]: ScheduleShow[];
+  } {
     const grouped: { [key: string]: ScheduleShow[] } = {};
 
     shows.forEach(show => {
       if (show.day === 7) {
         // Shows that air every weekday (Monday-Friday)
-        const weekdays = [
-          'Monday',
-          'Tuesday',
-          'Wednesday',
-          'Thursday',
-          'Friday',
-        ];
         weekdays.forEach(day => {
           if (!grouped[day]) {
             grouped[day] = [];

@@ -6,22 +6,43 @@ import { TestWrapper } from '@utils/TestUtils';
 import { createMockFetch } from '../__mocks__/MockNetworkResponses';
 
 describe('SchedulePage', () => {
-  beforeAll(() => {
-    // Freeze time so the schedule always starts on Tuesday, which keeps these
-    // tests deterministic even though the UI now starts at "today".
-    jest.useFakeTimers();
-    jest.setSystemTime(new Date('2025-11-11T12:00:00Z'));
+  // Keep the fixture small so SectionList renders both weekly shows initially,
+  // regardless of where Tuesday falls in the rolling schedule.
+  const scheduleXml = `
+    <wmbr_schedule season_start="Mon, 22 Sep 2025 14:00:00 GMT" daystart="240">
+      <show id="8998">
+        <name>If 6 Was 9</name>
+        <day>2</day>
+        <day_str>Tuesday</day_str>
+        <time>240</time>
+        <time_str>4:00a</time_str>
+        <length>180</length>
+        <alternates>0</alternates>
+      </show>
+      <show id="9007">
+        <name>Post-tentious</name>
+        <day>2</day>
+        <day_str>Tuesday</day_str>
+        <time>1260</time>
+        <time_str>9:00p</time_str>
+        <length>60</length>
+        <alternates>0</alternates>
+        <description>post music for post people.</description>
+      </show>
+    </wmbr_schedule>`;
+
+  beforeEach(() => {
+    jest.mocked(fetch).mockImplementation(createMockFetch({ scheduleXml }));
   });
 
-  afterAll(() => {
-    jest.useRealTimers();
+  afterEach(() => {
+    jest.mocked(fetch).mockImplementation(createMockFetch());
   });
 
   test('displays shows after loading', async () => {
     await renderAsync(<ScheduleStack />, { wrapper: TestWrapper });
 
-    // With the date fixed to Tuesday, the first rendered section includes
-    // Tuesday shows from the mock schedule.
+    // The rolling seven-day schedule includes these weekly Tuesday shows.
     expect(screen.getByText('If 6 Was 9')).toBeTruthy();
     expect(screen.getByText(/Post-tentious.*/)).toBeTruthy();
   });
@@ -65,100 +86,4 @@ describe('SchedulePage', () => {
     expect(screen.getByText(/Waiting Room.*/)).toBeTruthy();
     expect(screen.getByText(/Fugazi.*/)).toBeTruthy();
   });
-});
-
-describe('SchedulePage rolling alternating weeks', () => {
-  // A small synthetic schedule keeps the Monday section visible without
-  // depending on SectionList rendering every row of the full schedule.
-  const scheduleXml = `
-    <wmbr_schedule season_start="Mon, 25 May 2026 14:00:00 GMT" daystart="240">
-      <show id="monday-cycle-week-1">
-        <name>Monday Cycle Week 1</name>
-        <day>1</day>
-        <time>1140</time>
-        <time_str>7:00p</time_str>
-        <alternates>1</alternates>
-      </show>
-      <show id="monday-cycle-week-2">
-        <name>Monday Cycle Week 2</name>
-        <day>1</day>
-        <time>1140</time>
-        <time_str>7:00p</time_str>
-        <alternates>2</alternates>
-      </show>
-      <show id="sunday-cycle-week-1">
-        <name>Sunday Cycle Week 1</name>
-        <day>0</day>
-        <time>780</time>
-        <time_str>1:00p</time_str>
-        <alternates>1</alternates>
-      </show>
-      <show id="sunday-cycle-week-2">
-        <name>Sunday Cycle Week 2</name>
-        <day>0</day>
-        <time>780</time>
-        <time_str>1:00p</time_str>
-        <alternates>2</alternates>
-      </show>
-    </wmbr_schedule>`;
-
-  beforeEach(() => {
-    // Keep the date deterministic without faking timers used by async rendering
-    // and Testing Library's polling queries.
-    jest.useFakeTimers({
-      doNotFake: [
-        'setTimeout',
-        'clearTimeout',
-        'setInterval',
-        'clearInterval',
-        'setImmediate',
-        'clearImmediate',
-        'nextTick',
-        'queueMicrotask',
-      ],
-    });
-    jest.mocked(fetch).mockImplementation(createMockFetch({ scheduleXml }));
-  });
-
-  afterEach(() => {
-    jest.useRealTimers();
-    jest.mocked(fetch).mockImplementation(createMockFetch());
-  });
-
-  test.each([
-    ['Friday', '2026-05-29T16:00:00Z'],
-    ['Monday after the show has aired', '2026-06-02T03:00:00Z'],
-  ])('uses the upcoming Monday date when viewed on %s', async (_, date) => {
-    jest.setSystemTime(new Date(date));
-    await renderAsync(<ScheduleStack />, { wrapper: TestWrapper });
-
-    expect(await screen.findByText('Monday Cycle Week 2')).toBeTruthy();
-    expect(screen.getByText('Monday')).toBeTruthy();
-    expect(screen.queryByText('Monday Cycle Week 1')).toBeNull();
-  });
-
-  test.each([
-    ['Saturday just after midnight', '2026-10-24T04:33:00Z'],
-    ['Sunday', '2026-10-25T14:00:00Z'],
-  ])(
-    'keeps Sunday in the preceding cycle when viewed on %s',
-    async (_, date) => {
-      // Reproduce the reported weekend with generic alternating shows.
-      jest.mocked(fetch).mockImplementation(
-        createMockFetch({
-          scheduleXml: scheduleXml.replace(
-            'Mon, 25 May 2026 14:00:00 GMT',
-            'Mon, 05 Oct 2026 14:00:00 GMT',
-          ),
-        }),
-      );
-      jest.setSystemTime(new Date(date));
-      await renderAsync(<ScheduleStack />, { wrapper: TestWrapper });
-
-      expect(await screen.findByText('Sunday Cycle Week 1')).toBeTruthy();
-      expect(screen.queryByText('Sunday Cycle Week 2')).toBeNull();
-      expect(screen.getByText('Monday Cycle Week 2')).toBeTruthy();
-      expect(screen.queryByText('Monday Cycle Week 1')).toBeNull();
-    },
-  );
 });

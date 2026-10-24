@@ -2,12 +2,32 @@ import { Show } from '@customTypes/RecentlyPlayed';
 import { ScheduleShow } from '@customTypes/Schedule';
 import { debugError } from '@utils/Debug';
 
-const getEasternCalendarDate = (date: Date): Date => {
-  const easternDateString = date.toLocaleDateString('en-CA', {
+export const getEasternCalendarDate = (date: Date): Date => {
+  const dateParts = new Intl.DateTimeFormat('en-US', {
     timeZone: 'America/New_York',
-  });
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+  }).formatToParts(date);
+  const year = Number(dateParts.find(part => part.type === 'year')?.value);
+  const month = Number(dateParts.find(part => part.type === 'month')?.value);
+  const day = Number(dateParts.find(part => part.type === 'day')?.value);
 
-  return new Date(`${easternDateString}T00:00:00.000Z`);
+  // Store the Eastern calendar components at UTC midnight for date arithmetic.
+  // Reading named parts avoids parsing a locale-formatted date string.
+  return new Date(Date.UTC(year, month - 1, day));
+};
+
+/**
+ * Represent a timestamp's Eastern calendar date at noon UTC for day arithmetic.
+ * Pass a real timestamp, not a date returned by getEasternCalendarDate(),
+ * whose UTC-midnight representation falls on the previous Eastern date.
+ * Noon UTC stays on the same Eastern date in standard and daylight time.
+ */
+export const getEasternCalendarDateAtNoonUTC = (date: Date): Date => {
+  const calendarDate = getEasternCalendarDate(date);
+  calendarDate.setUTCHours(12);
+  return calendarDate;
 };
 
 export const dayNames = [
@@ -18,6 +38,14 @@ export const dayNames = [
   'Thursday',
   'Friday',
   'Saturday',
+];
+
+export const weekdays = [
+  'Monday',
+  'Tuesday',
+  'Wednesday',
+  'Thursday',
+  'Friday',
 ];
 
 export const formatDate = (dateString: string) => {

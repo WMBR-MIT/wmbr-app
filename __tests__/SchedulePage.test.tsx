@@ -3,6 +3,7 @@ import { renderAsync, screen, userEvent } from '@testing-library/react-native';
 import { ScheduleStack } from '@app/Schedule';
 
 import { TestWrapper } from '@utils/TestUtils';
+import { createMockFetch } from '../__mocks__/MockNetworkResponses';
 
 describe('SchedulePage', () => {
   beforeAll(() => {
@@ -64,4 +65,87 @@ describe('SchedulePage', () => {
     expect(screen.getByText(/Waiting Room.*/)).toBeTruthy();
     expect(screen.getByText(/Fugazi.*/)).toBeTruthy();
   });
+});
+
+describe('SchedulePage rolling alternating weeks', () => {
+  // A small synthetic schedule keeps the Monday section visible without
+  // depending on SectionList rendering every row of the full schedule.
+  const scheduleXml = `
+    <wmbr_schedule season_start="Mon, 25 May 2026 14:00:00 GMT" daystart="240">
+      <show id="monday-cycle-week-1">
+        <name>Monday Cycle Week 1</name>
+        <day>1</day>
+        <time>1140</time>
+        <time_str>7:00p</time_str>
+        <alternates>1</alternates>
+      </show>
+      <show id="monday-cycle-week-2">
+        <name>Monday Cycle Week 2</name>
+        <day>1</day>
+        <time>1140</time>
+        <time_str>7:00p</time_str>
+        <alternates>2</alternates>
+      </show>
+      <show id="sunday-cycle-week-1">
+        <name>Sunday Cycle Week 1</name>
+        <day>0</day>
+        <time>780</time>
+        <time_str>1:00p</time_str>
+        <alternates>1</alternates>
+      </show>
+      <show id="sunday-cycle-week-2">
+        <name>Sunday Cycle Week 2</name>
+        <day>0</day>
+        <time>780</time>
+        <time_str>1:00p</time_str>
+        <alternates>2</alternates>
+      </show>
+    </wmbr_schedule>`;
+
+  beforeEach(() => {
+    jest.useFakeTimers();
+    jest.mocked(fetch).mockImplementation(createMockFetch({ scheduleXml }));
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+    jest.mocked(fetch).mockImplementation(createMockFetch());
+  });
+
+  test.each([
+    ['Friday', '2026-05-29T16:00:00Z'],
+    ['Monday after the show has aired', '2026-06-02T03:00:00Z'],
+  ])('uses the upcoming Monday date when viewed on %s', async (_, date) => {
+    jest.setSystemTime(new Date(date));
+    await renderAsync(<ScheduleStack />, { wrapper: TestWrapper });
+
+    expect(await screen.findByText('Monday Cycle Week 2')).toBeTruthy();
+    expect(screen.getByText('Monday')).toBeTruthy();
+    expect(screen.queryByText('Monday Cycle Week 1')).toBeNull();
+  });
+
+  test.each([
+    ['Saturday just after midnight', '2026-10-24T04:33:00Z'],
+    ['Sunday', '2026-10-25T14:00:00Z'],
+  ])(
+    'keeps Sunday in the preceding cycle when viewed on %s',
+    async (_, date) => {
+      // Reproduce the reported weekend with generic alternating shows.
+      jest.mocked(fetch).mockImplementation(
+        createMockFetch({
+          scheduleXml: scheduleXml.replace(
+            'Mon, 25 May 2026 14:00:00 GMT',
+            'Mon, 05 Oct 2026 14:00:00 GMT',
+          ),
+        }),
+      );
+      jest.setSystemTime(new Date(date));
+      await renderAsync(<ScheduleStack />, { wrapper: TestWrapper });
+
+      expect(await screen.findByText('Sunday Cycle Week 1')).toBeTruthy();
+      expect(screen.queryByText('Sunday Cycle Week 2')).toBeNull();
+      expect(screen.getByText('Monday Cycle Week 2')).toBeTruthy();
+      expect(screen.queryByText('Monday Cycle Week 1')).toBeNull();
+    },
+  );
 });

@@ -3,46 +3,24 @@ import { renderAsync, screen, userEvent } from '@testing-library/react-native';
 import { ScheduleStack } from '@app/Schedule';
 
 import { TestWrapper } from '@utils/TestUtils';
-import { createMockFetch } from '../__mocks__/MockNetworkResponses';
 
 describe('SchedulePage', () => {
-  // Keep the fixture small so SectionList renders both weekly shows initially,
-  // regardless of where Tuesday falls in the rolling schedule.
-  const scheduleXml = `
-    <wmbr_schedule season_start="Mon, 22 Sep 2025 14:00:00 GMT" daystart="240">
-      <show id="8998">
-        <name>If 6 Was 9</name>
-        <day>2</day>
-        <day_str>Tuesday</day_str>
-        <time>240</time>
-        <time_str>4:00a</time_str>
-        <length>180</length>
-        <alternates>0</alternates>
-      </show>
-      <show id="9007">
-        <name>Post-tentious</name>
-        <day>2</day>
-        <day_str>Tuesday</day_str>
-        <time>1260</time>
-        <time_str>9:00p</time_str>
-        <length>60</length>
-        <alternates>0</alternates>
-        <description>post music for post people.</description>
-      </show>
-    </wmbr_schedule>`;
-
-  beforeEach(() => {
-    jest.mocked(fetch).mockImplementation(createMockFetch({ scheduleXml }));
+  beforeAll(() => {
+    // Freeze time so the schedule always starts on Tuesday, which keeps these
+    // tests deterministic even though the UI now starts at "today".
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2025-11-11T12:00:00Z'));
   });
 
-  afterEach(() => {
-    jest.mocked(fetch).mockImplementation(createMockFetch());
+  afterAll(() => {
+    jest.useRealTimers();
   });
 
   test('displays shows after loading', async () => {
     await renderAsync(<ScheduleStack />, { wrapper: TestWrapper });
 
-    // The rolling seven-day schedule includes these weekly Tuesday shows.
+    // With the date fixed to Tuesday, the first rendered section includes
+    // Tuesday shows from the mock schedule.
     expect(screen.getByText('If 6 Was 9')).toBeTruthy();
     expect(screen.getByText(/Post-tentious.*/)).toBeTruthy();
   });

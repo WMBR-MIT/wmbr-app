@@ -5,7 +5,9 @@ import ReactAppDependencyProvider
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
-  var window: UIWindow?
+  // SceneDelegate owns the window. React Native still reads this property
+  // through the app delegate, so keep it available to Objective-C callers.
+  @objc weak var window: UIWindow?
 
   var reactNativeDelegate: ReactNativeDelegate?
   var reactNativeFactory: RCTReactNativeFactory?
@@ -20,14 +22,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     reactNativeDelegate = delegate
     reactNativeFactory = factory
-
-    window = UIWindow(frame: UIScreen.main.bounds)
-
-    factory.startReactNative(
-      withModuleName: "WmbrApp",
-      in: window,
-      launchOptions: launchOptions
-    )
 
     return true
   }

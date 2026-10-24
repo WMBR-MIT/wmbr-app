@@ -103,7 +103,20 @@ describe('SchedulePage rolling alternating weeks', () => {
     </wmbr_schedule>`;
 
   beforeEach(() => {
-    jest.useFakeTimers();
+    // Keep the date deterministic without faking timers used by async rendering
+    // and Testing Library's polling queries.
+    jest.useFakeTimers({
+      doNotFake: [
+        'setTimeout',
+        'clearTimeout',
+        'setInterval',
+        'clearInterval',
+        'setImmediate',
+        'clearImmediate',
+        'nextTick',
+        'queueMicrotask',
+      ],
+    });
     jest.mocked(fetch).mockImplementation(createMockFetch({ scheduleXml }));
   });
 

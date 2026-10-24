@@ -23,7 +23,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     factory.startReactNative(
       withModuleName: "WmbrApp",
       in: window,
-      launchOptions: nil
+      launchOptions: appDelegate.launchOptions
     )
   }
 }

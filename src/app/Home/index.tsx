@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import he from 'he';
 import { debugError } from '@utils/Debug';
 import {
   View,
@@ -33,8 +34,10 @@ import { WmbrRouteName } from '@customTypes/Navigation';
 import { DEFAULT_NAME } from '@customTypes/Playlist';
 import { COLORS, CORE_COLORS } from '@utils/Colors';
 import { formatArchiveDate } from '@utils/DateTime';
+import { getUserAgent } from '@utils/UserAgent';
 
 import HomeNowPlaying from './HomeNowPlaying';
+import { ScheduleService } from '@services/ScheduleService';
 
 const streamUrl = 'https://wmbr.org:8002/hi';
 
@@ -55,6 +58,8 @@ export default function HomeScreen() {
     currentShow: null,
     liveStreamUrl: streamUrl,
   });
+
+  const scheduleService = ScheduleService.getInstance();
 
   const isPlaying = playbackState?.state === State.Playing;
 
@@ -99,7 +104,7 @@ export default function HomeScreen() {
     const unsubscribeMetadata = metadataService.subscribe((data: ShowInfo) => {
       setShowInfo(data);
       setCurrentShow(data.showTitle);
-      setHosts(data.hosts);
+      setHosts(he.decode(data.hosts || ''));
       setShowDescription(data.description);
 
       try {
@@ -202,6 +207,7 @@ export default function HomeScreen() {
             artist: currentShow || 'Live Radio',
             artwork: require('../../../assets/cover.png'),
             isLiveStream: true,
+            userAgent: getUserAgent(),
           });
         }
 
@@ -240,9 +246,11 @@ export default function HomeScreen() {
     await TrackPlayer.seekTo(newPosition);
   }, [progress.position, progress.duration]);
 
-  const handleOpenShowDetails = useCallback(() => {
+  const handleOpenShowDetails = useCallback(async () => {
     const show = archiveState.currentShow;
     if (!show) return;
+
+    const scheduleShow = await scheduleService.getShowById(show.id);
 
     // Navigate to Schedule tab with complete stack state
     navigation.navigate('Schedule' as WmbrRouteName, {
@@ -250,7 +258,7 @@ export default function HomeScreen() {
       state: {
         routes: [
           { name: 'ScheduleMain' },
-          { name: 'ShowDetails', params: { show } },
+          { name: 'ShowDetails', params: { show, scheduleShow } },
           {
             name: 'ArchivedShowView',
             params: { show, archive: archiveState.currentArchive },
@@ -258,7 +266,12 @@ export default function HomeScreen() {
         ],
       },
     });
-  }, [archiveState.currentShow, archiveState.currentArchive, navigation]);
+  }, [
+    archiveState.currentShow,
+    archiveState.currentArchive,
+    scheduleService,
+    navigation,
+  ]);
 
   if (showSplash) return <SplashScreen onAnimationEnd={handleSplashEnd} />;
 
@@ -275,7 +288,7 @@ export default function HomeScreen() {
         colors={
           isPlaying
             ? [CORE_COLORS.WMBR_GREEN, '#006B31', CORE_COLORS.WMBR_GREEN]
-            : ['#000000', '#1a1a1a', '#000000']
+            : [COLORS.BACKGROUND.SECONDARY, COLORS.BACKGROUND.PRIMARY]
         }
         style={styles.fullScreenGradient}
       >
@@ -380,7 +393,7 @@ export default function HomeScreen() {
                 <TouchableOpacity
                   style={[
                     styles.liveButton,
-                    isPlaying && styles.liveButtonActive,
+                    isPlaying && styles.liveButtonPlaying,
                   ]}
                   onPress={handleSwitchToLive}
                   activeOpacity={0.7}
@@ -388,7 +401,7 @@ export default function HomeScreen() {
                   <Text
                     style={[
                       styles.liveButtonText,
-                      isPlaying && styles.liveButtonTextActive,
+                      isPlaying && styles.liveButtonTextPlaying,
                     ]}
                   >
                     ← Switch to LIVE
@@ -448,27 +461,27 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     lineHeight: 16,
   },
-  showDescriptionActive: { color: '#D0D0D0' },
+  showDescriptionActive: { color: COLORS.TEXT.ACTIVE },
   liveButton: {
     marginTop: 16,
     paddingHorizontal: 20,
     paddingVertical: 12,
-    backgroundColor: 'rgba(255, 68, 68, 0.2)',
+    backgroundColor: COLORS.BUTTON.SWITCH.BACKGROUND,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#FF4444',
-  },
-  liveButtonActive: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    borderColor: '#FFFFFF',
+    borderColor: COLORS.BUTTON.SWITCH.BORDER,
   },
   liveButtonText: {
-    color: '#FF4444',
+    color: COLORS.BUTTON.SWITCH.TEXT,
     fontSize: 14,
     fontWeight: '600',
     textAlign: 'center',
   },
-  liveButtonTextActive: { color: '#FFFFFF' },
+  liveButtonPlaying: {
+    backgroundColor: COLORS.BUTTON.SWITCH_ACTIVE.BACKGROUND,
+    borderColor: COLORS.BUTTON.SWITCH_ACTIVE.BORDER,
+  },
+  liveButtonTextPlaying: { color: COLORS.BUTTON.SWITCH_ACTIVE.TEXT },
   playbackControls: {
     flexDirection: 'row',
     alignItems: 'center',

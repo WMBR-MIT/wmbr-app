@@ -78,6 +78,14 @@ export const formatTime = (timeString: string) => {
   return timeString;
 };
 
+export const formatNextAirDate = (nextAirDate: Date): string => {
+  return ` · Next airs on ${nextAirDate.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    timeZone: 'America/New_York',
+  })}`;
+};
+
 export const secondsToTime = (seconds: number) => {
   const hours = Math.floor(seconds / 3600);
   const minutes = Math.floor((seconds % 3600) / 60);

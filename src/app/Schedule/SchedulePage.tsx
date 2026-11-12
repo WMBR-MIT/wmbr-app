@@ -242,7 +242,7 @@ export default function SchedulePage() {
               style={[
                 styles.showName,
                 isCurrent && styles.currentShowName,
-                isInactive && styles.inactiveShowAltStyles,
+                isInactive && styles.inactiveShowLabel,
               ]}
               numberOfLines={1}
             >
@@ -261,7 +261,7 @@ export default function SchedulePage() {
               style={[
                 styles.showHosts,
                 isCurrent && styles.currentShowHosts,
-                isInactive && styles.inactiveShowAltStyles,
+                isInactive && styles.inactiveShowLabel,
               ]}
               numberOfLines={1}
             >
@@ -438,7 +438,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.CARD.SUBTLE.BORDER,
   },
-  inactiveShowAltStyles: {
+  inactiveShowLabel: {
     color: COLORS.TEXT.TERTIARY,
   },
   currentShowItem: {

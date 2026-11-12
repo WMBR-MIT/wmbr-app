@@ -3,6 +3,7 @@ import { renderAsync, screen, userEvent } from '@testing-library/react-native';
 import { ScheduleStack } from '@app/Schedule';
 
 import { TestWrapper } from '@utils/TestUtils';
+import { COLORS } from '@utils/Colors';
 
 describe('SchedulePage', () => {
   beforeAll(() => {
@@ -37,6 +38,25 @@ describe('SchedulePage', () => {
     ).toBeTruthy();
     expect(screen.getByText('Every Other Week')).toBeTruthy();
     expect(screen.getAllByText(/Next airs on/)).toHaveLength(1);
+  });
+
+  test('applies inactiveShowLabel styling only to inactive show names and hosts', async () => {
+    await renderAsync(<ScheduleStack />, { wrapper: TestWrapper });
+
+    // The inactiveShowLabel style mutes both labels for the show skipping
+    // this Sunday, without changing the active show's normal label colors.
+    expect(await screen.findByText('Sound and Fury')).toHaveStyle({
+      color: COLORS.TEXT.TERTIARY,
+    });
+    expect(
+      screen.getByText('with David "The Central Cogitator" Goodman'),
+    ).toHaveStyle({ color: COLORS.TEXT.TERTIARY });
+    expect(screen.getByText('Radio with a View')).toHaveStyle({
+      color: COLORS.TEXT.PRIMARY,
+    });
+    expect(screen.getByText('with Marc Stern')).toHaveStyle({
+      color: COLORS.TEXT.SECONDARY,
+    });
   });
 
   test('navigates to ShowDetails when tapping a show with archives', async () => {

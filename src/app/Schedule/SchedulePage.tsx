@@ -372,7 +372,7 @@ export default function SchedulePage() {
   );
 }
 
-const styles = StyleSheet.create({
+export const styles = StyleSheet.create({
   gradient: {
     flex: 1,
   },

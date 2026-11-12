@@ -3,7 +3,7 @@ import { renderAsync, screen, userEvent } from '@testing-library/react-native';
 import { ScheduleStack } from '@app/Schedule';
 
 import { TestWrapper } from '@utils/TestUtils';
-import { COLORS } from '@utils/Colors';
+import { styles as scheduleStyles } from '@app/Schedule/SchedulePage';
 
 describe('SchedulePage', () => {
   beforeAll(() => {
@@ -43,20 +43,22 @@ describe('SchedulePage', () => {
   test('applies inactiveShowLabel styling only to inactive show names and hosts', async () => {
     await renderAsync(<ScheduleStack />, { wrapper: TestWrapper });
 
-    // The inactiveShowLabel style mutes both labels for the show skipping
-    // this Sunday, without changing the active show's normal label colors.
-    expect(await screen.findByText('Sound and Fury')).toHaveStyle({
-      color: COLORS.TEXT.TERTIARY,
-    });
+    // Check the named style's presence, not its values, so its appearance
+    // can change without breaking this test.
+    const inactiveShowName = await screen.findByText('Sound and Fury');
+    expect(inactiveShowName.props.style).toContain(
+      scheduleStyles.inactiveShowLabel,
+    );
     expect(
-      screen.getByText('with David "The Central Cogitator" Goodman'),
-    ).toHaveStyle({ color: COLORS.TEXT.TERTIARY });
-    expect(screen.getByText('Radio with a View')).toHaveStyle({
-      color: COLORS.TEXT.PRIMARY,
-    });
-    expect(screen.getByText('with Marc Stern')).toHaveStyle({
-      color: COLORS.TEXT.SECONDARY,
-    });
+      screen.getByText('with David "The Central Cogitator" Goodman').props
+        .style,
+    ).toContain(scheduleStyles.inactiveShowLabel);
+    expect(screen.getByText('Radio with a View').props.style).not.toContain(
+      scheduleStyles.inactiveShowLabel,
+    );
+    expect(screen.getByText('with Marc Stern').props.style).not.toContain(
+      scheduleStyles.inactiveShowLabel,
+    );
   });
 
   test('navigates to ShowDetails when tapping a show with archives', async () => {

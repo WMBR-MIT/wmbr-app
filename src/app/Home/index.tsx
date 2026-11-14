@@ -121,7 +121,7 @@ export default function HomeScreen() {
       },
     );
 
-    metadataService.startPolling(15000);
+    metadataService.startPolling(30000);
 
     // Subscribe to archive service
     const unsubscribeArchive =
@@ -134,6 +134,22 @@ export default function HomeScreen() {
       unsubscribeArchive();
     };
   }, [setupPlayer]);
+
+  const liveMetadata = useMemo(() => {
+    if (showInfo?.currentSong && showInfo?.currentArtist) {
+      return {
+        title: `${showInfo.currentArtist} - ${showInfo.currentSong}`,
+        artist: `${currentShow || 'Live Radio'} | ${DEFAULT_NAME}`,
+        artwork: require('../../../assets/cover.png'),
+      };
+    }
+
+    return {
+      title: currentShow || DEFAULT_NAME,
+      artist: currentShow ? DEFAULT_NAME : 'Live Radio',
+      artwork: require('../../../assets/cover.png'),
+    };
+  }, [showInfo, currentShow]);
 
   // Separate useEffect for updating track metadata when show changes
   useEffect(() => {
@@ -151,11 +167,7 @@ export default function HomeScreen() {
       try {
         // Only update if we're not playing an archive
         if (!archiveState.isPlayingArchive) {
-          await TrackPlayer.updateMetadataForTrack(0, {
-            title: DEFAULT_NAME,
-            artist: currentShow || 'Live Radio',
-            artwork: require('../../../assets/cover.png'),
-          });
+          await TrackPlayer.updateMetadataForTrack(0, liveMetadata);
         }
       } catch (error) {
         debugError('Error updating track metadata:', error);
@@ -164,7 +176,7 @@ export default function HomeScreen() {
 
     updateLiveTrackMetadata();
   }, [
-    currentShow,
+    liveMetadata,
     archiveState.isPlayingArchive,
     isPlayerInitialized,
     playbackState?.state,
@@ -198,9 +210,7 @@ export default function HomeScreen() {
         const liveTrack = {
           id: 'wmbr-stream',
           url: streamUrl,
-          title: DEFAULT_NAME,
-          artist: currentShow || 'Live Radio',
-          artwork: require('../../../assets/cover.png'),
+          ...liveMetadata,
           isLiveStream: true,
           userAgent: getUserAgent(),
         };
@@ -216,9 +226,9 @@ export default function HomeScreen() {
     }
   }, [
     archiveState.isPlayingArchive,
-    currentShow,
     isPlayerInitialized,
     isPlaying,
+    liveMetadata,
   ]);
 
   const handleSplashEnd = () => setShowSplash(false);

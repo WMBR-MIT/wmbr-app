@@ -19,9 +19,13 @@ const TrackPlayerService = async () => {
   TrackPlayer.addEventListener(
     Event.RemoteDuck,
     async ({ paused, permanent }) => {
+      if (!paused) {
+        return;
+      }
+
       const activeTrack = await TrackPlayer.getActiveTrack();
 
-      if (!paused || permanent || activeTrack?.isLiveStream) {
+      if (permanent || activeTrack?.isLiveStream) {
         TrackPlayer.stop();
       } else {
         TrackPlayer.pause();

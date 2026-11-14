@@ -137,19 +137,27 @@ export default function HomeScreen() {
 
   const liveMetadata = useMemo(() => {
     if (showInfo?.currentSong && showInfo?.currentArtist) {
+      const titleWithHosts = currentShow
+        ? `${currentShow}${hosts ? ` with ${hosts}` : ''}`
+        : DEFAULT_NAME;
+
       return {
         title: `${showInfo.currentArtist} - ${showInfo.currentSong}`,
-        artist: `${currentShow || 'Live Radio'} | ${DEFAULT_NAME}`,
+        artist: `${titleWithHosts || 'Live Radio'} | ${DEFAULT_NAME}`,
         artwork: require('../../../assets/cover.png'),
       };
     }
 
+    const titleWithHosts = currentShow
+      ? `${currentShow}${hosts ? ` with ${hosts}` : ''}`
+      : DEFAULT_NAME;
+
     return {
-      title: currentShow || DEFAULT_NAME,
+      title: titleWithHosts || DEFAULT_NAME,
       artist: currentShow ? DEFAULT_NAME : 'Live Radio',
       artwork: require('../../../assets/cover.png'),
     };
-  }, [showInfo, currentShow]);
+  }, [hosts, showInfo, currentShow]);
 
   // Separate useEffect for updating track metadata when show changes
   useEffect(() => {

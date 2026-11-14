@@ -121,7 +121,7 @@ export default function HomeScreen() {
       },
     );
 
-    metadataService.startPolling(15000);
+    metadataService.startPolling(30000);
 
     // Subscribe to archive service
     const unsubscribeArchive =

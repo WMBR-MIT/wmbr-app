@@ -3,6 +3,7 @@ import { renderAsync, screen, userEvent } from '@testing-library/react-native';
 import { ScheduleStack } from '@app/Schedule';
 
 import { TestWrapper } from '@utils/TestUtils';
+import { styles as scheduleStyles } from '@app/Schedule/SchedulePage';
 
 describe('SchedulePage', () => {
   beforeAll(() => {
@@ -23,6 +24,41 @@ describe('SchedulePage', () => {
     // Tuesday shows from the mock schedule.
     expect(screen.getByText('If 6 Was 9')).toBeTruthy();
     expect(screen.getByText(/Post-tentious.*/)).toBeTruthy();
+  });
+
+  test('shows the next air date only for inactive alternating shows', async () => {
+    await renderAsync(<ScheduleStack />, { wrapper: TestWrapper });
+
+    // November 16 is week 2 of the mock season: Sound and Fury (week 1)
+    // skips this Sunday, while Radio with a View (week 2) airs as scheduled.
+    expect(await screen.findByText('Sound and Fury')).toBeTruthy();
+    expect(screen.getByText('Radio with a View')).toBeTruthy();
+    expect(
+      screen.getByText('Every Other Week · Next airs on Nov 23'),
+    ).toBeTruthy();
+    expect(screen.getByText('Every Other Week')).toBeTruthy();
+    expect(screen.getAllByText(/Next airs on/)).toHaveLength(1);
+  });
+
+  test('applies inactiveShowLabel styling only to inactive show names and hosts', async () => {
+    await renderAsync(<ScheduleStack />, { wrapper: TestWrapper });
+
+    // Check the named style's presence, not its values, so its appearance
+    // can change without breaking this test.
+    const inactiveShowName = await screen.findByText('Sound and Fury');
+    expect(inactiveShowName.props.style).toContain(
+      scheduleStyles.inactiveShowLabel,
+    );
+    expect(
+      screen.getByText('with David "The Central Cogitator" Goodman').props
+        .style,
+    ).toContain(scheduleStyles.inactiveShowLabel);
+    expect(screen.getByText('Radio with a View').props.style).not.toContain(
+      scheduleStyles.inactiveShowLabel,
+    );
+    expect(screen.getByText('with Marc Stern').props.style).not.toContain(
+      scheduleStyles.inactiveShowLabel,
+    );
   });
 
   test('navigates to ShowDetails when tapping a show with archives', async () => {

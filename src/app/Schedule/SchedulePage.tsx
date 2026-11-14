@@ -14,6 +14,7 @@ import {
 import Icon from '@components/Icon';
 import LinearGradient from 'react-native-linear-gradient';
 import { debugLog, debugError } from '@utils/Debug';
+import { dayNames, formatNextAirDate } from '@utils/DateTime';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { useHeaderHeight } from '@react-navigation/elements';
 import { ScheduleShow, ScheduleResponse } from '@customTypes/Schedule';
@@ -23,7 +24,13 @@ import { WmbrRouteName } from '@customTypes/Navigation';
 import { COLORS, CORE_COLORS } from '@utils/Colors';
 
 type ScheduleSectionItem = ScheduleShow & {
-  sectionTitle: string;
+  /**
+   * The Eastern calendar date represented by this show's schedule section,
+   * encoded as noon UTC in milliseconds since the Unix epoch. This represents
+   * the section's day, not the show's start time, and is used to determine
+   * whether the show airs on that day. A number keeps navigation data serializable.
+   */
+  sectionDate: number;
 };
 
 export default function SchedulePage() {
@@ -182,17 +189,22 @@ export default function SchedulePage() {
     filteredShows,
     new Date(),
   );
-  const currentDayName = scheduleDays[0]?.dayName;
+
+  const currentDayName = dayNames[scheduleDays[0]?.date.getUTCDay()];
 
   const scheduleViewData: SectionListData<ScheduleSectionItem>[] = scheduleDays
-    .map(({ dayName, shows }) => ({
-      title: dayName,
-      key: dayName,
-      data: shows.map(show => ({
-        ...show,
-        sectionTitle: dayName,
-      })),
-    }))
+    .map(({ date, shows }) => {
+      const dayName = dayNames[date.getUTCDay()];
+      return {
+        title: dayName,
+        key: dayName,
+        data: shows.map(show => ({
+          ...show,
+          // Navigation receives this item too, so keep its fields serializable.
+          sectionDate: date.getTime(),
+        })),
+      };
+    })
     .filter(section => section.data.length > 0); // Only include days that have shows
 
   const firstSectionTitle = useMemo(
@@ -208,6 +220,16 @@ export default function SchedulePage() {
     section: SectionListData<ScheduleSectionItem>;
   }) => {
     const isCurrent = isCurrentShowForDay(item, section.title);
+    const nextAirDate = scheduleService.getNextAirDate(
+      item,
+      new Date(item.sectionDate),
+    );
+
+    // Only mute and annotate shows that skip this section's date.
+    const isInactive =
+      nextAirDate !== null && nextAirDate.getTime() !== item.sectionDate;
+    const nextAirDateText = isInactive ? formatNextAirDate(nextAirDate) : '';
+
     return (
       <TouchableOpacity
         style={[styles.showItem, isCurrent && styles.currentShowItem]}
@@ -217,7 +239,11 @@ export default function SchedulePage() {
         <View style={styles.showContent}>
           <View style={styles.showMainInfo}>
             <Text
-              style={[styles.showName, isCurrent && styles.currentShowName]}
+              style={[
+                styles.showName,
+                isCurrent && styles.currentShowName,
+                isInactive && styles.inactiveShowLabel,
+              ]}
               numberOfLines={1}
             >
               {item.name}
@@ -232,7 +258,11 @@ export default function SchedulePage() {
 
           {item.hosts && (
             <Text
-              style={[styles.showHosts, isCurrent && styles.currentShowHosts]}
+              style={[
+                styles.showHosts,
+                isCurrent && styles.currentShowHosts,
+                isInactive && styles.inactiveShowLabel,
+              ]}
               numberOfLines={1}
             >
               with {item.hosts}
@@ -246,6 +276,7 @@ export default function SchedulePage() {
             ]}
           >
             {getShowFrequency(item)}
+            {nextAirDateText}
           </Text>
 
           {item.description && (
@@ -329,7 +360,7 @@ export default function SchedulePage() {
                 style={styles.paddingContainer}
                 stickySectionHeadersEnabled={false}
                 sections={scheduleViewData}
-                keyExtractor={item => `${item.id}-${item.sectionTitle}`}
+                keyExtractor={item => `${item.id}-${item.sectionDate}`}
                 renderItem={renderShow}
                 renderSectionHeader={renderSectionHeader}
               />
@@ -341,7 +372,7 @@ export default function SchedulePage() {
   );
 }
 
-const styles = StyleSheet.create({
+export const styles = StyleSheet.create({
   gradient: {
     flex: 1,
   },
@@ -406,6 +437,9 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     borderColor: COLORS.CARD.SUBTLE.BORDER,
+  },
+  inactiveShowLabel: {
+    color: COLORS.TEXT.TERTIARY,
   },
   currentShowItem: {
     backgroundColor: COLORS.CARD.ACTIVE.BACKGROUND,

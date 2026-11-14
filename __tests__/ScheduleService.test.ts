@@ -30,9 +30,20 @@ ${[
   .join('\n')}
 </wmbr_schedule>`;
 
-describe('ScheduleService calendar-day filtering', () => {
+describe('ScheduleService calendar days and next air dates', () => {
   let scheduleService: ScheduleService;
   let scheduleShows: ScheduleShow[];
+
+  // Preserve the cycle regression checks by selecting shows whose next airing
+  // matches the section date. The schedule itself now retains inactive shows.
+  const getActiveScheduleDays = (shows: ScheduleShow[], now: Date) =>
+    scheduleService.getRollingScheduleDays(shows, now).map(day => ({
+      ...day,
+      shows: day.shows.filter(show => {
+        const nextAirDate = scheduleService.getNextAirDate(show, day.date);
+        return nextAirDate?.getTime() === day.date.getTime();
+      }),
+    }));
 
   beforeEach(async () => {
     jest.mocked(fetch).mockImplementation(createMockFetch({ scheduleXml }));
@@ -46,37 +57,19 @@ describe('ScheduleService calendar-day filtering', () => {
   });
 
   test.each([
-    ['2026-05-30T03:59:59Z', 'Friday'],
-    ['2026-05-30T04:00:00Z', 'Saturday'],
+    ['2026-05-30T03:59:59Z', '2026-05-29'],
+    ['2026-05-30T04:00:00Z', '2026-05-30'],
   ])(
     'starts seven consecutive days at the Eastern date of %s',
-    (timestamp, day) => {
-      const days = scheduleService.getRollingScheduleDays(
-        scheduleShows,
-        new Date(timestamp),
-      );
+    (timestamp, expectedStartDate) => {
+      const days = getActiveScheduleDays(scheduleShows, new Date(timestamp));
+      const expectedDates = Array.from({ length: 7 }, (_, dayOffset) => {
+        const date = new Date(`${expectedStartDate}T12:00:00Z`);
+        date.setUTCDate(date.getUTCDate() + dayOffset);
+        return date;
+      });
 
-      expect(days.map(scheduleDay => scheduleDay.dayName)).toEqual(
-        day === 'Friday'
-          ? [
-              'Friday',
-              'Saturday',
-              'Sunday',
-              'Monday',
-              'Tuesday',
-              'Wednesday',
-              'Thursday',
-            ]
-          : [
-              'Saturday',
-              'Sunday',
-              'Monday',
-              'Tuesday',
-              'Wednesday',
-              'Thursday',
-              'Friday',
-            ],
-      );
+      expect(days.map(scheduleDay => scheduleDay.date)).toEqual(expectedDates);
     },
   );
 
@@ -89,7 +82,10 @@ describe('ScheduleService calendar-day filtering', () => {
     );
 
     expect(days).toHaveLength(7);
-    expect(days[0]).toEqual({ dayName: 'Saturday', shows: [] });
+    expect(days[0]).toEqual({
+      date: new Date('2026-05-30T12:00:00Z'),
+      shows: [],
+    });
     expect(days.every(day => day.shows.length === 0)).toBe(true);
     expect(debugError).not.toHaveBeenCalled();
   });
@@ -98,11 +94,8 @@ describe('ScheduleService calendar-day filtering', () => {
     ['Friday', '2026-05-29T16:00:00Z'],
     ['Monday after the shows have aired', '2026-06-02T03:00:00Z'],
   ])('uses the next Monday occurrence when viewed on %s', (_, timestamp) => {
-    const days = scheduleService.getRollingScheduleDays(
-      scheduleShows,
-      new Date(timestamp),
-    );
-    const mondayShows = days.find(day => day.dayName === 'Monday')?.shows;
+    const days = getActiveScheduleDays(scheduleShows, new Date(timestamp));
+    const mondayShows = days.find(day => day.date.getUTCDay() === 1)?.shows;
 
     expect(mondayShows?.map(show => show.id)).toEqual([
       'sunday-night-week-1',
@@ -114,11 +107,21 @@ describe('ScheduleService calendar-day filtering', () => {
   });
 
   test.each([
-    ['spring forward', 'Mon, 02 Mar 2026 15:00:00 GMT', '2026-03-08T04:30:00Z'],
-    ['fall back', 'Mon, 26 Oct 2026 14:00:00 GMT', '2026-10-31T04:30:00Z'],
+    [
+      'spring forward',
+      'Mon, 02 Mar 2026 15:00:00 GMT',
+      '2026-03-08T04:30:00Z',
+      '2026-03-07',
+    ],
+    [
+      'fall back',
+      'Mon, 26 Oct 2026 14:00:00 GMT',
+      '2026-10-31T04:30:00Z',
+      '2026-10-31',
+    ],
   ])(
     'keeps rolling dates and overnight cycles correct across %s',
-    async (_, seasonStart, timestamp) => {
+    async (_, seasonStart, timestamp, expectedStartDate) => {
       jest.mocked(fetch).mockImplementation(
         createMockFetch({
           scheduleXml: scheduleXml.replace(
@@ -128,20 +131,15 @@ describe('ScheduleService calendar-day filtering', () => {
         }),
       );
       const schedule = await scheduleService.fetchSchedule();
-      const days = scheduleService.getRollingScheduleDays(
-        schedule.shows,
-        new Date(timestamp),
-      );
+      const days = getActiveScheduleDays(schedule.shows, new Date(timestamp));
 
-      expect(days.map(day => day.dayName)).toEqual([
-        'Saturday',
-        'Sunday',
-        'Monday',
-        'Tuesday',
-        'Wednesday',
-        'Thursday',
-        'Friday',
-      ]);
+      const expectedDates = Array.from({ length: 7 }, (_e, dayOffset) => {
+        const date = new Date(`${expectedStartDate}T12:00:00Z`);
+        date.setUTCDate(date.getUTCDate() + dayOffset);
+        return date;
+      });
+
+      expect(days.map(day => day.date)).toEqual(expectedDates);
       expect(days[1].shows.map(show => show.id)).toEqual([
         'sunday-cycle-week-1',
       ]);
@@ -156,7 +154,7 @@ describe('ScheduleService calendar-day filtering', () => {
   );
 
   test('filters expanded weekday entries separately across a week boundary', () => {
-    const days = scheduleService.getRollingScheduleDays(
+    const days = getActiveScheduleDays(
       scheduleShows,
       new Date('2026-05-29T12:00:00Z'),
     );
@@ -185,11 +183,11 @@ describe('ScheduleService calendar-day filtering', () => {
         }),
       );
       const schedule = await scheduleService.fetchSchedule();
-      const sundayShows = scheduleService.getRollingScheduleDays(
+      const sundayShows = getActiveScheduleDays(
         schedule.shows,
         new Date(`${sundayDate}T12:00:00Z`),
       )[0].shows;
-      const mondayShows = scheduleService.getRollingScheduleDays(
+      const mondayShows = getActiveScheduleDays(
         schedule.shows,
         new Date(`${mondayDate}T12:00:00Z`),
       )[0].shows;
@@ -207,7 +205,7 @@ describe('ScheduleService calendar-day filtering', () => {
   );
 
   test("keeps 1am Monday under Monday but uses Sunday's broadcast cycle", () => {
-    const days = scheduleService.getRollingScheduleDays(
+    const days = getActiveScheduleDays(
       scheduleShows,
       new Date('2026-05-31T12:00:00Z'),
     );
@@ -236,7 +234,7 @@ describe('ScheduleService calendar-day filtering', () => {
         createMockFetch({ scheduleXml: scheduleWithEarlierCutoff }),
       );
     const schedule = await scheduleService.fetchSchedule();
-    const mondayShows = scheduleService.getRollingScheduleDays(
+    const mondayShows = getActiveScheduleDays(
       schedule.shows,
       new Date('2026-06-01T12:00:00Z'),
     )[0].shows;
@@ -249,7 +247,7 @@ describe('ScheduleService calendar-day filtering', () => {
 
   test('keeps weekly shows regardless of the section week', () => {
     for (const date of ['2026-05-25', '2026-06-01']) {
-      const mondayShows = scheduleService.getRollingScheduleDays(
+      const mondayShows = getActiveScheduleDays(
         scheduleShows,
         new Date(`${date}T12:00:00Z`),
       )[0].shows;
@@ -258,7 +256,7 @@ describe('ScheduleService calendar-day filtering', () => {
   });
 
   test('uses the section date for four-week cycles too', () => {
-    const mondayShows = scheduleService.getRollingScheduleDays(
+    const mondayShows = getActiveScheduleDays(
       scheduleShows,
       new Date('2026-06-01T12:00:00Z'),
     )[0].shows;
@@ -268,7 +266,7 @@ describe('ScheduleService calendar-day filtering', () => {
   });
 
   test('uses the Eastern date even when UTC has reached the next day', () => {
-    const mondayShows = scheduleService.getRollingScheduleDays(
+    const mondayShows = getActiveScheduleDays(
       scheduleShows,
       new Date('2026-06-02T03:00:00Z'), // Still Monday, 11pm Eastern.
     )[0].shows;
@@ -291,7 +289,7 @@ describe('ScheduleService calendar-day filtering', () => {
       }),
     );
     const schedule = await scheduleService.fetchSchedule();
-    const mondayShows = scheduleService.getRollingScheduleDays(
+    const mondayShows = getActiveScheduleDays(
       schedule.shows,
       new Date('2026-03-09T04:00:00Z'), // Midnight Eastern after the clock change.
     )[0].shows;
@@ -301,6 +299,81 @@ describe('ScheduleService calendar-day filtering', () => {
       'sunday-night-week-2',
     );
     expect(mondayShows.map(show => show.id)).toContain('weekday-week-2');
+  });
+
+  test('retains all alternating shows in their calendar-day sections', () => {
+    const days = scheduleService.getRollingScheduleDays(
+      scheduleShows,
+      new Date('2026-05-29T12:00:00Z'),
+    );
+
+    expect(days[0].shows.map(show => show.id)).toEqual([
+      'weekday-week-1',
+      'weekday-week-2',
+    ]);
+    expect(days[3].date).toEqual(new Date('2026-06-01T12:00:00Z'));
+    expect(days[3].shows.map(show => show.id)).toEqual([
+      'sunday-night-week-1',
+      'sunday-night-week-2',
+      'monday-4am-week-2',
+      'weekly',
+      'weekday-week-1',
+      'weekday-week-2',
+      'monthly-week-1',
+      'monthly-week-2',
+    ]);
+  });
+
+  test.each([
+    ['weekly', '2026-06-01', '2026-06-01'],
+    ['weekday-week-1', '2026-06-01', '2026-06-08'],
+    ['weekday-week-2', '2026-05-29', '2026-06-01'],
+    ['sunday-cycle-week-2', '2026-05-31', '2026-06-07'],
+    ['sunday-night-week-1', '2026-06-01', '2026-06-01'],
+    ['sunday-night-week-2', '2026-06-01', '2026-06-08'],
+    ['monthly-week-1', '2026-06-01', '2026-06-22'],
+    ['monthly-week-2', '2026-06-08', '2026-06-29'],
+    ['sunday-night-week-1', '2026-10-26', '2026-11-02'],
+    ['weekly', '2026-12-29', '2027-01-04'],
+  ])('finds the next airing of %s from %s on %s', (id, date, expected) => {
+    const show = scheduleShows.find(entry => entry.id === id)!;
+    const sectionDate = new Date(`${date}T12:00:00Z`);
+
+    expect(scheduleService.getNextAirDate(show, sectionDate)).toEqual(
+      new Date(`${expected}T12:00:00Z`),
+    );
+    expect(sectionDate).toEqual(new Date(`${date}T12:00:00Z`));
+  });
+
+  test.each([
+    [5, '2026-06-22'],
+    [6, '2026-06-01'],
+    [7, '2026-06-08'],
+    [8, '2026-06-15'],
+  ])('finds the next Monday for four-week code %s', (alternates, expected) => {
+    const show = { ...scheduleShows[0], alternates };
+
+    expect(
+      scheduleService.getNextAirDate(show, new Date('2026-06-01T12:00:00Z')),
+    ).toEqual(new Date(`${expected}T12:00:00Z`));
+  });
+
+  test('returns no next date for an alternating show without a season start', () => {
+    const serviceWithoutSeasonStart = new ScheduleService();
+    const show = scheduleShows.find(entry => entry.id === 'weekday-week-1')!;
+
+    expect(
+      serviceWithoutSeasonStart.getNextAirDate(
+        show,
+        new Date('2026-06-01T12:00:00Z'),
+      ),
+    ).toBeNull();
+    expect(
+      serviceWithoutSeasonStart.getNextAirDate(
+        scheduleShows[0],
+        new Date('2026-06-01T12:00:00Z'),
+      ),
+    ).toEqual(new Date('2026-06-01T12:00:00Z'));
   });
 
   test('preserves the unfiltered fallback when the season start is missing', async () => {

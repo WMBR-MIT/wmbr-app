@@ -104,13 +104,13 @@ export class ScheduleService {
 
   /**
    * Build seven Eastern calendar days starting today, including empty days.
-   * Each day's shows use that date's alternating cycle and broadcast cutoff.
+   * Include every show in its calendar-day section, regardless of its cycle.
    * Pass a real timestamp for now.
    */
   getRollingScheduleDays(
     shows: ScheduleShow[],
     now: Date,
-  ): { dayName: string; shows: ScheduleShow[] }[] {
+  ): { date: Date; shows: ScheduleShow[] }[] {
     const todayDate = getEasternCalendarDateAtNoonUTC(now);
     const groupedShows = this.groupShowsByDay(shows);
 
@@ -120,39 +120,37 @@ export class ScheduleService {
       const dayName = dayNames[sectionDate.getUTCDay()];
 
       return {
-        dayName,
-        shows: this.filterActiveShows(groupedShows[dayName] || [], sectionDate),
+        date: sectionDate,
+        shows: groupedShows[dayName] || [],
       };
     });
   }
 
   /**
-   * Filters shows in a calendar-day section using that section's actual date
-   * and each show's `alternates` value relative to the season start.
-   *
-   * @param {ScheduleShow[]} shows The list of shows to filter.
-   * @param {Date} targetDate The calendar date represented by the section.
-   * @returns {ScheduleShow[]} A filtered list of active shows.
+   * Find the first airing on or after the section's Eastern calendar date.
+   * Return noon UTC, like the section dates, or null if the cycle is unknown.
+   * This is date-based: today's shows count even if their start time has passed.
    */
-  private filterActiveShows(
-    shows: ScheduleShow[],
-    targetDate: Date,
-  ): ScheduleShow[] {
-    if (shows.length === 0) {
-      return shows;
+  getNextAirDate(show: ScheduleShow, targetDate: Date): Date | null {
+    if (show.alternates !== 0 && !this.seasonStart) {
+      return null;
     }
 
-    if (!this.seasonStart) {
-      debugError('Season start date is not set. Cannot filter active shows.');
-      return shows; // Return all shows if season start is unknown
-    }
+    const candidateDate = getEasternCalendarDateAtNoonUTC(targetDate);
+    const calendarDay =
+      parseInt(show.time, 10) < this.dayStart
+        ? (show.day + 1) % dayNames.length
+        : show.day;
 
-    const sectionDate = getEasternCalendarDateAtNoonUTC(targetDate);
-
-    // Alternating cycles are anchored to the XML season-start date.
-
-    return shows.filter(show => {
-      const broadcastDate = new Date(sectionDate);
+    // Every supported cycle repeats within four weeks. Check actual air days
+    // so a weekday show's next airing can be Monday rather than next Friday.
+    for (let dayOffset = 0; dayOffset < 28; dayOffset++) {
+      const candidateDay = candidateDate.getUTCDay();
+      const isScheduledDay =
+        show.day === 7
+          ? candidateDay >= 1 && candidateDay <= 5
+          : candidateDay === calendarDay;
+      const broadcastDate = new Date(candidateDate);
 
       // An early-morning show stays in its calendar-day section, but belongs
       // to the previous broadcast day's alternating cycle (e.g. Sunday night
@@ -161,8 +159,18 @@ export class ScheduleService {
         broadcastDate.setUTCDate(broadcastDate.getUTCDate() - 1);
       }
 
-      return isAlternatingShowActive(show, broadcastDate, this.seasonStart);
-    });
+      // Alternating cycles are anchored to the XML season-start date.
+      if (
+        isScheduledDay &&
+        isAlternatingShowActive(show, broadcastDate, this.seasonStart)
+      ) {
+        return candidateDate;
+      }
+
+      candidateDate.setUTCDate(candidateDate.getUTCDate() + 1);
+    }
+
+    return null;
   }
 
   /**

@@ -2,6 +2,24 @@
 
 React Native app for WMBR radio streaming (live + archives), schedules, and playlists.
 
+## Genereal Guidelines
+
+- Prefer code legibility over succinctness or robustness. A human will be
+    evaluating what you write, so write with that in mind.
+- Err on the side of over-commenting. Again, a human will be reading your code,
+    and inline comments can help them to understand it.
+- Always explain edits before you attempt to make them, so I can understand what
+    you're doing.
+- When looking for files, please note:
+  - Imports are using aliases. Check tsconfig.json to see what they are.
+  - Imports commonly exclude the file extension. If an import refers to, for
+      instance, `@app/Page`, the actual file may be `src/app/Page.{ts,tsx}` or
+      `src/app/Page/index.{ts,tsx}`.
+- Don't use the global `React` to access hooks or types; always import them
+    explicitly from 'react' (e.g. `import React, { useState } from 'react'`).
+- Use variable names that are easy to understand. Avoid abbreviations, like `s`
+    for `state` or `p` for `progress`.
+
 ## Project Structure
 
 - **App Shell & Tabs**: `src/app/index.tsx` (Bottom tab navigator + custom bar)
@@ -31,6 +49,12 @@ React Native app for WMBR radio streaming (live + archives), schedules, and play
   - `1` & `2` alternate every other week (pair at same timeslot)
   - `5–8` one specific week in a 4‑week cycle (Week 1–4)
   - Weekday shows use `day=7` and are expanded across Monday–Friday.
+
+## Best Practices
+
+- Don't use any "bare" colors, either hex or `rgb()`. Instead, use values from
+    the `COLORS` object in `src/utils/Colors.ts`, or `CORE_COLORS` if there
+    doesn't seem to be a matching semantic color.
 
 ## Data Flow (High Level)
 

@@ -1,17 +1,23 @@
-import React, { useCallback, useRef, useEffect } from 'react';
-import { View, TouchableOpacity, StyleSheet, Animated } from 'react-native';
-import { SvgXml } from 'react-native-svg';
+import React, { useCallback, useMemo, useRef, useEffect } from 'react';
+import {
+  View,
+  TouchableOpacity,
+  StyleSheet,
+  Animated,
+  Platform,
+} from 'react-native';
+import Icon from '@components/Icon';
 import { State, usePlaybackState } from 'react-native-track-player';
-import { CORE_COLORS } from '../../utils/Colors';
+import { CORE_COLORS } from '@utils/Colors';
 
 interface PlayButtonProps {
   onPress: () => void;
-  isPlayerInitialized: boolean;
+  isPlayingArchive?: boolean;
 }
 
 export default function PlayButton({
   onPress,
-  isPlayerInitialized: _isPlayerInitialized,
+  isPlayingArchive,
 }: PlayButtonProps) {
   const playbackState = usePlaybackState();
   const pulseAnim = useRef(new Animated.Value(1)).current;
@@ -56,6 +62,60 @@ export default function PlayButton({
     }).start();
   }, [pulseAnim, rotateAnim]);
 
+  /**
+   * If we're playing, we either:
+   * a. show a pause icon if we're playing an archive.
+   * b. show a stop icon if we're playing the live stream.
+   *
+   * Otherwise, we show a play icon.
+   */
+  const playbackButtonLabel = useMemo(() => {
+    if (isPlaying) {
+      if (isPlayingArchive) {
+        return 'Pause Button';
+      } else {
+        return 'Stop Button';
+      }
+    } else {
+      return 'Play Button';
+    }
+  }, [isPlaying, isPlayingArchive]);
+
+  const playbackIcon = useMemo(
+    () =>
+      isPlaying ? (
+        isPlayingArchive ? (
+          <Icon
+            name={{
+              ios: 'pause.fill',
+              android: 'pause',
+            }}
+            size={48}
+            color={CORE_COLORS.WMBR_GREEN}
+          />
+        ) : (
+          <Icon
+            name={{
+              ios: 'stop.fill',
+              android: 'stop',
+            }}
+            size={48}
+            color={CORE_COLORS.WMBR_GREEN}
+          />
+        )
+      ) : (
+        <Icon
+          name={{
+            ios: 'play.fill',
+            android: 'play-arrow',
+          }}
+          size={48}
+          color={CORE_COLORS.WHITE}
+        />
+      ),
+    [isPlaying, isPlayingArchive],
+  );
+
   useEffect(() => {
     if (playbackState?.state === State.Playing) {
       startPulseAnimation();
@@ -82,37 +142,10 @@ export default function PlayButton({
             style={[styles.playButton, isPlaying && styles.playButtonActive]}
             onPress={onPress}
             activeOpacity={0.8}
-            aria-label={isPlaying ? 'Pause Button' : 'Play Button'}
+            accessibilityLabel={playbackButtonLabel}
           >
             <View style={styles.buttonContent}>
-              <View style={styles.iconContainer}>
-                {isPlaying ? (
-                  <View style={styles.pauseIcon}>
-                    <View
-                      style={[
-                        styles.pauseBar,
-                        isPlaying && styles.pauseBarActive,
-                      ]}
-                    />
-                    <View
-                      style={[
-                        styles.pauseBar,
-                        isPlaying && styles.pauseBarActive,
-                      ]}
-                    />
-                  </View>
-                ) : (
-                  <SvgXml
-                    xml={`
-                      <svg viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
-                        <polygon points="6,4 30,18 6,32" fill="#FFFFFF" />
-                      </svg>
-                    `}
-                    width={40}
-                    height={40}
-                  />
-                )}
-              </View>
+              <View style={styles.iconContainer}>{playbackIcon}</View>
             </View>
           </TouchableOpacity>
         </View>
@@ -150,7 +183,8 @@ const styles = StyleSheet.create({
   playButton: {
     width: 180,
     height: 180,
-    borderRadius: 90,
+    // Weird hack to prevent octagon from appearing on Android
+    borderRadius: Platform.select({ ios: 90, android: 89 }),
     backgroundColor: CORE_COLORS.WMBR_GREEN,
     justifyContent: 'center',
     alignItems: 'center',
@@ -161,8 +195,8 @@ const styles = StyleSheet.create({
     elevation: 12,
   },
   playButtonActive: {
-    backgroundColor: '#FFFFFF',
-    shadowColor: '#FFFFFF',
+    backgroundColor: CORE_COLORS.WHITE,
+    shadowColor: CORE_COLORS.WHITE,
   },
   buttonContent: {
     width: '100%',
@@ -173,19 +207,5 @@ const styles = StyleSheet.create({
   iconContainer: {
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  pauseIcon: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  pauseBar: {
-    width: 8,
-    height: 36,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 2,
-  },
-  pauseBarActive: {
-    backgroundColor: CORE_COLORS.WMBR_GREEN,
   },
 });

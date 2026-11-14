@@ -19,12 +19,11 @@ import {
   StyleSheet,
   Dimensions,
   ScrollView,
-  SafeAreaView,
   StatusBar,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
+import Icon from '@components/Icon';
 import LinearGradient from 'react-native-linear-gradient';
-import { debugLog, debugError } from '../../utils/Debug';
+import { debugLog, debugError } from '@utils/Debug';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -32,9 +31,9 @@ import Animated, {
   Easing,
   runOnJS,
 } from 'react-native-reanimated';
-import { Show, Archive } from '../../types/RecentlyPlayed';
-import { WmbrRouteName } from '../../types/Navigation';
-import { ArchiveService } from '../../services/ArchiveService';
+import { Show, Archive } from '@customTypes/RecentlyPlayed';
+import { WmbrRouteName } from '@customTypes/Navigation';
+import { ArchiveService } from '@services/ArchiveService';
 import {
   useProgress,
   usePlaybackState,
@@ -42,18 +41,19 @@ import {
 } from 'react-native-track-player';
 import TrackPlayer from 'react-native-track-player';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import { ShowImage } from '../../components/ShowImage';
+import { ShowImage } from '@components/ShowImage';
 import {
   formatDate,
   getDurationFromSize,
   formatShowTime,
   secondsToTime,
-} from '../../utils/DateTime';
-import { COLORS } from '../../utils/Colors';
+} from '@utils/DateTime';
+import { COLORS, CORE_COLORS } from '@utils/Colors';
 import {
   generateDarkGradientColors,
   generateGradientColors,
-} from '../../utils/GradientColors';
+} from '@utils/GradientColors';
+import { ScheduleShow } from '@customTypes/Schedule';
 
 const { width } = Dimensions.get('window');
 const CIRCLE_DIAMETER = 16;
@@ -61,6 +61,7 @@ const CIRCLE_DIAMETER = 16;
 // Route params for ShowDetailsPage
 export type ShowDetailsPageRouteParams = {
   show: Show;
+  scheduleShow?: ScheduleShow;
 };
 
 export default function ShowDetailsPage() {
@@ -69,7 +70,7 @@ export default function ShowDetailsPage() {
 
   const route =
     useRoute<RouteProp<Record<string, ShowDetailsPageRouteParams>, string>>();
-  const show: Show = route.params!.show;
+  const { show, scheduleShow } = route.params;
 
   const headerHeight = useHeaderHeight();
 
@@ -292,23 +293,27 @@ export default function ShowDetailsPage() {
       <StatusBar barStyle="light-content" backgroundColor={gradientStart} />
 
       <LinearGradient
-        colors={[darkGradientStart, darkGradientEnd, '#000000']}
+        colors={[darkGradientStart, darkGradientEnd, CORE_COLORS.BLACK]}
         locations={[0, 0.3, 1]}
         style={styles.gradient}
       >
-        <SafeAreaView style={[styles.safeArea, { paddingTop: headerHeight }]}>
-          <ScrollView
-            style={styles.scrollView}
-            showsVerticalScrollIndicator={false}
-          >
+        <ScrollView>
+          <View style={[{ paddingTop: headerHeight }]}>
             <ShowImage showName={show.name} />
 
             {/* Show Info */}
             <View style={styles.infoSection}>
               <Text style={styles.showTitle}>{show.name}</Text>
-              <Text style={styles.showSchedule}>{formatShowTime(show)}</Text>
-              {show.hosts && (
-                <Text style={styles.showHosts}>Hosted by {show.hosts}</Text>
+              <View>
+                <Text style={styles.showSchedule}>{formatShowTime(show)}</Text>
+                {show.hosts && (
+                  <Text style={styles.showHosts}>Hosted by {show.hosts}</Text>
+                )}
+              </View>
+              {scheduleShow?.description && (
+                <Text style={styles.showDescription}>
+                  {scheduleShow.description}
+                </Text>
               )}
               <Text style={styles.archiveCount}>
                 {archives.length} archived episode
@@ -375,11 +380,17 @@ export default function ShowDetailsPage() {
                           name={
                             isCurrentlyPlaying &&
                             playbackState?.state === State.Playing
-                              ? 'pause-circle'
-                              : 'play-circle'
+                              ? {
+                                  ios: 'pause.circle',
+                                  android: 'pause-circle',
+                                }
+                              : {
+                                  ios: 'play.circle',
+                                  android: 'play-circle',
+                                }
                           }
                           size={28}
-                          color={'#FFFFFF'}
+                          color={COLORS.TEXT.PRIMARY}
                         />
                       </TouchableOpacity>
 
@@ -451,10 +462,8 @@ export default function ShowDetailsPage() {
                 </View>
               )}
             </View>
-
-            <View style={styles.bottomPadding} />
-          </ScrollView>
-        </SafeAreaView>
+          </View>
+        </ScrollView>
       </LinearGradient>
     </>
   );
@@ -464,36 +473,32 @@ const styles = StyleSheet.create({
   gradient: {
     flex: 1,
   },
-  safeArea: {
-    flex: 1,
-  },
-  scrollView: {
-    flex: 1,
-  },
   infoSection: {
     paddingHorizontal: 20,
     paddingBottom: 30,
+    flexDirection: 'column',
+    rowGap: 8,
   },
   showTitle: {
     color: COLORS.TEXT.PRIMARY,
     fontSize: 32,
     fontWeight: 'bold',
-    marginBottom: 8,
   },
   showSchedule: {
-    color: COLORS.TEXT.SECONDARY,
-    fontSize: 16,
-    marginBottom: 4,
+    color: COLORS.TEXT.TERTIARY,
+    fontSize: 14,
   },
   showHosts: {
-    color: COLORS.TEXT.SECONDARY,
+    color: COLORS.TEXT.TERTIARY,
+    fontSize: 14,
+  },
+  showDescription: {
+    color: COLORS.TEXT.PRIMARY,
     fontSize: 16,
-    marginBottom: 8,
   },
   archiveCount: {
-    color: COLORS.TEXT.SECONDARY,
+    color: COLORS.TEXT.TERTIARY,
     fontSize: 14,
-    fontWeight: '500',
   },
   archivesSection: {
     paddingHorizontal: 20,
@@ -511,14 +516,17 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 16,
     marginBottom: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: COLORS.CARD.SUBTLE.BACKGROUND,
+    borderColor: COLORS.CARD.SUBTLE.BORDER,
+    borderWidth: 1,
     borderRadius: 8,
     position: 'relative',
     overflow: 'hidden',
   },
   archiveItemPlaying: {
-    borderWidth: 2,
-    borderColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: COLORS.CARD.ACTIVE.BORDER,
+    backgroundColor: COLORS.CARD.ACTIVE.BACKGROUND,
   },
   archiveInfoContainer: {
     flex: 1,
@@ -608,8 +616,5 @@ const styles = StyleSheet.create({
     color: COLORS.TEXT.TERTIARY,
     fontSize: 16,
     fontStyle: 'italic',
-  },
-  bottomPadding: {
-    height: 100,
   },
 });

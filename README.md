@@ -2,6 +2,8 @@
 
 A React Native app for streaming WMBR 88.1 FM and browsing show archives, song history, and schedules.
 
+You can download the latest release from the [Apple](https://apps.apple.com/app/wmbr/id6749026414) and [Google Play](https://apps.apple.com/app/wmbr/id6749026414) mobile app stores.
+
 ## Features
 
 - **Live Stream**: Listen to WMBR 88.1 FM with live show information
@@ -52,11 +54,10 @@ A React Native app for streaming WMBR 88.1 FM and browsing show archives, song h
 npx react-native bump-version --type (patch|minor|major)
 ```
 
-Tag the current HEAD of `main` branch with the new version number.
+Add a new tag for the release:
 
 ```bash
 git tag vX.Y.Z
-git push origin --tags
 ```
 
 ### Android Release Setup
@@ -88,8 +89,32 @@ Output: `android/app/build/outputs/bundle/release/app-release.aab`
 - **Hot reload**: Save any file to see changes instantly
 - **Restart**: Press `R` in the simulator to reload
 - **Debug menu**: Press `Cmd + D` in simulator for debug options
+- **Path aliases**: Path aliases must be set up in both `tsconfig.json` and
+    `babel.config.js`
 
 ## Troubleshooting
+
+### Android Studio
+
+If the Android app won't build, with the message "INSTALL_FAILED_VERSION_DOWNGRADE: Downgrade detected", try uninstalling the existing app:
+
+```bash
+adp uninstall com.wmbrapp
+```
+
+If there are some Gradle package errors, try cleaning the Gradle cache:
+
+```bash
+cd android && ./gradlew clean
+```
+
+Delete the `autolinking` directory:
+
+```bash
+rm -rf android/app/build/generated/autolinking
+```
+
+Then click the elephant icon ("Sync Project with Gradle Files").
 
 ### General Issues
 

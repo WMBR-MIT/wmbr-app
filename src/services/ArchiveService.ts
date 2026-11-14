@@ -1,7 +1,8 @@
 import TrackPlayer, { Track } from 'react-native-track-player';
-import { Show, Archive } from '../types/RecentlyPlayed';
-import { debugLog, debugError } from '../utils/Debug';
-import { DEFAULT_NAME } from '../types/Playlist';
+import { Show, Archive } from '@customTypes/RecentlyPlayed';
+import { debugLog, debugError } from '@utils/Debug';
+import { DEFAULT_NAME } from '@customTypes/Playlist';
+import { getUserAgent } from '@utils/UserAgent';
 
 export interface ArchivePlaybackState {
   isPlayingArchive: boolean;
@@ -52,13 +53,30 @@ export class ArchiveService {
       await TrackPlayer.stop();
       await TrackPlayer.reset();
 
-      // Create archive track
+      const showDate = new Date(archive.date).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        timeZone: 'America/New_York',
+      });
+
+      // Create archive track.
+      //
+      // We set an explicit `duration` (show length is in minutes) so iOS has a
+      // known duration the instant the track becomes active. Without it, iOS
+      // treats the item as indeterminate until AVPlayer parses the duration off
+      // the network, and on a fast cold start it renders the lock-screen
+      // controls before that happens — showing play/pause/stop but hiding the
+      // skip-interval buttons and scrubber for the rest of the session. RNTP
+      // corrects this value once the real duration is known.
       const archiveTrack: Track = {
-        id: 'archive',
+        id: `${show.name}-${archive.date}`,
         url: archive.url,
-        title: `${show.name} - Archive`,
-        artist: `${DEFAULT_NAME} - ${archive.date}`,
+        title: `${show.name}: ${showDate}`,
+        artist: DEFAULT_NAME,
         artwork: require('../../assets/cover.png'),
+        userAgent: getUserAgent(),
+        ...(show.length > 0 && { duration: show.length * 60 }),
       };
 
       // Add and play archive
@@ -95,6 +113,8 @@ export class ArchiveService {
         title: DEFAULT_NAME,
         artist: currentShowTitle || 'Live Radio',
         artwork: require('../../assets/cover.png'),
+        isLiveStream: true,
+        userAgent: getUserAgent(),
       };
 
       // Add and play live stream

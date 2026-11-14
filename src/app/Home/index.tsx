@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
-import { debugError } from '../../utils/Debug';
+import he from 'he';
+import { debugError } from '@utils/Debug';
 import {
   View,
   Text,
@@ -12,38 +13,37 @@ import {
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 import TrackPlayer, {
-  Capability,
   State,
   usePlaybackState,
+  useProgress,
 } from 'react-native-track-player';
+import Icon from '@components/Icon';
+import { SKIP_INTERVAL, liveCapabilities } from '@utils/TrackPlayerUtils';
 import LinearGradient from 'react-native-linear-gradient';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SvgXml } from 'react-native-svg';
 import PlayButton from './PlayButton';
 import SplashScreen from './SplashScreen';
-import MetadataService, {
-  ShowInfo,
-  Song,
-} from '../../services/MetadataService';
-import { RecentlyPlayedService } from '../../services/RecentlyPlayedService';
-import {
-  ArchiveService,
-  ArchivePlaybackState,
-} from '../../services/ArchiveService';
-import { AudioPreviewService } from '../../services/AudioPreviewService';
-import { getWMBRLogoSVG } from '../../utils/WMBRLogo';
+import MetadataService, { ShowInfo, Song } from '@services/MetadataService';
+import { RecentlyPlayedService } from '@services/RecentlyPlayedService';
+import { ArchiveService, ArchivePlaybackState } from '@services/ArchiveService';
+import { AudioPreviewService } from '@services/AudioPreviewService';
+import { getWMBRLogoSVG } from '@utils/WMBRLogo';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import { WmbrRouteName } from '../../types/Navigation';
-import { DEFAULT_NAME } from '../../types/Playlist';
-import { COLORS, CORE_COLORS } from '../../utils/Colors';
-import { formatArchiveDate } from '../../utils/DateTime';
+import { WmbrRouteName } from '@customTypes/Navigation';
+import { DEFAULT_NAME } from '@customTypes/Playlist';
+import { COLORS, CORE_COLORS } from '@utils/Colors';
+import { formatArchiveDate } from '@utils/DateTime';
+import { getUserAgent } from '@utils/UserAgent';
 
 import HomeNowPlaying from './HomeNowPlaying';
+import { ScheduleService } from '@services/ScheduleService';
 
 const streamUrl = 'https://wmbr.org:8002/hi';
 
 export default function HomeScreen() {
   const playbackState = usePlaybackState();
+  const progress = useProgress();
   const insets = useSafeAreaInsets();
   const [currentShow, setCurrentShow] = useState(DEFAULT_NAME);
   const [, setSongHistory] = useState<Song[]>([]);
@@ -59,10 +59,43 @@ export default function HomeScreen() {
     liveStreamUrl: streamUrl,
   });
 
+  const scheduleService = ScheduleService.getInstance();
+
   const isPlaying = playbackState?.state === State.Playing;
 
   const navigation =
     useNavigation<NavigationProp<Record<WmbrRouteName, object | undefined>>>();
+
+  const bottomSpacerStyle = useMemo(
+    () => ({ height: Math.max(insets.bottom + 56, 56) }),
+    [insets.bottom],
+  );
+
+  const setupPlayer = useCallback(async () => {
+    try {
+      // If the player already exists, mark it initialized and skip setup
+      try {
+        await TrackPlayer.getPlaybackState();
+        setIsPlayerInitialized(true);
+        return;
+      } catch (e) {
+        // not initialized yet, proceed
+      }
+
+      await TrackPlayer.setupPlayer({
+        autoHandleInterruptions: true,
+      });
+
+      // Start with live capabilities, since this is the default stream
+      await TrackPlayer.updateOptions({
+        capabilities: liveCapabilities,
+      });
+
+      setIsPlayerInitialized(true);
+    } catch (error) {
+      debugError('Error setting up player:', error);
+    }
+  }, []);
 
   useEffect(() => {
     setupPlayer();
@@ -72,7 +105,7 @@ export default function HomeScreen() {
     const unsubscribeMetadata = metadataService.subscribe((data: ShowInfo) => {
       setShowInfo(data);
       setCurrentShow(data.showTitle);
-      setHosts(data.hosts);
+      setHosts(he.decode(data.hosts || ''));
       setShowDescription(data.description);
 
       try {
@@ -88,7 +121,7 @@ export default function HomeScreen() {
       },
     );
 
-    metadataService.startPolling(15000);
+    metadataService.startPolling(30000);
 
     // Subscribe to archive service
     const unsubscribeArchive =
@@ -100,22 +133,41 @@ export default function HomeScreen() {
       unsubscribeSongs();
       unsubscribeArchive();
     };
-  }, []); // Empty dependency array - only run once on mount
+  }, [setupPlayer]);
+
+  const liveMetadata = useMemo(() => {
+    if (showInfo?.currentSong && showInfo?.currentArtist) {
+      return {
+        title: `${showInfo.currentArtist} - ${showInfo.currentSong}`,
+        artist: `${currentShow || 'Live Radio'} | ${DEFAULT_NAME}`,
+        artwork: require('../../../assets/cover.png'),
+      };
+    }
+
+    return {
+      title: currentShow || DEFAULT_NAME,
+      artist: currentShow ? DEFAULT_NAME : 'Live Radio',
+      artwork: require('../../../assets/cover.png'),
+    };
+  }, [showInfo, currentShow]);
 
   // Separate useEffect for updating track metadata when show changes
   useEffect(() => {
     const updateLiveTrackMetadata = async () => {
-      if (!isPlayerInitialized) {
-        return; // Don't try to update metadata if player isn't initialized yet
+      // Don't try to update metadata if player isn't initialized yet, or is in a state that isn't active
+      const allowedStates = [State.Playing, State.Paused, State.Ready];
+      if (
+        !isPlayerInitialized ||
+        !playbackState.state ||
+        !allowedStates.includes(playbackState.state)
+      ) {
+        return;
       }
 
       try {
         // Only update if we're not playing an archive
         if (!archiveState.isPlayingArchive) {
-          await TrackPlayer.updateMetadataForTrack(0, {
-            title: DEFAULT_NAME,
-            artist: currentShow || 'Live Radio',
-          });
+          await TrackPlayer.updateMetadataForTrack(0, liveMetadata);
         }
       } catch (error) {
         debugError('Error updating track metadata:', error);
@@ -123,38 +175,12 @@ export default function HomeScreen() {
     };
 
     updateLiveTrackMetadata();
-  }, [currentShow, archiveState.isPlayingArchive, isPlayerInitialized]);
-
-  const setupPlayer = async () => {
-    try {
-      // If the player already exists, mark it initialized and skip setup
-      try {
-        await TrackPlayer.getPlaybackState();
-        setIsPlayerInitialized(true);
-        return;
-      } catch (e) {
-        // not initialized yet, proceed
-      }
-
-      await TrackPlayer.setupPlayer();
-      await TrackPlayer.updateOptions({
-        capabilities: [Capability.Play, Capability.Pause, Capability.Stop],
-        compactCapabilities: [Capability.Play, Capability.Pause],
-      });
-
-      await TrackPlayer.add({
-        id: 'wmbr-stream',
-        url: streamUrl,
-        title: DEFAULT_NAME,
-        artist: 'Live Radio',
-        artwork: require('../../../assets/cover.png'),
-      });
-
-      setIsPlayerInitialized(true);
-    } catch (error) {
-      debugError('Error setting up player:', error);
-    }
-  };
+  }, [
+    liveMetadata,
+    archiveState.isPlayingArchive,
+    isPlayerInitialized,
+    playbackState?.state,
+  ]);
 
   const togglePlayback = useCallback(async () => {
     if (!isPlayerInitialized) {
@@ -167,30 +193,46 @@ export default function HomeScreen() {
       const previewState = audioPreviewService.getCurrentState();
 
       if (isPlaying) {
-        await TrackPlayer.pause();
+        if (archiveState.isPlayingArchive) {
+          await TrackPlayer.pause();
+        } else {
+          await TrackPlayer.stop();
+        }
       } else {
         if (previewState.url !== null) {
           await audioPreviewService.stop();
-          const queue = await TrackPlayer.getQueue();
-          const hasLiveStream = queue.some(track => track.id === 'wmbr-stream');
-          if (!hasLiveStream) {
-            await TrackPlayer.add({
-              id: 'wmbr-stream',
-              url: streamUrl,
-              title: DEFAULT_NAME,
-              artist: currentShow || 'Live Radio',
-              artwork: require('../../../assets/cover.png'),
-            });
-          }
         }
+
+        const queue = await TrackPlayer.getQueue();
+
+        const hasLiveStream = queue.some(track => track.id === 'wmbr-stream');
+
+        const liveTrack = {
+          id: 'wmbr-stream',
+          url: streamUrl,
+          ...liveMetadata,
+          isLiveStream: true,
+          userAgent: getUserAgent(),
+        };
+
+        if (!hasLiveStream) {
+          await TrackPlayer.add(liveTrack);
+        }
+
         await TrackPlayer.play();
       }
     } catch (error) {
       debugError('Error toggling playback:', error);
     }
-  }, [currentShow, isPlayerInitialized, isPlaying]);
+  }, [
+    archiveState.isPlayingArchive,
+    isPlayerInitialized,
+    isPlaying,
+    liveMetadata,
+  ]);
 
   const handleSplashEnd = () => setShowSplash(false);
+
   const handleSwitchToLive = useCallback(async () => {
     try {
       await ArchiveService.getInstance().switchToLive(currentShow);
@@ -199,14 +241,24 @@ export default function HomeScreen() {
     }
   }, [currentShow]);
 
-  const bottomSpacerStyle = useMemo(
-    () => ({ height: Math.max(insets.bottom + 56, 56) }),
-    [insets.bottom],
-  );
+  const handleSkipBackward = useCallback(async () => {
+    const newPosition = Math.max(progress.position - SKIP_INTERVAL, 0);
+    await TrackPlayer.seekTo(newPosition);
+  }, [progress.position]);
 
-  const handleOpenShowDetails = useCallback(() => {
+  const handleSkipForward = useCallback(async () => {
+    const newPosition = Math.min(
+      progress.position + SKIP_INTERVAL,
+      progress.duration,
+    );
+    await TrackPlayer.seekTo(newPosition);
+  }, [progress.position, progress.duration]);
+
+  const handleOpenShowDetails = useCallback(async () => {
     const show = archiveState.currentShow;
     if (!show) return;
+
+    const scheduleShow = await scheduleService.getShowById(show.id);
 
     // Navigate to Schedule tab with complete stack state
     navigation.navigate('Schedule' as WmbrRouteName, {
@@ -214,7 +266,7 @@ export default function HomeScreen() {
       state: {
         routes: [
           { name: 'ScheduleMain' },
-          { name: 'ShowDetails', params: { show } },
+          { name: 'ShowDetails', params: { show, scheduleShow } },
           {
             name: 'ArchivedShowView',
             params: { show, archive: archiveState.currentArchive },
@@ -222,7 +274,12 @@ export default function HomeScreen() {
         ],
       },
     });
-  }, [archiveState.currentShow, archiveState.currentArchive, navigation]);
+  }, [
+    archiveState.currentShow,
+    archiveState.currentArchive,
+    scheduleService,
+    navigation,
+  ]);
 
   if (showSplash) return <SplashScreen onAnimationEnd={handleSplashEnd} />;
 
@@ -239,7 +296,7 @@ export default function HomeScreen() {
         colors={
           isPlaying
             ? [CORE_COLORS.WMBR_GREEN, '#006B31', CORE_COLORS.WMBR_GREEN]
-            : ['#000000', '#1a1a1a', '#000000']
+            : [COLORS.BACKGROUND.SECONDARY, COLORS.BACKGROUND.PRIMARY]
         }
         style={styles.fullScreenGradient}
       >
@@ -288,10 +345,46 @@ export default function HomeScreen() {
                 </>
               )}
             </View>
-            <PlayButton
-              onPress={togglePlayback}
-              isPlayerInitialized={isPlayerInitialized}
-            />
+            <View style={styles.playbackControls}>
+              {archiveState.isPlayingArchive && (
+                <TouchableOpacity
+                  style={styles.skipButton}
+                  onPress={handleSkipBackward}
+                  activeOpacity={0.7}
+                  accessibilityLabel={`Skip backward ${SKIP_INTERVAL} seconds`}
+                >
+                  <Icon
+                    name={{
+                      ios: '30.arrow.trianglehead.counterclockwise',
+                      android: 'replay-30',
+                    }}
+                    size={28}
+                    color={COLORS.TEXT.PRIMARY}
+                  />
+                </TouchableOpacity>
+              )}
+              <PlayButton
+                onPress={togglePlayback}
+                isPlayingArchive={archiveState.isPlayingArchive}
+              />
+              {archiveState.isPlayingArchive && (
+                <TouchableOpacity
+                  style={styles.skipButton}
+                  onPress={handleSkipForward}
+                  activeOpacity={0.7}
+                  accessibilityLabel={`Skip forward ${SKIP_INTERVAL} seconds`}
+                >
+                  <Icon
+                    name={{
+                      ios: '30.arrow.trianglehead.clockwise',
+                      android: 'forward-30',
+                    }}
+                    size={28}
+                    color={COLORS.TEXT.PRIMARY}
+                  />
+                </TouchableOpacity>
+              )}
+            </View>
             <View style={styles.bottomInfo}>
               {!archiveState.isPlayingArchive && showDescription && (
                 <Text
@@ -308,7 +401,7 @@ export default function HomeScreen() {
                 <TouchableOpacity
                   style={[
                     styles.liveButton,
-                    isPlaying && styles.liveButtonActive,
+                    isPlaying && styles.liveButtonPlaying,
                   ]}
                   onPress={handleSwitchToLive}
                   activeOpacity={0.7}
@@ -316,7 +409,7 @@ export default function HomeScreen() {
                   <Text
                     style={[
                       styles.liveButtonText,
-                      isPlaying && styles.liveButtonTextActive,
+                      isPlaying && styles.liveButtonTextPlaying,
                     ]}
                   >
                     ← Switch to LIVE
@@ -376,25 +469,37 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     lineHeight: 16,
   },
-  showDescriptionActive: { color: '#D0D0D0' },
+  showDescriptionActive: { color: COLORS.TEXT.ACTIVE },
   liveButton: {
     marginTop: 16,
     paddingHorizontal: 20,
     paddingVertical: 12,
-    backgroundColor: 'rgba(255, 68, 68, 0.2)',
+    backgroundColor: COLORS.BUTTON.SWITCH.BACKGROUND,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#FF4444',
-  },
-  liveButtonActive: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    borderColor: '#FFFFFF',
+    borderColor: COLORS.BUTTON.SWITCH.BORDER,
   },
   liveButtonText: {
-    color: '#FF4444',
+    color: COLORS.BUTTON.SWITCH.TEXT,
     fontSize: 14,
     fontWeight: '600',
     textAlign: 'center',
   },
-  liveButtonTextActive: { color: '#FFFFFF' },
+  liveButtonPlaying: {
+    backgroundColor: COLORS.BUTTON.SWITCH_ACTIVE.BACKGROUND,
+    borderColor: COLORS.BUTTON.SWITCH_ACTIVE.BORDER,
+  },
+  liveButtonTextPlaying: { color: COLORS.BUTTON.SWITCH_ACTIVE.TEXT },
+  playbackControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 32,
+  },
+  skipButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 48,
+    height: 48,
+  },
 });

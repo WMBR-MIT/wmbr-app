@@ -1,5 +1,6 @@
 import TrackPlayer, { Track, State, Event } from 'react-native-track-player';
-import { debugError } from '../utils/Debug';
+import { debugError } from '@utils/Debug';
+import { getUserAgent } from '@utils/UserAgent';
 
 export interface PreviewState {
   isPlaying: boolean;
@@ -96,8 +97,12 @@ export class AudioPreviewService {
     this.progressInterval = setInterval(async () => {
       if (this.isPreviewMode) {
         try {
-          const position = await TrackPlayer.getPosition();
-          const duration = await TrackPlayer.getDuration();
+          const position = await TrackPlayer.getProgress().then(
+            progress => progress.position,
+          );
+          const duration = await TrackPlayer.getProgress().then(
+            progress => progress.duration,
+          );
           const progress = duration > 0 ? position / duration : 0;
 
           this.currentState = {
@@ -141,6 +146,7 @@ export class AudioPreviewService {
         url: url,
         title: 'Preview',
         artist: 'Apple Music Preview',
+        userAgent: getUserAgent(),
       };
 
       // Reset the queue with just the preview track

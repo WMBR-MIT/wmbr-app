@@ -1,10 +1,20 @@
 import { parseString } from 'react-native-xml2js';
-import { ScheduleShow, ScheduleResponse } from '../types/Schedule';
-import { debugLog, debugError } from '../utils/Debug';
+import { ScheduleShow, ScheduleResponse } from '@customTypes/Schedule';
+import { debugLog, debugError } from '@utils/Debug';
+import {
+  dayNames,
+  weekdays,
+  isAlternatingShowActive,
+  getEasternCalendarDateAtNoonUTC,
+} from '@utils/DateTime';
 
 export class ScheduleService {
   private static instance: ScheduleService;
+  private seasonStart: Date | null = null;
   private readonly scheduleUrl = 'https://wmbr.org/cgi-bin/xmlsched';
+  // Store the current "start of the broadcast day" (in minutes after midnight)
+  // given by the root element of the schedule XML.
+  private dayStart = 0;
 
   static getInstance(): ScheduleService {
     if (!ScheduleService.instance) {
@@ -32,6 +42,18 @@ export class ScheduleService {
 
           try {
             debugLog('XML Parse Result:', JSON.stringify(result, null, 2));
+
+            if (
+              result?.wmbr_schedule?.$ &&
+              result.wmbr_schedule.$.season_start
+            ) {
+              // This is formatted as:
+              // `season_start="Mon, 25 May 2026 14:00:00 GMT"`
+              this.seasonStart = new Date(result.wmbr_schedule.$.season_start);
+            }
+
+            this.dayStart =
+              parseInt(result?.wmbr_schedule?.$?.daystart, 10) || 0;
             const shows = this.parseShows(result);
             debugLog('Parsed shows:', shows.length);
             resolve({ shows });
@@ -80,20 +102,90 @@ export class ScheduleService {
     }));
   }
 
-  // Helper method to group shows by day
-  groupShowsByDay(shows: ScheduleShow[]): { [key: string]: ScheduleShow[] } {
+  /**
+   * Build seven Eastern calendar days starting today, including empty days.
+   * Include every show in its calendar-day section, regardless of its cycle.
+   * Pass a real timestamp for now.
+   */
+  getRollingScheduleDays(
+    shows: ScheduleShow[],
+    now: Date,
+  ): { date: Date; shows: ScheduleShow[] }[] {
+    const todayDate = getEasternCalendarDateAtNoonUTC(now);
+    const groupedShows = this.groupShowsByDay(shows);
+
+    return Array.from({ length: dayNames.length }, (_, dayOffset) => {
+      const sectionDate = new Date(todayDate);
+      sectionDate.setUTCDate(sectionDate.getUTCDate() + dayOffset);
+      const dayName = dayNames[sectionDate.getUTCDay()];
+
+      return {
+        date: sectionDate,
+        shows: groupedShows[dayName] || [],
+      };
+    });
+  }
+
+  /**
+   * Find the first airing on or after the section's Eastern calendar date.
+   * Return noon UTC, like the section dates, or null if the cycle is unknown.
+   * This is date-based: today's shows count even if their start time has passed.
+   */
+  getNextAirDate(show: ScheduleShow, targetDate: Date): Date | null {
+    if (show.alternates !== 0 && !this.seasonStart) {
+      return null;
+    }
+
+    const candidateDate = getEasternCalendarDateAtNoonUTC(targetDate);
+    const calendarDay =
+      parseInt(show.time, 10) < this.dayStart
+        ? (show.day + 1) % dayNames.length
+        : show.day;
+
+    // Every supported cycle repeats within four weeks. Check actual air days
+    // so a weekday show's next airing can be Monday rather than next Friday.
+    for (let dayOffset = 0; dayOffset < 28; dayOffset++) {
+      const candidateDay = candidateDate.getUTCDay();
+      const isScheduledDay =
+        show.day === 7
+          ? candidateDay >= 1 && candidateDay <= 5
+          : candidateDay === calendarDay;
+      const broadcastDate = new Date(candidateDate);
+
+      // An early-morning show stays in its calendar-day section, but belongs
+      // to the previous broadcast day's alternating cycle (e.g. Sunday night
+      // airing at 1am Monday). Use the XML cutoff rather than hard-coding 4am.
+      if (parseInt(show.time, 10) < this.dayStart) {
+        broadcastDate.setUTCDate(broadcastDate.getUTCDate() - 1);
+      }
+
+      // Alternating cycles are anchored to the XML season-start date.
+      if (
+        isScheduledDay &&
+        isAlternatingShowActive(show, broadcastDate, this.seasonStart)
+      ) {
+        return candidateDate;
+      }
+
+      candidateDate.setUTCDate(candidateDate.getUTCDate() + 1);
+    }
+
+    return null;
+  }
+
+  /**
+   * Helper method to group shows by day
+   *
+   * @param {ScheduleShow[]} shows - The list of shows to filter.
+   */
+  private groupShowsByDay(shows: ScheduleShow[]): {
+    [key: string]: ScheduleShow[];
+  } {
     const grouped: { [key: string]: ScheduleShow[] } = {};
 
     shows.forEach(show => {
       if (show.day === 7) {
-        // Weekday show (Monday-Friday)
-        const weekdays = [
-          'Monday',
-          'Tuesday',
-          'Wednesday',
-          'Thursday',
-          'Friday',
-        ];
+        // Shows that air every weekday (Monday-Friday)
         weekdays.forEach(day => {
           if (!grouped[day]) {
             grouped[day] = [];
@@ -101,8 +193,36 @@ export class ScheduleService {
           grouped[day].push(show);
         });
       } else {
-        // Regular show for specific day
-        const day = show.day_str || 'Unknown';
+        /**
+         * Regular show for specific day.
+         *
+         * If show time (minutes after midnight) is before dayStart, that means it's not "really" on this
+         * "day," but on the next day.
+         *
+         * For instance, Radio Ninja: Long Play has this XML:
+         *
+         * ```xml
+         * <show id="9106">
+         *   <name>Radio Ninja: Long Play</name>
+         *   <day>1</day>
+         *   <day_str>Monday</day_str>
+         *   <time>60</time>
+         *   <time_str>1:00a</time_str>
+         *   <length>120</length>
+         * </show>
+         * ```
+         *
+         * Where `<day>1</day>` means Monday, and `<time>60</time>` means 1:00
+         * AM. In this case, the show actually airs early Tuesday morning, so we
+         * have to add 1 to the value of `show.day` to get the correct day name.
+         *
+         * TODO: Write tests for this.
+         */
+        const day =
+          parseInt(show.time, 10) < this.dayStart
+            ? dayNames[(show.day + 1) % dayNames.length] // Wrap back to 0th index if out of bounds
+            : dayNames[show.day];
+
         if (!grouped[day]) {
           grouped[day] = [];
         }
@@ -140,35 +260,17 @@ export class ScheduleService {
     return `${displayHour}:${minuteStr}${ampm}`;
   }
 
-  // Helper method to determine if alternating show is active this week
-  private isAlternatingShowActive(
-    show: ScheduleShow,
-    targetDate: Date,
-  ): boolean {
-    if (show.alternates === 0) {
-      return true; // Non-alternating show is always active
+  async getShowById(showId: string): Promise<ScheduleShow | undefined> {
+    try {
+      const scheduleData = await this.fetchSchedule();
+
+      const matchingShow = scheduleData.shows.find(show => show.id === showId);
+
+      return matchingShow;
+    } catch (error) {
+      debugError('Error getting show by ID:', error);
+      return;
     }
-
-    // For alternating shows, we need a reference date to calculate weeks
-    // Using a fixed reference date of September 1, 2024 (start of fall semester)
-    const referenceDate = new Date('2024-09-01T00:00:00-04:00'); // Eastern Time
-    const targetDateEastern = new Date(
-      targetDate.toLocaleString('en-US', { timeZone: 'America/New_York' }),
-    );
-
-    // Calculate weeks since reference date
-    const daysDiff = Math.floor(
-      (targetDateEastern.getTime() - referenceDate.getTime()) /
-        (1000 * 60 * 60 * 24),
-    );
-    const weeksSince = Math.floor(daysDiff / 7);
-
-    debugLog(
-      `Show "${show.name}" alternates: ${show.alternates}, weeks since ref: ${weeksSince}, active: ${weeksSince % 2 === 0}`,
-    );
-
-    // Even weeks = first show in alternating pair, odd weeks = second show
-    return weeksSince % 2 === 0;
   }
 
   // Helper method to find the previous show based on current time
@@ -205,7 +307,7 @@ export class ScheduleService {
 
       // Filter to only shows that are active this week (considering alternates)
       const todayShows = allTodayShows.filter(show =>
-        this.isAlternatingShowActive(show, easternNow),
+        isAlternatingShowActive(show, now, this.seasonStart),
       );
 
       debugLog(`All shows for day ${scheduleDay}: ${allTodayShows.length}`);

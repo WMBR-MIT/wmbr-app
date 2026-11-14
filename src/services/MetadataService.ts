@@ -1,5 +1,5 @@
-import { DEFAULT_NAME } from '../types/Playlist';
-import { debugLog, debugError } from '../utils/Debug';
+import { DEFAULT_NAME } from '@customTypes/Playlist';
+import { debugLog, debugError } from '@utils/Debug';
 
 interface ShowInfo {
   showTitle: string;

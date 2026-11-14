@@ -1,5 +1,52 @@
-import { Show } from '../types/RecentlyPlayed';
-import { debugError } from '../utils/Debug';
+import { Show } from '@customTypes/RecentlyPlayed';
+import { ScheduleShow } from '@customTypes/Schedule';
+import { debugError } from '@utils/Debug';
+
+export const getEasternCalendarDate = (date: Date): Date => {
+  const dateParts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/New_York',
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+  }).formatToParts(date);
+  const year = Number(dateParts.find(part => part.type === 'year')?.value);
+  const month = Number(dateParts.find(part => part.type === 'month')?.value);
+  const day = Number(dateParts.find(part => part.type === 'day')?.value);
+
+  // Store the Eastern calendar components at UTC midnight for date arithmetic.
+  // Reading named parts avoids parsing a locale-formatted date string.
+  return new Date(Date.UTC(year, month - 1, day));
+};
+
+/**
+ * Represent a timestamp's Eastern calendar date at noon UTC for day arithmetic.
+ * Pass a real timestamp, not a date returned by getEasternCalendarDate(),
+ * whose UTC-midnight representation falls on the previous Eastern date.
+ * Noon UTC stays on the same Eastern date in standard and daylight time.
+ */
+export const getEasternCalendarDateAtNoonUTC = (date: Date): Date => {
+  const calendarDate = getEasternCalendarDate(date);
+  calendarDate.setUTCHours(12);
+  return calendarDate;
+};
+
+export const dayNames = [
+  'Sunday',
+  'Monday',
+  'Tuesday',
+  'Wednesday',
+  'Thursday',
+  'Friday',
+  'Saturday',
+];
+
+export const weekdays = [
+  'Monday',
+  'Tuesday',
+  'Wednesday',
+  'Thursday',
+  'Friday',
+];
 
 export const formatDate = (dateString: string) => {
   const date = new Date(dateString);
@@ -29,6 +76,14 @@ export const formatTime = (timeString: string) => {
   }
 
   return timeString;
+};
+
+export const formatNextAirDate = (nextAirDate: Date): string => {
+  return ` · Next airs on ${nextAirDate.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    timeZone: 'America/New_York',
+  })}`;
 };
 
 export const secondsToTime = (seconds: number) => {
@@ -100,15 +155,6 @@ export const getDurationFromSize = (
 };
 
 export const formatShowTime = (show: Show) => {
-  const dayNames = [
-    'Sunday',
-    'Monday',
-    'Tuesday',
-    'Wednesday',
-    'Thursday',
-    'Friday',
-    'Saturday',
-  ];
   const dayName = show.day === 7 ? 'Weekdays' : dayNames[show.day];
   // Only add 's' if it's not already plural (weekdays)
   const plural = show.day === 7 ? dayName : `${dayName}s`;
@@ -138,4 +184,39 @@ export const formatArchiveDate = (dateString: string) => {
     day: 'numeric',
     year: 'numeric',
   });
+};
+
+export const isAlternatingShowActive = (
+  show: Show | ScheduleShow,
+  targetDate: Date,
+  referenceDate: Date | null,
+): boolean => {
+  if (show.alternates === 0) {
+    return true; // Non-alternating show is always active
+  }
+
+  if (!referenceDate) {
+    debugError('Reference date for alternating shows is not set.');
+    return false; // Default to inactive if we don't have a reference date
+  }
+
+  const normalizedTargetDate = getEasternCalendarDate(targetDate);
+  const normalizedReferenceDate = getEasternCalendarDate(referenceDate);
+
+  // Interpret both inputs by their Eastern calendar date.
+  // Callers pass real Date instants; the helper owns alternating-cycle
+  // normalization, and season_start is treated as the start of that Eastern
+  // calendar day rather than the literal XML timestamp.
+  // Compare Eastern calendar dates so the cycle changes on the Eastern week
+  // boundary instead of depending on local-device time.
+  const weeksSince = Math.floor(
+    (normalizedTargetDate.getTime() - normalizedReferenceDate.getTime()) /
+      (7 * 24 * 60 * 60 * 1000),
+  );
+
+  if (show.alternates < 3) {
+    return weeksSince % 2 === show.alternates - 1; // 1 is active on the reference week, 2 on the following week
+  }
+
+  return weeksSince % 4 === show.alternates - 5; // 5 means active on week 1, 6 means active on week 2, etc.
 };

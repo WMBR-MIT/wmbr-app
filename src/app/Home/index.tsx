@@ -18,7 +18,7 @@ import TrackPlayer, {
   useProgress,
 } from 'react-native-track-player';
 import Icon from '@components/Icon';
-import { SKIP_INTERVAL } from '@utils/TrackPlayerUtils';
+import { SKIP_INTERVAL, liveCapabilities } from '@utils/TrackPlayerUtils';
 import LinearGradient from 'react-native-linear-gradient';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SvgXml } from 'react-native-svg';
@@ -84,6 +84,11 @@ export default function HomeScreen() {
 
       await TrackPlayer.setupPlayer({
         autoHandleInterruptions: true,
+      });
+
+      // Start with live capabilities, since this is the default stream
+      await TrackPlayer.updateOptions({
+        capabilities: liveCapabilities,
       });
 
       setIsPlayerInitialized(true);

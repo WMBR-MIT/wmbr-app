@@ -53,6 +53,13 @@ export class ArchiveService {
       await TrackPlayer.stop();
       await TrackPlayer.reset();
 
+      const showDate = new Date(archive.date).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        timeZone: 'America/New_York',
+      });
+
       // Create archive track.
       //
       // We set an explicit `duration` (show length is in minutes) so iOS has a
@@ -65,8 +72,8 @@ export class ArchiveService {
       const archiveTrack: Track = {
         id: `${show.name}-${archive.date}`,
         url: archive.url,
-        title: `${show.name} - Archive`,
-        artist: `${DEFAULT_NAME} - ${archive.date}`,
+        title: `${show.name}: ${showDate}`,
+        artist: DEFAULT_NAME,
         artwork: require('../../assets/cover.png'),
         userAgent: getUserAgent(),
         ...(show.length > 0 && { duration: show.length * 60 }),

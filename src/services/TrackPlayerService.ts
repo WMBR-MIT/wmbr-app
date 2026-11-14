@@ -7,7 +7,16 @@ import TrackPlayer, { Event } from 'react-native-track-player';
 
 const TrackPlayerService = async () => {
   TrackPlayer.addEventListener(Event.RemotePlay, () => TrackPlayer.play());
-  TrackPlayer.addEventListener(Event.RemotePause, () => TrackPlayer.pause());
+  TrackPlayer.addEventListener(Event.RemotePause, async () => {
+    const activeTrack = await TrackPlayer.getActiveTrack();
+
+    // Stop live streams so playing again reconnects at the live edge.
+    if (activeTrack?.isLiveStream) {
+      await TrackPlayer.stop();
+    } else {
+      await TrackPlayer.pause();
+    }
+  });
   TrackPlayer.addEventListener(Event.RemoteStop, () => TrackPlayer.stop());
 
   /**

@@ -145,8 +145,8 @@ export default function HomeScreen() {
     }
 
     return {
-      title: currentShow || 'Live Radio',
-      artist: DEFAULT_NAME,
+      title: currentShow || DEFAULT_NAME,
+      artist: currentShow ? DEFAULT_NAME : 'Live Radio',
       artwork: require('../../../assets/cover.png'),
     };
   }, [showInfo, currentShow]);

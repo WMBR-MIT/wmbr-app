@@ -63,7 +63,7 @@ export class ArchiveService {
 
       const hosts = he.decode(show.hosts || '');
 
-      const showName = show
+      const titleWithHosts = show
         ? `${show.name}${hosts ? ` with ${hosts}` : ''}`
         : DEFAULT_NAME;
 
@@ -79,7 +79,7 @@ export class ArchiveService {
       const archiveTrack: Track = {
         id: `${show.name}-${archive.date}`,
         url: archive.url,
-        title: `${showName}: ${showDate}`,
+        title: `${titleWithHosts}: ${showDate}`,
         artist: DEFAULT_NAME,
         artwork: require('../../assets/cover.png'),
         userAgent: getUserAgent(),

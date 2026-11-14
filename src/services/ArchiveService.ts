@@ -1,4 +1,5 @@
 import TrackPlayer, { Track } from 'react-native-track-player';
+import he from 'he';
 import { Show, Archive } from '@customTypes/RecentlyPlayed';
 import { debugLog, debugError } from '@utils/Debug';
 import { DEFAULT_NAME } from '@customTypes/Playlist';
@@ -60,6 +61,12 @@ export class ArchiveService {
         timeZone: 'America/New_York',
       });
 
+      const hosts = he.decode(show.hosts || '');
+
+      const showName = show
+        ? `${show.name}${hosts ? ` with ${hosts}` : ''}`
+        : DEFAULT_NAME;
+
       // Create archive track.
       //
       // We set an explicit `duration` (show length is in minutes) so iOS has a
@@ -72,7 +79,7 @@ export class ArchiveService {
       const archiveTrack: Track = {
         id: `${show.name}-${archive.date}`,
         url: archive.url,
-        title: `${show.name}: ${showDate}`,
+        title: `${showName}: ${showDate}`,
         artist: DEFAULT_NAME,
         artwork: require('../../assets/cover.png'),
         userAgent: getUserAgent(),

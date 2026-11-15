@@ -30,6 +30,7 @@ React Native app for WMBR radio streaming (live + archives), schedules, and play
 
 ## Change Hygiene
 
+- All work must branch from `develop` and target `develop` in pull requests.
 - Remove styles and callback dependencies made unused by your changes.
 - Use Conventional Commits. Keep PR descriptions short; omit routine validation
   notes already covered by CI.

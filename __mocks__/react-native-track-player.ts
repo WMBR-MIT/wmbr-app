@@ -1,3 +1,5 @@
+import type { Track } from 'react-native-track-player';
+
 export enum Event {
   PlaybackState = 'playback-state',
   PlaybackProgressUpdated = 'playback-progress',
@@ -94,6 +96,7 @@ const TrackPlayer = {
   addEventListener: jest.fn(() => Promise.resolve()),
 };
 
+export const useActiveTrack = jest.fn((): Track | undefined => undefined);
 export const useProgress = TrackPlayer.useProgress;
 export const usePlaybackState = TrackPlayer.usePlaybackState;
 

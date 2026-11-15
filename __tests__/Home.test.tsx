@@ -1,4 +1,4 @@
-import TrackPlayer, { State } from 'react-native-track-player';
+import TrackPlayer, { State, useActiveTrack } from 'react-native-track-player';
 
 import { renderAsync, screen, userEvent } from '@testing-library/react-native';
 
@@ -18,7 +18,101 @@ describe('Home Screen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     getTrackPlayerTestApi().resetAll();
+    jest.mocked(useActiveTrack).mockReturnValue(undefined);
   });
+  const metadataRequestCount = () =>
+    jest
+      .mocked(fetch)
+      .mock.calls.filter(([url]) => url === 'https://wmbr.org/dynamic.xml')
+      .length;
+
+  // Home and TestWrapper each start polling on mount, producing two requests.
+  const mountMetadataRequests = 2;
+
+  test.each([
+    ['wmbr-stream', State.Playing, 1],
+    ['wmbr-stream', State.Paused, 0],
+    ['preview-track', State.Playing, 0],
+    ['archive-track', State.Playing, 0],
+    [undefined, State.Playing, 0],
+  ])(
+    'refreshes metadata only for playing live track (%s, %s)',
+    async (trackId, playbackState, expectedExtraRequests) => {
+      setPlaybackState(playbackState);
+      jest
+        .mocked(useActiveTrack)
+        .mockReturnValue(
+          trackId
+            ? { id: trackId, url: 'https://example.com/audio' }
+            : undefined,
+        );
+
+      await renderAsync(<HomeScreen />, { wrapper: TestWrapper });
+
+      // Only playing the live track should add a refresh to the mount requests.
+      expect(metadataRequestCount()).toBe(
+        mountMetadataRequests + expectedExtraRequests,
+      );
+    },
+  );
+
+  test.each([State.Stopped, State.Paused])(
+    'refreshes once when the active live track transitions from %s to playing',
+    async initialPlaybackState => {
+      setPlaybackState(initialPlaybackState);
+      jest.mocked(useActiveTrack).mockReturnValue({
+        id: 'wmbr-stream',
+        url: 'https://wmbr.org:8002/hi',
+      });
+      const { rerenderAsync } = await renderAsync(<HomeScreen />, {
+        wrapper: TestWrapper,
+      });
+      expect(metadataRequestCount()).toBe(mountMetadataRequests);
+
+      // Keep the track unchanged so only the playback-state dependency can trigger a refresh.
+      setPlaybackState(State.Playing);
+      await rerenderAsync(<HomeScreen />);
+      expect(metadataRequestCount()).toBe(mountMetadataRequests + 1);
+
+      await rerenderAsync(<HomeScreen />);
+      expect(metadataRequestCount()).toBe(mountMetadataRequests + 1);
+    },
+  );
+
+  test('refreshes when switching to live without changing playback state', async () => {
+    setPlaybackState(State.Playing);
+    jest.mocked(useActiveTrack).mockReturnValue({
+      id: 'preview-track',
+      url: 'https://example.com/preview',
+    });
+    const { rerenderAsync } = await renderAsync(<HomeScreen />, {
+      wrapper: TestWrapper,
+    });
+    expect(metadataRequestCount()).toBe(mountMetadataRequests);
+
+    jest.mocked(useActiveTrack).mockReturnValue({
+      id: 'wmbr-stream',
+      url: 'https://wmbr.org:8002/hi',
+    });
+    await rerenderAsync(<HomeScreen />);
+    expect(metadataRequestCount()).toBe(mountMetadataRequests + 1);
+
+    // A new track object with the same ID must not restart polling.
+    jest.mocked(useActiveTrack).mockReturnValue({
+      id: 'wmbr-stream',
+      url: 'https://wmbr.org:8002/hi',
+    });
+    await rerenderAsync(<HomeScreen />);
+    expect(metadataRequestCount()).toBe(mountMetadataRequests + 1);
+
+    jest.mocked(useActiveTrack).mockReturnValue({
+      id: 'archive-track',
+      url: 'https://example.com/archive',
+    });
+    await rerenderAsync(<HomeScreen />);
+    expect(metadataRequestCount()).toBe(mountMetadataRequests + 1);
+  });
+
   test('track player is set up on home screen', async () => {
     await renderAsync(<HomeScreen />, { wrapper: TestWrapper });
 

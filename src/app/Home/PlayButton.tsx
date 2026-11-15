@@ -35,12 +35,14 @@ export default function PlayButton({
   const startSpinAnimation = useCallback(() => {
     spinAnim.setValue(0);
 
-    Animated.timing(spinAnim, {
-      toValue: 1,
-      duration: 3000,
-      easing: Easing.linear,
-      useNativeDriver: false,
-    }).start();
+    Animated.loop(
+      Animated.timing(spinAnim, {
+        toValue: 1,
+        duration: 3000,
+        easing: Easing.linear,
+        useNativeDriver: false,
+      }),
+    ).start();
   }, [spinAnim]);
 
   const startPulseAnimation = useCallback(() => {

@@ -121,7 +121,7 @@ export default function PlayButton({
         <Icon
           name={{
             ios: isBuffering ? 'progress.indicator' : 'play.fill',
-            android: isBuffering ? 'progress-activity' : 'play-arrow',
+            android: isBuffering ? 'restore' : 'play-arrow',
           }}
           size={48}
           color={CORE_COLORS.WHITE}

@@ -136,6 +136,13 @@ export default function HomeScreen() {
     };
   }, [setupPlayer]);
 
+  useEffect(() => {
+    if (isPlaying && !archiveState.isPlayingArchive) {
+      // Poll immediately when live playback starts, then resume the 30-second cadence.
+      MetadataService.getInstance().startPolling(30000);
+    }
+  }, [isPlaying, archiveState.isPlayingArchive]);
+
   const liveMetadata = useMemo(() => {
     if (showInfo?.currentSong && showInfo?.currentArtist) {
       const titleWithHosts = currentShow

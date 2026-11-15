@@ -56,6 +56,29 @@ describe('Home Screen', () => {
     },
   );
 
+  test.each([State.Stopped, State.Paused])(
+    'refreshes once when the active live track transitions from %s to playing',
+    async initialPlaybackState => {
+      setPlaybackState(initialPlaybackState);
+      jest.mocked(useActiveTrack).mockReturnValue({
+        id: 'wmbr-stream',
+        url: 'https://wmbr.org:8002/hi',
+      });
+      const { rerenderAsync } = await renderAsync(<HomeScreen />, {
+        wrapper: TestWrapper,
+      });
+      expect(metadataRequestCount()).toBe(mountMetadataRequests);
+
+      // Keep the track unchanged so only the playback-state dependency can trigger a refresh.
+      setPlaybackState(State.Playing);
+      await rerenderAsync(<HomeScreen />);
+      expect(metadataRequestCount()).toBe(mountMetadataRequests + 1);
+
+      await rerenderAsync(<HomeScreen />);
+      expect(metadataRequestCount()).toBe(mountMetadataRequests + 1);
+    },
+  );
+
   test('refreshes when switching to live without changing playback state', async () => {
     setPlaybackState(State.Playing);
     jest.mocked(useActiveTrack).mockReturnValue({

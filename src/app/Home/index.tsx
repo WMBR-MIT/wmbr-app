@@ -62,6 +62,7 @@ export default function HomeScreen() {
   const scheduleService = ScheduleService.getInstance();
 
   const isPlaying = playbackState?.state === State.Playing;
+  const isBuffering = playbackState?.state === State.Buffering;
 
   const navigation =
     useNavigation<NavigationProp<Record<WmbrRouteName, object | undefined>>>();
@@ -197,6 +198,12 @@ export default function HomeScreen() {
     }
 
     try {
+      // If we're buffering, just stop
+      if (isBuffering) {
+        await TrackPlayer.stop();
+        return;
+      }
+
       const audioPreviewService = AudioPreviewService.getInstance();
       const previewState = audioPreviewService.getCurrentState();
 
@@ -234,6 +241,7 @@ export default function HomeScreen() {
     }
   }, [
     archiveState.isPlayingArchive,
+    isBuffering,
     isPlayerInitialized,
     isPlaying,
     liveMetadata,

@@ -14,6 +14,7 @@ import {
 } from 'react-native-safe-area-context';
 import TrackPlayer, {
   State,
+  useActiveTrack,
   usePlaybackState,
   useProgress,
 } from 'react-native-track-player';
@@ -43,6 +44,7 @@ const streamUrl = 'https://wmbr.org:8002/hi';
 
 export default function HomeScreen() {
   const playbackState = usePlaybackState();
+  const activeTrack = useActiveTrack();
   const progress = useProgress();
   const insets = useSafeAreaInsets();
   const [currentShow, setCurrentShow] = useState(DEFAULT_NAME);
@@ -122,7 +124,7 @@ export default function HomeScreen() {
       },
     );
 
-    metadataService.startPolling(30000);
+    metadataService.startPolling();
 
     // Subscribe to archive service
     const unsubscribeArchive =
@@ -135,6 +137,13 @@ export default function HomeScreen() {
       unsubscribeArchive();
     };
   }, [setupPlayer]);
+
+  useEffect(() => {
+    if (isPlaying && activeTrack?.id === 'wmbr-stream') {
+      // Poll immediately when live playback starts, then resume the 30-second cadence.
+      MetadataService.getInstance().startPolling();
+    }
+  }, [isPlaying, activeTrack?.id]);
 
   const liveMetadata = useMemo(() => {
     if (showInfo?.currentSong && showInfo?.currentArtist) {

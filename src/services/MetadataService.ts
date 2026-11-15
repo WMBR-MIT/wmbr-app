@@ -1,6 +1,8 @@
 import { DEFAULT_NAME } from '@customTypes/Playlist';
 import { debugLog, debugError } from '@utils/Debug';
 
+const METADATA_POLL_INTERVAL_MS = 30_000;
+
 interface ShowInfo {
   showTitle: string;
   hosts?: string;
@@ -290,7 +292,7 @@ class MetadataService {
       });
   }
 
-  startPolling(intervalMs: number = 15000): void {
+  startPolling(intervalMs: number = METADATA_POLL_INTERVAL_MS): void {
     this.stopPolling();
 
     const poll = async () => {

@@ -40,6 +40,7 @@ import HomeNowPlaying from './HomeNowPlaying';
 import { ScheduleService } from '@services/ScheduleService';
 
 const streamUrl = 'https://wmbr.org:8002/hi';
+const METADATA_POLL_INTERVAL_MS = 30_000;
 
 export default function HomeScreen() {
   const playbackState = usePlaybackState();
@@ -122,7 +123,7 @@ export default function HomeScreen() {
       },
     );
 
-    metadataService.startPolling(30000);
+    metadataService.startPolling(METADATA_POLL_INTERVAL_MS);
 
     // Subscribe to archive service
     const unsubscribeArchive =
@@ -139,7 +140,7 @@ export default function HomeScreen() {
   useEffect(() => {
     if (isPlaying && !archiveState.isPlayingArchive) {
       // Poll immediately when live playback starts, then resume the 30-second cadence.
-      MetadataService.getInstance().startPolling(30000);
+      MetadataService.getInstance().startPolling(METADATA_POLL_INTERVAL_MS);
     }
   }, [isPlaying, archiveState.isPlayingArchive]);
 

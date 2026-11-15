@@ -80,9 +80,9 @@ export default function PlayButton({
   const playbackButtonLabel = useMemo(() => {
     if (isPlaying) {
       if (isPlayingArchive) {
-        return 'Pause Button';
+        return 'Pause';
       } else {
-        return 'Stop Button';
+        return 'Stop';
       }
     }
 
@@ -90,7 +90,7 @@ export default function PlayButton({
       return 'Buffering';
     }
 
-    return 'Play Button';
+    return 'Play';
   }, [isBuffering, isPlaying, isPlayingArchive]);
 
   const playbackIcon = useMemo(

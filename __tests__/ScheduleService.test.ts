@@ -3,6 +3,29 @@ import { debugError } from '@utils/Debug';
 import { ScheduleShow } from '@customTypes/Schedule';
 import { createMockFetch } from '../__mocks__/MockNetworkResponses';
 
+describe('ScheduleService formatTime', () => {
+  let scheduleService: ScheduleService;
+
+  beforeEach(() => {
+    scheduleService = ScheduleService.getInstance();
+  });
+
+  test.each([
+    [0, '12:00am'],
+    [60, '1:00am'],
+    [360, '6:00am'],
+    [600, '10:00am'],
+    [690, '11:30am'],
+    [720, '12:00pm'],
+    [795, '1:15pm'],
+    [960, '4:00pm'],
+    [1260, '9:00pm'],
+    [1439, '11:59pm'],
+  ])('formats %i minutes after midnight as %s', (minutes, expected) => {
+    expect(scheduleService.formatTime(minutes)).toBe(expected);
+  });
+});
+
 // The XML season starts Monday: May 25-31 is week 1, June 1-7 is week 2.
 // These are synthetic entries, not a claim about the current live schedule.
 const scheduleXml = `

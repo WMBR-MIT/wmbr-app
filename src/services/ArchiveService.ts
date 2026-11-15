@@ -1,12 +1,9 @@
 import TrackPlayer, { Track } from 'react-native-track-player';
+import he from 'he';
 import { Show, Archive } from '@customTypes/RecentlyPlayed';
 import { debugLog, debugError } from '@utils/Debug';
 import { DEFAULT_NAME } from '@customTypes/Playlist';
-import {
-  archiveCapabilities,
-  liveCapabilities,
-  SKIP_INTERVAL,
-} from '@utils/TrackPlayerUtils';
+import { getUserAgent } from '@utils/UserAgent';
 
 export interface ArchivePlaybackState {
   isPlayingArchive: boolean;
@@ -57,21 +54,37 @@ export class ArchiveService {
       await TrackPlayer.stop();
       await TrackPlayer.reset();
 
-      // Create archive track
-      const archiveTrack: Track = {
-        id: 'archive',
-        url: archive.url,
-        title: `${show.name} - Archive`,
-        artist: `${DEFAULT_NAME} - ${archive.date}`,
-        artwork: require('../../assets/cover.png'),
-      };
-
-      await TrackPlayer.updateOptions({
-        capabilities: archiveCapabilities,
-        compactCapabilities: archiveCapabilities,
-        forwardJumpInterval: SKIP_INTERVAL,
-        backwardJumpInterval: SKIP_INTERVAL,
+      const showDate = new Date(archive.date).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        timeZone: 'America/New_York',
       });
+
+      const hosts = he.decode(show.hosts || '');
+
+      const titleWithHosts = show
+        ? `${show.name}${hosts ? ` with ${hosts}` : ''}`
+        : DEFAULT_NAME;
+
+      // Create archive track.
+      //
+      // We set an explicit `duration` (show length is in minutes) so iOS has a
+      // known duration the instant the track becomes active. Without it, iOS
+      // treats the item as indeterminate until AVPlayer parses the duration off
+      // the network, and on a fast cold start it renders the lock-screen
+      // controls before that happens — showing play/pause/stop but hiding the
+      // skip-interval buttons and scrubber for the rest of the session. RNTP
+      // corrects this value once the real duration is known.
+      const archiveTrack: Track = {
+        id: `${show.name}-${archive.date}`,
+        url: archive.url,
+        title: `${titleWithHosts}: ${showDate}`,
+        artist: DEFAULT_NAME,
+        artwork: require('../../assets/cover.png'),
+        userAgent: getUserAgent(),
+        ...(show.length > 0 && { duration: show.length * 60 }),
+      };
 
       // Add and play archive
       await TrackPlayer.add(archiveTrack);
@@ -108,12 +121,8 @@ export class ArchiveService {
         artist: currentShowTitle || 'Live Radio',
         artwork: require('../../assets/cover.png'),
         isLiveStream: true,
+        userAgent: getUserAgent(),
       };
-
-      await TrackPlayer.updateOptions({
-        capabilities: liveCapabilities,
-        compactCapabilities: liveCapabilities,
-      });
 
       // Add and play live stream
       await TrackPlayer.add(liveTrack);

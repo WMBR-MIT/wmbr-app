@@ -54,11 +54,10 @@ You can download the latest release from the [Apple](https://apps.apple.com/app/
 npx react-native bump-version --type (patch|minor|major)
 ```
 
-Tag the current HEAD of `main` branch with the new version number.
+Add a new tag for the release:
 
 ```bash
 git tag vX.Y.Z
-git push origin --tags
 ```
 
 ### Android Release Setup
@@ -94,6 +93,28 @@ Output: `android/app/build/outputs/bundle/release/app-release.aab`
     `babel.config.js`
 
 ## Troubleshooting
+
+### Android Studio
+
+If the Android app won't build, with the message "INSTALL_FAILED_VERSION_DOWNGRADE: Downgrade detected", try uninstalling the existing app:
+
+```bash
+adp uninstall com.wmbrapp
+```
+
+If there are some Gradle package errors, try cleaning the Gradle cache:
+
+```bash
+cd android && ./gradlew clean
+```
+
+Delete the `autolinking` directory:
+
+```bash
+rm -rf android/app/build/generated/autolinking
+```
+
+Then click the elephant icon ("Sync Project with Gradle Files").
 
 ### General Issues
 

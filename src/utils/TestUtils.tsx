@@ -188,7 +188,7 @@ export function generateScheduleXml(options?: {
 // Test helpers for driving the react-native-track-player mock from tests.
 // These access the __testApi exported by the mock in __mocks__/react-native-track-player.ts.
 export const getTrackPlayerTestApi = () => {
-  const api = require('react-native-track-player')?.default?.__testApi;
+  const api = require('react-native-track-player').testApi;
 
   if (!api) {
     throw new Error(

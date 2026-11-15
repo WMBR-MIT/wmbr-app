@@ -1,16 +1,15 @@
-import React, { useCallback, useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
   ScrollView,
-  SafeAreaView,
   StatusBar,
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
+import Icon from '@components/Icon';
 import LinearGradient from 'react-native-linear-gradient';
 import { useRoute, RouteProp } from '@react-navigation/native';
 import { useHeaderHeight } from '@react-navigation/elements';
@@ -84,25 +83,8 @@ export default function ArchivedShowView() {
   }, [archive.date, playlistService, show.name]);
 
   useEffect(() => {
-    const fp = async () => {
-      setLoading(true);
-      setError(null);
-
-      try {
-        const playlistData = await playlistService.fetchPlaylist(
-          show.name,
-          new Date(archive.date),
-        );
-        setPlaylist(playlistData);
-      } catch (err) {
-        debugError('Error fetching playlist:', err);
-        setError('Failed to load playlist. Please try again.');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fp();
-  }, [archive.date, playlistService, show.name]);
+    fetchPlaylist();
+  }, [fetchPlaylist]);
 
   useEffect(() => {
     // Subscribe to archive service state changes
@@ -208,7 +190,12 @@ export default function ArchivedShowView() {
 
   const handleSkipBackward = async () => {
     const newPosition = Math.max(progress.position - SKIP_INTERVAL, 0);
-    await TrackPlayer.seekTo(newPosition);
+
+    try {
+      await TrackPlayer.seekTo(newPosition);
+    } catch (e) {
+      debugError('Error skipping backward:', e);
+    }
   };
 
   const handleSkipForward = async () => {
@@ -216,20 +203,57 @@ export default function ArchivedShowView() {
       progress.position + SKIP_INTERVAL,
       progress.duration,
     );
-    await TrackPlayer.seekTo(newPosition);
+
+    try {
+      await TrackPlayer.seekTo(newPosition);
+    } catch (e) {
+      debugError('Error skipping forward:', e);
+    }
   };
+
+  const playbackButtonLabel = useMemo(
+    () =>
+      isArchivePlaying && playbackState?.state === State.Playing
+        ? 'Pause'
+        : 'Play',
+    [isArchivePlaying, playbackState?.state],
+  );
+
+  const playbackButtonIcon = useMemo(
+    () =>
+      isArchivePlaying && playbackState?.state === State.Playing ? (
+        <Icon
+          name={{
+            ios: 'pause.fill',
+            android: 'pause',
+          }}
+          size={48}
+          color={COLORS.TEXT.PRIMARY}
+        />
+      ) : (
+        <Icon
+          name={{
+            ios: 'play.fill',
+            android: 'play-arrow',
+          }}
+          size={48}
+          color={COLORS.TEXT.PRIMARY}
+        />
+      ),
+    [isArchivePlaying, playbackState?.state],
+  );
 
   return (
     <>
       <StatusBar barStyle="light-content" backgroundColor={gradientStart} />
 
       <LinearGradient
-        colors={[darkGradientStart, darkGradientEnd, '#000000']}
+        colors={[darkGradientStart, darkGradientEnd, COLORS.BACKGROUND.PRIMARY]}
         locations={[0, 0.3, 1]}
         style={styles.gradient}
       >
-        <SafeAreaView style={[styles.safeArea, { paddingTop: headerHeight }]}>
-          <ScrollView style={styles.scrollView}>
+        <ScrollView>
+          <View style={[{ paddingTop: headerHeight }]}>
             <ShowImage showName={show.name} archiveDate={archive.date} />
 
             {/* Playback Controls */}
@@ -242,26 +266,22 @@ export default function ArchivedShowView() {
                   accessibilityLabel={`Skip backward ${SKIP_INTERVAL} seconds`}
                 >
                   <Icon
-                    name="refresh-outline"
+                    name={{
+                      ios: '30.arrow.trianglehead.counterclockwise',
+                      android: 'replay-30',
+                    }}
                     size={28}
                     color={COLORS.TEXT.PRIMARY}
-                    style={styles.skipBackIcon}
                   />
-                  <Text style={styles.skipText} aria-hidden={true}>
-                    {SKIP_INTERVAL}
-                  </Text>
                 </TouchableOpacity>
               )}
               <TouchableOpacity
                 style={styles.playButton}
                 onPress={handlePlayPause}
                 activeOpacity={0.8}
+                accessibilityLabel={playbackButtonLabel}
               >
-                {isArchivePlaying && playbackState?.state === State.Playing ? (
-                  <Icon name="pause-circle" size={64} color="#FFFFFF" />
-                ) : (
-                  <Icon name="play-circle" size={64} color="#FFFFFF" />
-                )}
+                {playbackButtonIcon}
               </TouchableOpacity>
               {isArchivePlaying && (
                 <TouchableOpacity
@@ -271,14 +291,13 @@ export default function ArchivedShowView() {
                   accessibilityLabel={`Skip forward ${SKIP_INTERVAL} seconds`}
                 >
                   <Icon
-                    name="refresh-outline"
+                    name={{
+                      ios: '30.arrow.trianglehead.clockwise',
+                      android: 'forward-30',
+                    }}
                     size={28}
                     color={COLORS.TEXT.PRIMARY}
-                    style={styles.skipForwardIcon}
                   />
-                  <Text style={styles.skipText} aria-hidden={true}>
-                    {SKIP_INTERVAL}
-                  </Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -331,7 +350,7 @@ export default function ArchivedShowView() {
 
               {loading ? (
                 <View style={styles.loadingContainer}>
-                  <ActivityIndicator size="large" color="#FFFFFF" />
+                  <ActivityIndicator size="large" color={COLORS.TEXT.PRIMARY} />
                   <Text style={styles.loadingText}>Loading playlist...</Text>
                 </View>
               ) : error ? (
@@ -369,10 +388,8 @@ export default function ArchivedShowView() {
                 </View>
               )}
             </View>
-
-            <View style={styles.bottomPadding} />
-          </ScrollView>
-        </SafeAreaView>
+          </View>
+        </ScrollView>
       </LinearGradient>
     </>
   );
@@ -380,12 +397,6 @@ export default function ArchivedShowView() {
 
 const styles = StyleSheet.create({
   gradient: {
-    flex: 1,
-  },
-  safeArea: {
-    flex: 1,
-  },
-  scrollView: {
     flex: 1,
   },
   playSection: {
@@ -396,25 +407,15 @@ const styles = StyleSheet.create({
     gap: 24,
   },
   playButton: {
-    padding: 8,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   skipButton: {
     alignItems: 'center',
     justifyContent: 'center',
     width: 48,
     height: 48,
-  },
-  skipBackIcon: {
-    transform: [{ scaleX: -1 }],
-  },
-  skipForwardIcon: {
-    transform: [{ scaleX: 1 }],
-  },
-  skipText: {
-    color: COLORS.TEXT.PRIMARY,
-    fontSize: 10,
-    fontWeight: '600',
-    marginTop: 0,
   },
   playlistSection: {
     paddingHorizontal: 20,
@@ -433,7 +434,9 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 16,
     marginBottom: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: COLORS.CARD.SUBTLE.BACKGROUND,
+    borderWidth: 1,
+    borderColor: COLORS.CARD.SUBTLE.BORDER,
     borderRadius: 8,
   },
   songInfo: {
@@ -474,19 +477,19 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
   },
   errorText: {
-    color: COLORS.TEXT.ERROR,
+    color: COLORS.TEXT.ALERT,
     textAlign: 'center',
     fontSize: 16,
     marginBottom: 20,
   },
   retryButton: {
-    backgroundColor: '#FF4444',
+    backgroundColor: COLORS.BUTTON.ALERT.BACKGROUND,
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 8,
   },
   retryButtonText: {
-    color: '#FFFFFF',
+    color: COLORS.BUTTON.ALERT.TEXT,
     fontWeight: '600',
   },
   emptyContainer: {
@@ -496,9 +499,6 @@ const styles = StyleSheet.create({
   emptyText: {
     color: COLORS.TEXT.TERTIARY,
     fontSize: 16,
-  },
-  bottomPadding: {
-    height: 100,
   },
   progressSection: {
     paddingHorizontal: 20,

@@ -8,8 +8,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
-import { ABOUT_PAGE_GRADIENT } from '@utils/GradientColors';
-import Icon from 'react-native-vector-icons/Ionicons';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import Icon from '@components/Icon';
 import { getWMBRLogoSVG } from '@utils/WMBRLogo';
 import { COLORS } from '@utils/Colors';
 import { SvgXml } from 'react-native-svg';
@@ -26,11 +26,18 @@ const openProgramGuide = () =>
 
 export default function AboutPage() {
   return (
-    <LinearGradient colors={ABOUT_PAGE_GRADIENT} style={styles.gradient}>
+    <LinearGradient
+      colors={[COLORS.BACKGROUND.SECONDARY, COLORS.BACKGROUND.PRIMARY]}
+      style={styles.gradient}
+    >
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.container}>
           <View style={styles.logoRow}>
-            <SvgXml xml={getWMBRLogoSVG('#FFFFFF')} width={60} height={16} />
+            <SvgXml
+              xml={getWMBRLogoSVG(COLORS.TEXT.PRIMARY)}
+              width={60}
+              height={16}
+            />
           </View>
 
           <Text style={styles.body}>
@@ -51,7 +58,14 @@ export default function AboutPage() {
               onPress={() => openLink('tel:+16172538810')}
               activeOpacity={0.8}
             >
-              <Icon name="call-outline" size={20} color="#FFFFFF" />
+              <Icon
+                name={{
+                  ios: 'phone',
+                  android: 'phone',
+                }}
+                size={20}
+                color={COLORS.TEXT.PRIMARY}
+              />
               <View style={styles.textBlock}>
                 <Text style={styles.linkText}>(617) 253-8810</Text>
                 <Text style={styles.smallText}>Requests Line</Text>
@@ -64,7 +78,14 @@ export default function AboutPage() {
               onPress={() => openLink('mailto:music@wmbr.org')}
               activeOpacity={0.8}
             >
-              <Icon name="mail-outline" size={20} color="#FFFFFF" />
+              <Icon
+                name={{
+                  ios: 'envelope',
+                  android: 'email',
+                }}
+                size={20}
+                color={COLORS.TEXT.PRIMARY}
+              />
               <View style={styles.textBlock}>
                 <Text style={styles.linkText}>music@wmbr.org</Text>
                 <Text style={styles.smallText}>Music Department</Text>
@@ -76,7 +97,14 @@ export default function AboutPage() {
               onPress={() => openLink('mailto:press@wmbr.org')}
               activeOpacity={0.8}
             >
-              <Icon name="mail-outline" size={20} color="#FFFFFF" />
+              <Icon
+                name={{
+                  ios: 'envelope',
+                  android: 'email',
+                }}
+                size={20}
+                color={COLORS.TEXT.PRIMARY}
+              />
               <View style={styles.textBlock}>
                 <Text style={styles.linkText}>press@wmbr.org</Text>
                 <Text style={styles.smallText}>News Department</Text>
@@ -99,7 +127,14 @@ export default function AboutPage() {
               onPress={openProgramGuide}
               activeOpacity={0.8}
             >
-              <Icon name="musical-notes-outline" size={18} color="#000" />
+              <Icon
+                name={{
+                  ios: 'menucard',
+                  android: 'menu-book',
+                }}
+                size={18}
+                color={COLORS.BUTTON.ACCENT.TEXT}
+              />
               <Text style={styles.buttonText}>Program Guide</Text>
             </TouchableOpacity>
 
@@ -108,39 +143,46 @@ export default function AboutPage() {
               onPress={openWebsite}
               activeOpacity={0.8}
             >
-              <Icon name="globe-outline" size={18} color="#FFFFFF" />
+              <Icon
+                name={{
+                  ios: 'link',
+                  android: 'link',
+                }}
+                size={18}
+                color={COLORS.TEXT.PRIMARY}
+              />
               <Text style={styles.buttonOutlineText}>Visit Our Website</Text>
             </TouchableOpacity>
           </View>
 
           <View style={styles.socialRow}>
-            <TouchableOpacity
-              onPress={openInstagram}
-              activeOpacity={0.8}
-              style={styles.socialButton}
-            >
-              <Icon name="logo-instagram" size={20} color="#FFFFFF" />
+            <TouchableOpacity onPress={openInstagram} activeOpacity={0.8}>
+              <Ionicons
+                name="logo-instagram"
+                size={20}
+                color={COLORS.TEXT.PRIMARY}
+              />
             </TouchableOpacity>
-            <TouchableOpacity
-              onPress={openTwitter}
-              activeOpacity={0.8}
-              style={styles.socialButton}
-            >
-              <Icon name="logo-twitter" size={20} color="#FFFFFF" />
+            <TouchableOpacity onPress={openTwitter} activeOpacity={0.8}>
+              <Ionicons
+                name="logo-twitter"
+                size={20}
+                color={COLORS.TEXT.PRIMARY}
+              />
             </TouchableOpacity>
-            <TouchableOpacity
-              onPress={openFacebook}
-              activeOpacity={0.8}
-              style={styles.socialButton}
-            >
-              <Icon name="logo-facebook" size={20} color="#FFFFFF" />
+            <TouchableOpacity onPress={openFacebook} activeOpacity={0.8}>
+              <Ionicons
+                name="logo-facebook"
+                size={20}
+                color={COLORS.TEXT.PRIMARY}
+              />
             </TouchableOpacity>
-            <TouchableOpacity
-              onPress={openMastodon}
-              activeOpacity={0.8}
-              style={styles.socialButton}
-            >
-              <Icon name="logo-mastodon" size={20} color="#FFFFFF" />
+            <TouchableOpacity onPress={openMastodon} activeOpacity={0.8}>
+              <Ionicons
+                name="logo-mastodon"
+                size={20}
+                color={COLORS.TEXT.PRIMARY}
+              />
             </TouchableOpacity>
           </View>
         </View>
@@ -169,13 +211,17 @@ const styles = StyleSheet.create({
   button: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#00D17A',
+    backgroundColor: COLORS.BUTTON.ACCENT.BACKGROUND,
     paddingHorizontal: 12,
     paddingVertical: 10,
     borderRadius: 8,
     marginRight: 8,
   },
-  buttonText: { marginLeft: 8, color: '#000', fontWeight: '700' },
+  buttonText: {
+    marginLeft: 8,
+    color: COLORS.BUTTON.ACCENT.TEXT,
+    fontWeight: '700',
+  },
   buttonOutline: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -187,10 +233,9 @@ const styles = StyleSheet.create({
     borderColor: COLORS.BUTTON.PRIMARY.BORDER,
   },
   buttonOutlineText: { color: COLORS.BUTTON.PRIMARY.TEXT },
-  socialRow: { flexDirection: 'row', marginTop: 18 },
-  socialButton: { marginRight: 12 },
+  socialRow: { flexDirection: 'row', marginTop: 18, columnGap: 12 },
   linkText: { color: COLORS.TEXT.LINK, textDecorationLine: 'underline' },
-  smallText: { color: '#AAAAAA', fontSize: 12, marginTop: 2 },
+  smallText: { color: COLORS.TEXT.TERTIARY, fontSize: 12, marginTop: 2 },
   section: { marginTop: 12, marginBottom: 8 },
   sectionTitle: {
     color: COLORS.TEXT.PRIMARY,

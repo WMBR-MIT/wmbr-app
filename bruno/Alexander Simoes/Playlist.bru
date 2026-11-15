@@ -1,0 +1,192 @@
+meta {
+  name: Playlist
+  type: http
+  seq: 1
+}
+
+get {
+  url: https://wmbr.alexandersimoes.com/get_playlist?date=2025-12-03&show_name=Breakfast of Champions
+  body: none
+  auth: inherit
+}
+
+params:query {
+  date: 2025-12-03
+  show_name: Breakfast of Champions
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
+
+example {
+  name: Breakfast of Champions, Dec 4 2025
+  
+  request: {
+    url: https://wmbr.alexandersimoes.com/get_playlist?date=2025-12-04&show_name=Breakfast of Champions
+    method: GET
+    mode: none
+    params:query: {
+      date: 2025-12-04
+      show_name: Breakfast of Champions
+    }
+  }
+  
+  response: {
+    headers: {
+      server: nginx/1.24.0 (Ubuntu)
+      date: Sat, 06 Dec 2025 23:16:45 GMT
+      content-type: application/json
+      content-length: 2531
+      connection: keep-alive
+      access-control-allow-origin: *
+      access-control-allow-methods: GET, POST, OPTIONS
+      access-control-allow-headers: DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range
+    }
+  
+    status: {
+      code: 200
+      text: OK
+    }
+  
+    body: {
+      type: json
+      content: '''
+        {
+          "show_name": "Breakfast of Champions",
+          "date": "2025-12-04",
+          "playlist_id": "58761",
+          "songs": [
+            {
+              "time": "2025/12/04 08:38:00",
+              "artist": "State of Art",
+              "song": "Dantzig Station",
+              "album": "Dancefloor Statement"
+            },
+            {
+              "time": "2025/12/04 08:40:00",
+              "artist": "Model Citizens",
+              "song": "You Are What You Wear",
+              "album": "NYC 1978-1979"
+            },
+            {
+              "time": "2025/12/04 08:45:00",
+              "artist": "23 Skidoo",
+              "song": "Coup",
+              "album": "Urban Gamelan"
+            },
+            {
+              "time": "2025/12/04 08:48:00",
+              "artist": "Ludus",
+              "song": "Inheritance",
+              "album": "The Visit/Seduction"
+            },
+            {
+              "time": "2025/12/04 08:55:00",
+              "artist": "No Doubt",
+              "song": "You Can Do It",
+              "album": "Tragic Kingdom"
+            },
+            {
+              "time": "2025/12/04 08:59:00",
+              "artist": "The Bangles",
+              "song": "Hazy Shade of Winter",
+              "album": "The Essential Bangles"
+            },
+            {
+              "time": "2025/12/04 09:02:00",
+              "artist": "The Raincoats",
+              "song": "Dance of Hopping Mad",
+              "album": "Moving"
+            },
+            {
+              "time": "2025/12/04 09:06:00",
+              "artist": "Animal Magic",
+              "song": "Standard Man",
+              "album": "Standard Man"
+            },
+            {
+              "time": "2025/12/04 09:10:00",
+              "artist": "Group Therapy",
+              "song": "Arty-Fact",
+              "album": "Punk Power, Vol. 2"
+            },
+            {
+              "time": "2025/12/04 09:14:00",
+              "artist": "The Bongos",
+              "song": "Certain Harbours",
+              "album": "Drums Along the Hudson"
+            },
+            {
+              "time": "2025/12/04 09:17:00",
+              "artist": "The Dance",
+              "song": "Dubbin Down",
+              "album": "Do Dada"
+            },
+            {
+              "time": "2025/12/04 09:23:00",
+              "artist": "Miaow",
+              "song": "Grocer's Devil Daughter",
+              "album": "When It All Comes Down"
+            },
+            {
+              "time": "2025/12/04 09:27:00",
+              "artist": "Student Nurse",
+              "song": "Helena Is A Spy",
+              "album": "Think For Yourself: Seattle Tour 1979-1984"
+            },
+            {
+              "time": "2025/12/04 09:30:00",
+              "artist": "Club Tango",
+              "song": "Get The Picture",
+              "album": "FTN/ Get The Picture"
+            },
+            {
+              "time": "2025/12/04 09:34:00",
+              "artist": "Toyland",
+              "song": "Glad to Be Austrailian",
+              "album": "Toyland"
+            },
+            {
+              "time": "2025/12/04 09:37:00",
+              "artist": "Boots For Dancing",
+              "song": "Style In Fill Swing",
+              "album": "The Undisco Kidds"
+            },
+            {
+              "time": "2025/12/04 09:45:00",
+              "artist": "The Lines",
+              "song": "False Alarm",
+              "album": "Memory Span"
+            },
+            {
+              "time": "2025/12/04 09:45:00",
+              "artist": "Neo Boys",
+              "song": "Under Control",
+              "album": "Sooner or Later"
+            },
+            {
+              "time": "2025/12/04 09:46:00",
+              "artist": "Digital Dance",
+              "song": "Treatment",
+              "album": "Treatment"
+            },
+            {
+              "time": "2025/12/04 09:50:00",
+              "artist": "Art Objects",
+              "song": "Hard Objects",
+              "album": "To The Outside of Everything: A Story Of UK Post Punk 1977-1981"
+            },
+            {
+              "time": "2025/12/04 09:56:00",
+              "artist": "Dog Faced Hermans",
+              "song": "Suppressa",
+              "album": "Mental Blocks For All Ages"
+            }
+          ]
+        }
+      '''
+    }
+  }
+}

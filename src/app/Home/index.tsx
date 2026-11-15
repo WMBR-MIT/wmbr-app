@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import he from 'he';
 import { debugError } from '@utils/Debug';
 import {
   View,
@@ -16,8 +17,8 @@ import TrackPlayer, {
   usePlaybackState,
   useProgress,
 } from 'react-native-track-player';
-import Icon from 'react-native-vector-icons/Ionicons';
-import { liveCapabilities, SKIP_INTERVAL } from '@utils/TrackPlayerUtils';
+import Icon from '@components/Icon';
+import { SKIP_INTERVAL, liveCapabilities } from '@utils/TrackPlayerUtils';
 import LinearGradient from 'react-native-linear-gradient';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SvgXml } from 'react-native-svg';
@@ -33,8 +34,10 @@ import { WmbrRouteName } from '@customTypes/Navigation';
 import { DEFAULT_NAME } from '@customTypes/Playlist';
 import { COLORS, CORE_COLORS } from '@utils/Colors';
 import { formatArchiveDate } from '@utils/DateTime';
+import { getUserAgent } from '@utils/UserAgent';
 
 import HomeNowPlaying from './HomeNowPlaying';
+import { ScheduleService } from '@services/ScheduleService';
 
 const streamUrl = 'https://wmbr.org:8002/hi';
 
@@ -56,7 +59,10 @@ export default function HomeScreen() {
     liveStreamUrl: streamUrl,
   });
 
+  const scheduleService = ScheduleService.getInstance();
+
   const isPlaying = playbackState?.state === State.Playing;
+  const isBuffering = playbackState?.state === State.Buffering;
 
   const navigation =
     useNavigation<NavigationProp<Record<WmbrRouteName, object | undefined>>>();
@@ -81,6 +87,7 @@ export default function HomeScreen() {
         autoHandleInterruptions: true,
       });
 
+      // Start with live capabilities, since this is the default stream
       await TrackPlayer.updateOptions({
         capabilities: liveCapabilities,
       });
@@ -99,7 +106,7 @@ export default function HomeScreen() {
     const unsubscribeMetadata = metadataService.subscribe((data: ShowInfo) => {
       setShowInfo(data);
       setCurrentShow(data.showTitle);
-      setHosts(data.hosts);
+      setHosts(he.decode(data.hosts || ''));
       setShowDescription(data.description);
 
       try {
@@ -115,7 +122,7 @@ export default function HomeScreen() {
       },
     );
 
-    metadataService.startPolling(15000);
+    metadataService.startPolling(30000);
 
     // Subscribe to archive service
     const unsubscribeArchive =
@@ -128,6 +135,30 @@ export default function HomeScreen() {
       unsubscribeArchive();
     };
   }, [setupPlayer]);
+
+  const liveMetadata = useMemo(() => {
+    if (showInfo?.currentSong && showInfo?.currentArtist) {
+      const titleWithHosts = currentShow
+        ? `${currentShow}${hosts ? ` with ${hosts}` : ''}`
+        : DEFAULT_NAME;
+
+      return {
+        title: `${showInfo.currentArtist} - ${showInfo.currentSong}`,
+        artist: `${titleWithHosts || 'Live Radio'} | ${DEFAULT_NAME}`,
+        artwork: require('../../../assets/cover.png'),
+      };
+    }
+
+    const titleWithHosts = currentShow
+      ? `${currentShow}${hosts ? ` with ${hosts}` : ''}`
+      : DEFAULT_NAME;
+
+    return {
+      title: titleWithHosts || DEFAULT_NAME,
+      artist: currentShow ? DEFAULT_NAME : 'Live Radio',
+      artwork: require('../../../assets/cover.png'),
+    };
+  }, [hosts, showInfo, currentShow]);
 
   // Separate useEffect for updating track metadata when show changes
   useEffect(() => {
@@ -145,16 +176,7 @@ export default function HomeScreen() {
       try {
         // Only update if we're not playing an archive
         if (!archiveState.isPlayingArchive) {
-          await TrackPlayer.updateMetadataForTrack(0, {
-            title: DEFAULT_NAME,
-            artist: currentShow || 'Live Radio',
-            artwork: require('../../../assets/cover.png'),
-          });
-
-          // Honestly unsure why this needs to be done again
-          await TrackPlayer.updateOptions({
-            capabilities: liveCapabilities,
-          });
+          await TrackPlayer.updateMetadataForTrack(0, liveMetadata);
         }
       } catch (error) {
         debugError('Error updating track metadata:', error);
@@ -163,7 +185,7 @@ export default function HomeScreen() {
 
     updateLiveTrackMetadata();
   }, [
-    currentShow,
+    liveMetadata,
     archiveState.isPlayingArchive,
     isPlayerInitialized,
     playbackState?.state,
@@ -176,6 +198,12 @@ export default function HomeScreen() {
     }
 
     try {
+      // If we're buffering, just stop
+      if (isBuffering) {
+        await TrackPlayer.stop();
+        return;
+      }
+
       const audioPreviewService = AudioPreviewService.getInstance();
       const previewState = audioPreviewService.getCurrentState();
 
@@ -194,15 +222,16 @@ export default function HomeScreen() {
 
         const hasLiveStream = queue.some(track => track.id === 'wmbr-stream');
 
+        const liveTrack = {
+          id: 'wmbr-stream',
+          url: streamUrl,
+          ...liveMetadata,
+          isLiveStream: true,
+          userAgent: getUserAgent(),
+        };
+
         if (!hasLiveStream) {
-          await TrackPlayer.add({
-            id: 'wmbr-stream',
-            url: streamUrl,
-            title: DEFAULT_NAME,
-            artist: currentShow || 'Live Radio',
-            artwork: require('../../../assets/cover.png'),
-            isLiveStream: true,
-          });
+          await TrackPlayer.add(liveTrack);
         }
 
         await TrackPlayer.play();
@@ -212,9 +241,10 @@ export default function HomeScreen() {
     }
   }, [
     archiveState.isPlayingArchive,
-    currentShow,
+    isBuffering,
     isPlayerInitialized,
     isPlaying,
+    liveMetadata,
   ]);
 
   const handleSplashEnd = () => setShowSplash(false);
@@ -240,9 +270,11 @@ export default function HomeScreen() {
     await TrackPlayer.seekTo(newPosition);
   }, [progress.position, progress.duration]);
 
-  const handleOpenShowDetails = useCallback(() => {
+  const handleOpenShowDetails = useCallback(async () => {
     const show = archiveState.currentShow;
     if (!show) return;
+
+    const scheduleShow = await scheduleService.getShowById(show.id);
 
     // Navigate to Schedule tab with complete stack state
     navigation.navigate('Schedule' as WmbrRouteName, {
@@ -250,7 +282,7 @@ export default function HomeScreen() {
       state: {
         routes: [
           { name: 'ScheduleMain' },
-          { name: 'ShowDetails', params: { show } },
+          { name: 'ShowDetails', params: { show, scheduleShow } },
           {
             name: 'ArchivedShowView',
             params: { show, archive: archiveState.currentArchive },
@@ -258,7 +290,12 @@ export default function HomeScreen() {
         ],
       },
     });
-  }, [archiveState.currentShow, archiveState.currentArchive, navigation]);
+  }, [
+    archiveState.currentShow,
+    archiveState.currentArchive,
+    scheduleService,
+    navigation,
+  ]);
 
   if (showSplash) return <SplashScreen onAnimationEnd={handleSplashEnd} />;
 
@@ -275,7 +312,7 @@ export default function HomeScreen() {
         colors={
           isPlaying
             ? [CORE_COLORS.WMBR_GREEN, '#006B31', CORE_COLORS.WMBR_GREEN]
-            : ['#000000', '#1a1a1a', '#000000']
+            : [COLORS.BACKGROUND.SECONDARY, COLORS.BACKGROUND.PRIMARY]
         }
         style={styles.fullScreenGradient}
       >
@@ -333,12 +370,13 @@ export default function HomeScreen() {
                   accessibilityLabel={`Skip backward ${SKIP_INTERVAL} seconds`}
                 >
                   <Icon
-                    name="refresh-outline"
+                    name={{
+                      ios: '30.arrow.trianglehead.counterclockwise',
+                      android: 'replay-30',
+                    }}
                     size={28}
                     color={COLORS.TEXT.PRIMARY}
-                    style={styles.skipBackIcon}
                   />
-                  <Text style={styles.skipText}>{SKIP_INTERVAL}</Text>
                 </TouchableOpacity>
               )}
               <PlayButton
@@ -353,14 +391,13 @@ export default function HomeScreen() {
                   accessibilityLabel={`Skip forward ${SKIP_INTERVAL} seconds`}
                 >
                   <Icon
-                    name="refresh-outline"
+                    name={{
+                      ios: '30.arrow.trianglehead.clockwise',
+                      android: 'forward-30',
+                    }}
                     size={28}
                     color={COLORS.TEXT.PRIMARY}
-                    style={styles.skipForwardIcon}
                   />
-                  <Text style={styles.skipText} aria-hidden={true}>
-                    {SKIP_INTERVAL}
-                  </Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -380,7 +417,7 @@ export default function HomeScreen() {
                 <TouchableOpacity
                   style={[
                     styles.liveButton,
-                    isPlaying && styles.liveButtonActive,
+                    isPlaying && styles.liveButtonPlaying,
                   ]}
                   onPress={handleSwitchToLive}
                   activeOpacity={0.7}
@@ -388,7 +425,7 @@ export default function HomeScreen() {
                   <Text
                     style={[
                       styles.liveButtonText,
-                      isPlaying && styles.liveButtonTextActive,
+                      isPlaying && styles.liveButtonTextPlaying,
                     ]}
                   >
                     ← Switch to LIVE
@@ -448,27 +485,27 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     lineHeight: 16,
   },
-  showDescriptionActive: { color: '#D0D0D0' },
+  showDescriptionActive: { color: COLORS.TEXT.ACTIVE },
   liveButton: {
     marginTop: 16,
     paddingHorizontal: 20,
     paddingVertical: 12,
-    backgroundColor: 'rgba(255, 68, 68, 0.2)',
+    backgroundColor: COLORS.BUTTON.SWITCH.BACKGROUND,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#FF4444',
-  },
-  liveButtonActive: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    borderColor: '#FFFFFF',
+    borderColor: COLORS.BUTTON.SWITCH.BORDER,
   },
   liveButtonText: {
-    color: '#FF4444',
+    color: COLORS.BUTTON.SWITCH.TEXT,
     fontSize: 14,
     fontWeight: '600',
     textAlign: 'center',
   },
-  liveButtonTextActive: { color: '#FFFFFF' },
+  liveButtonPlaying: {
+    backgroundColor: COLORS.BUTTON.SWITCH_ACTIVE.BACKGROUND,
+    borderColor: COLORS.BUTTON.SWITCH_ACTIVE.BORDER,
+  },
+  liveButtonTextPlaying: { color: COLORS.BUTTON.SWITCH_ACTIVE.TEXT },
   playbackControls: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -480,16 +517,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     width: 48,
     height: 48,
-  },
-  skipBackIcon: {
-    transform: [{ scaleX: -1 }],
-  },
-  skipForwardIcon: {
-    transform: [{ scaleX: 1 }],
-  },
-  skipText: {
-    color: COLORS.TEXT.PRIMARY,
-    fontSize: 10,
-    fontWeight: '600',
   },
 });

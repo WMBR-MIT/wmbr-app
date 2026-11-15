@@ -1,16 +1,64 @@
+import { jest } from '@jest/globals';
 import { renderAsync, screen, userEvent } from '@testing-library/react-native';
-
 import { ScheduleStack } from '@app/Schedule';
+
 import { TestWrapper } from '@utils/TestUtils';
+import { styles as scheduleStyles } from '@app/Schedule/SchedulePage';
 
 describe('SchedulePage', () => {
+  beforeAll(() => {
+    // Freeze time so the schedule always starts on Tuesday, which keeps these
+    // tests deterministic even though the UI now starts at "today".
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2025-11-11T12:00:00Z'));
+  });
+
+  afterAll(() => {
+    jest.useRealTimers();
+  });
+
   test('displays shows after loading', async () => {
     await renderAsync(<ScheduleStack />, { wrapper: TestWrapper });
 
-    // The real ScheduleService will call fetch() which is mocked
-    // to return XML data, which the service will parse and display
-    expect(screen.getByText('Africa Kabisa')).toBeTruthy();
+    // With the date fixed to Tuesday, the first rendered section includes
+    // Tuesday shows from the mock schedule.
+    expect(screen.getByText('If 6 Was 9')).toBeTruthy();
     expect(screen.getByText(/Post-tentious.*/)).toBeTruthy();
+  });
+
+  test('shows the next air date only for inactive alternating shows', async () => {
+    await renderAsync(<ScheduleStack />, { wrapper: TestWrapper });
+
+    // November 16 is week 2 of the mock season: Sound and Fury (week 1)
+    // skips this Sunday, while Radio with a View (week 2) airs as scheduled.
+    expect(await screen.findByText('Sound and Fury')).toBeTruthy();
+    expect(screen.getByText('Radio with a View')).toBeTruthy();
+    expect(
+      screen.getByText('Every Other Week · Next airs on Nov 23'),
+    ).toBeTruthy();
+    expect(screen.getByText('Every Other Week')).toBeTruthy();
+    expect(screen.getAllByText(/Next airs on/)).toHaveLength(1);
+  });
+
+  test('applies inactiveShowLabel styling only to inactive show names and hosts', async () => {
+    await renderAsync(<ScheduleStack />, { wrapper: TestWrapper });
+
+    // Check the named style's presence, not its values, so its appearance
+    // can change without breaking this test.
+    const inactiveShowName = await screen.findByText('Sound and Fury');
+    expect(inactiveShowName.props.style).toContain(
+      scheduleStyles.inactiveShowLabel,
+    );
+    expect(
+      screen.getByText('with David "The Central Cogitator" Goodman').props
+        .style,
+    ).toContain(scheduleStyles.inactiveShowLabel);
+    expect(screen.getByText('Radio with a View').props.style).not.toContain(
+      scheduleStyles.inactiveShowLabel,
+    );
+    expect(screen.getByText('with Marc Stern').props.style).not.toContain(
+      scheduleStyles.inactiveShowLabel,
+    );
   });
 
   test('navigates to ShowDetails when tapping a show with archives', async () => {
@@ -27,6 +75,7 @@ describe('SchedulePage', () => {
     expect(screen.getByText('Archives')).toBeTruthy();
     expect(screen.getByText('88.1 FM')).toBeTruthy();
     expect(screen.getByText(/archived episode/)).toBeTruthy();
+    expect(screen.getByText('post music for post people.')).toBeTruthy();
   });
 
   test('navigates to ArchivedShowView when tapping an archive in ShowDetails', async () => {

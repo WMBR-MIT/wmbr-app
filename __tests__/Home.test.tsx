@@ -28,7 +28,7 @@ describe('Home Screen', () => {
   test('tapping Play button calls TrackPlayer.play()', async () => {
     const user = userEvent.setup();
     await renderAsync(<HomeScreen />, { wrapper: TestWrapper });
-    const playButton = await screen.findByLabelText('Play Button');
+    const playButton = await screen.findByLabelText('Play');
     await user.press(playButton);
 
     expect(TrackPlayer.play).toHaveBeenCalled();
@@ -37,7 +37,7 @@ describe('Home Screen', () => {
   test('pressing Play adds the live stream', async () => {
     const user = userEvent.setup();
     await renderAsync(<HomeScreen />, { wrapper: TestWrapper });
-    const playButton = await screen.findByLabelText('Play Button');
+    const playButton = await screen.findByLabelText('Play');
     await user.press(playButton);
 
     // Main stream should be added to TrackPlayer
@@ -53,7 +53,7 @@ describe('Home Screen', () => {
     setPlaybackState(State.Playing);
 
     await renderAsync(<HomeScreen />, { wrapper: TestWrapper });
-    const stopButton = await screen.findByLabelText('Stop Button');
+    const stopButton = await screen.findByLabelText('Stop');
     await user.press(stopButton);
 
     expect(TrackPlayer.stop).toHaveBeenCalled();

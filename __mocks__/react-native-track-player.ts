@@ -23,6 +23,7 @@ export enum Capability {
 }
 
 export enum State {
+  Buffering = 'BUFFERING',
   Playing = 'PLAYING',
   Stopped = 'STOPPED',
   Paused = 'PAUSED',

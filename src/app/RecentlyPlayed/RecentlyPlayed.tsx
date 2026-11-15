@@ -357,28 +357,16 @@ export default function RecentlyPlayed() {
 
   const renderShowHeader = useCallback(
     ({ section }: { section: SectionListData<ProcessedSong> }) => (
-      <>
-        {currentShow &&
-        currentShow !== DEFAULT_NAME &&
-        showPlaylists.length === 1 &&
-        showPlaylists[0].songs.length > 0 ? (
-          <View style={styles.currentShowHeader}>
-            <Text style={styles.currentShowTitle}>{currentShow}</Text>
-            <Text style={styles.currentShowSubtitle}>Now Playing</Text>
-          </View>
-        ) : (
-          <View style={styles.showHeader}>
-            <Text style={styles.showHeaderTitle}>{section.title}</Text>
-            <Text style={styles.showHeaderSubtitle}>
-              {section.data?.length > 0
-                ? `${section.data.length} song${section.data.length !== 1 ? 's' : ''}`
-                : 'No playlist available'}
-            </Text>
-          </View>
-        )}
-      </>
+      <View style={styles.showHeader}>
+        <Text style={styles.showHeaderTitle}>{section.title}</Text>
+        <Text style={styles.showHeaderSubtitle}>
+          {section.data?.length > 0
+            ? `${section.data.length} song${section.data.length !== 1 ? 's' : ''}`
+            : 'No playlist available'}
+        </Text>
+      </View>
     ),
-    [currentShow, showPlaylists],
+    [],
   );
 
   const ListFooterComponent = useCallback(
@@ -615,23 +603,6 @@ const styles = StyleSheet.create({
     color: COLORS.TEXT.TERTIARY,
     fontSize: 16,
     textAlign: 'center',
-  },
-  currentShowHeader: {
-    backgroundColor: COLORS.BACKGROUND.ELEVATED,
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.BORDER.SUBTLE,
-  },
-  currentShowTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: COLORS.TEXT.ACCENT,
-    marginBottom: 4,
-  },
-  currentShowSubtitle: {
-    fontSize: 14,
-    color: COLORS.TEXT.TERTIARY,
   },
   showHeader: {
     backgroundColor: COLORS.BACKGROUND.ELEVATED,

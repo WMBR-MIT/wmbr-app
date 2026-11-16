@@ -23,6 +23,7 @@ export default function PlaybackSlider({
   return (
     <Slider
       style={style}
+      accessibilityLabel="Playback position"
       minimumValue={0}
       maximumValue={1}
       onSlidingStart={onSlidingStart}

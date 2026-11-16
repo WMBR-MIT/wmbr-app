@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   StatusBar,
+  AppState,
 } from 'react-native';
 import {
   SafeAreaView,
@@ -43,6 +44,7 @@ import { ScheduleService } from '@services/ScheduleService';
 const streamUrl = 'https://wmbr.org:8002/hi';
 
 export default function HomeScreen() {
+  const [appState, setAppState] = useState(AppState.currentState);
   const playbackState = usePlaybackState();
   const activeTrack = useActiveTrack();
   const progress = useProgress();
@@ -124,19 +126,37 @@ export default function HomeScreen() {
       },
     );
 
-    metadataService.startPolling();
-
     // Subscribe to archive service
     const unsubscribeArchive =
       ArchiveService.getInstance().subscribe(setArchiveState);
 
     return () => {
-      MetadataService.getInstance().stopPolling();
       unsubscribeMetadata();
       unsubscribeSongs();
       unsubscribeArchive();
     };
   }, [setupPlayer]);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', setAppState);
+    return () => subscription.remove();
+  }, []);
+
+  // Live metadata is useful offscreen only while listening to the live stream.
+  const shouldPollMetadata =
+    appState === 'active' || (isPlaying && activeTrack?.id === 'wmbr-stream');
+
+  useEffect(() => {
+    const metadataService = MetadataService.getInstance();
+    if (shouldPollMetadata) {
+      // Starting a polling session also fetches fresh metadata immediately.
+      metadataService.startPolling();
+    } else {
+      metadataService.stopPolling();
+    }
+
+    return () => metadataService.stopPolling();
+  }, [shouldPollMetadata]);
 
   useEffect(() => {
     if (isPlaying && activeTrack?.id === 'wmbr-stream') {

@@ -1,15 +1,11 @@
-import { useProgress } from 'react-native-track-player';
 import { Platform, StyleProp, ViewStyle } from 'react-native';
 import { COLORS, CORE_COLORS } from '@utils/Colors';
 
 import Slider from '@react-native-community/slider';
 
-export default function PlaybackSlider({
-  style,
-  onValueChange,
-  onSlidingComplete,
-  onSlidingStart,
-}: {
+export interface PlaybackSliderProps {
+  progressSeconds: number;
+  durationSeconds: number;
   style?: StyleProp<ViewStyle>;
   // Returns value in seconds
   onValueChange?: (value: number) => void;
@@ -17,9 +13,16 @@ export default function PlaybackSlider({
   onSlidingComplete?: (value: number) => void;
   // Returns value in percentage (0 to 1)
   onSlidingStart?: (value: number) => void;
-}) {
-  const progress = useProgress();
+}
 
+export default function PlaybackSlider({
+  progressSeconds,
+  durationSeconds,
+  style,
+  onValueChange,
+  onSlidingComplete,
+  onSlidingStart,
+}: PlaybackSliderProps) {
   return (
     <Slider
       style={style}
@@ -33,11 +36,9 @@ export default function PlaybackSlider({
       }
       minimumTrackTintColor={CORE_COLORS.WMBR_GREEN}
       maximumTrackTintColor={COLORS.TEXT.PRIMARY}
-      onValueChange={value =>
-        onValueChange?.(value * (progress?.duration || 0))
-      }
+      onValueChange={value => onValueChange?.(value * (durationSeconds || 0))}
       tapToSeek={true}
-      value={progress.duration > 0 ? progress.position / progress.duration : 0}
+      value={durationSeconds > 0 ? progressSeconds / durationSeconds : 0}
     />
   );
 }

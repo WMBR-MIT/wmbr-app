@@ -253,6 +253,8 @@ export default function ShowDetailsPage() {
                       {/* Progress bar */}
                       {isCurrentlyPlaying && (
                         <PlaybackSlider
+                          progressSeconds={currentPosition}
+                          durationSeconds={progress.duration}
                           style={styles.slider}
                           onValueChange={setCurrentPosition}
                           onSlidingStart={() => setIsSliding(true)}

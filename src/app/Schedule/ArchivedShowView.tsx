@@ -242,6 +242,8 @@ export default function ArchivedShowView() {
               <View style={styles.progressSection}>
                 <View style={styles.progressContainer}>
                   <PlaybackSlider
+                    progressSeconds={currentPosition}
+                    durationSeconds={progress.duration}
                     style={styles.slider}
                     onValueChange={setCurrentPosition}
                     onSlidingStart={() => setIsSliding(true)}

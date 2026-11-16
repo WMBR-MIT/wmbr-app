@@ -20,6 +20,21 @@ React Native app for WMBR radio streaming (live + archives), schedules, and play
 - Use variable names that are easy to understand. Avoid abbreviations, like `s`
     for `state` or `p` for `progress`.
 
+## Dependencies, Linting, and Tests
+
+- Run `npm ci` in a fresh worktree before running project tools.
+- Lint changed files with `npx eslint <file>` after installing dependencies.
+  Use the pinned version; don't fetch a newer ESLint or change config to fix
+  missing dependencies.
+- Run tests with `npm test`, or target a test file with `npm test -- <file>`.
+
+## Change Hygiene
+
+- All work must branch from `develop` and target `develop` in pull requests.
+- Remove styles and callback dependencies made unused by your changes.
+- Use Conventional Commits. Keep PR descriptions short; omit routine validation
+  notes already covered by CI.
+
 ## Project Structure
 
 - **App Shell & Tabs**: `src/app/index.tsx` (Bottom tab navigator + custom bar)

@@ -177,16 +177,33 @@ describe('Home Screen', () => {
         };
 
         clearIntervalSpy.mockClear();
+        intervalSpy.mockClear();
         await changeAppState('background');
 
         if (
           initialPlaybackState === State.Playing &&
           trackId === 'wmbr-stream'
         ) {
-          expect(clearIntervalSpy).not.toHaveBeenCalledWith(pollingTimer);
+          // Backgrounding restarts polling for live audio, but never creates two timers.
+          expect(metadataRequestCount()).toBe(2);
+          expect(
+            intervalSpy.mock.calls.filter(([, interval]) => interval === 30000),
+          ).toHaveLength(1);
+          const backgroundPollingIndex = intervalSpy.mock.calls.findIndex(
+            ([, interval]) => interval === 30000,
+          );
+          const backgroundPollingTimer =
+            intervalSpy.mock.results[backgroundPollingIndex].value;
+
           // Stopping live playback in the background must stop polling too.
           setPlaybackState(State.Stopped);
           await rerenderAsync(<HomeScreen />);
+          expect(clearIntervalSpy).toHaveBeenCalledWith(backgroundPollingTimer);
+        } else {
+          expect(metadataRequestCount()).toBe(1);
+          expect(
+            intervalSpy.mock.calls.filter(([, interval]) => interval === 30000),
+          ).toHaveLength(0);
         }
         expect(clearIntervalSpy).toHaveBeenCalledWith(pollingTimer);
 

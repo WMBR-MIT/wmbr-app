@@ -293,6 +293,9 @@ class MetadataService {
   startPolling(intervalMs: number = 15000): void {
     this.stopPolling();
 
+    // Keep this local so a new polling session always delivers its first response.
+    let lastXmlText: string | null = null;
+
     const poll = async () => {
       try {
         const response = await fetch('https://wmbr.org/dynamic.xml', {
@@ -304,6 +307,11 @@ class MetadataService {
 
         if (response.ok) {
           const xmlText = await response.text();
+
+          // Unchanged XML needs neither parsing nor another round of UI updates.
+          if (xmlText === lastXmlText) {
+            return;
+          }
 
           // Parse show metadata
           const metadata = this.parseWMBRXML(xmlText);
@@ -318,7 +326,10 @@ class MetadataService {
             'songs',
           );
           this.notifySongHistoryListeners(songHistory);
+          lastXmlText = xmlText;
         } else {
+          // Allow the next successful response to replace the fallback, even if unchanged.
+          lastXmlText = null;
           // Fallback to default data
           const metadata = await this.fetchMetadata();
           if (metadata) {
@@ -329,6 +340,7 @@ class MetadataService {
           this.notifySongHistoryListeners(mockHistory);
         }
       } catch (error) {
+        lastXmlText = null;
         debugError('Error in polling:', error);
         const metadata = this.getFallbackData();
         this.notifyListeners(metadata);

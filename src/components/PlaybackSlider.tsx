@@ -1,6 +1,6 @@
 import { useProgress } from 'react-native-track-player';
 import { Platform, StyleProp, ViewStyle } from 'react-native';
-import { COLORS, CORE_COLORS } from '../utils/Colors';
+import { COLORS, CORE_COLORS } from '@utils/Colors';
 
 import Slider from '@react-native-community/slider';
 

@@ -1,6 +1,7 @@
 import MetadataService from '@services/MetadataService';
 
 const metadataXml = `
+<wmbr_info>Mon 1:54 PM : now playing: Test Show</wmbr_info>
 <wmbr_show>&lt;b&gt;Test Show&lt;/b&gt;</wmbr_show>
 <wmbr_plays>&lt;p class="recent"&gt;7:59p &lt;b&gt;Test Artist&lt;/b&gt;: First Song&lt;/p&gt;</wmbr_plays>`;
 
@@ -44,6 +45,44 @@ describe('MetadataService polling', () => {
     expect(fetch).toHaveBeenCalledTimes(2);
     expect(onMetadata).toHaveBeenCalledTimes(1);
     expect(onSongHistory).toHaveBeenCalledTimes(1);
+  });
+
+  it('ignores clock changes outside the show and song sections', async () => {
+    service.startPolling(30000);
+    await jest.advanceTimersByTimeAsync(0);
+    jest
+      .mocked(fetch)
+      .mockResolvedValue(
+        xmlResponse(metadataXml.replace('1:54 PM', '1:55 PM')),
+      );
+
+    await jest.advanceTimersByTimeAsync(30000);
+
+    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(onMetadata).toHaveBeenCalledTimes(1);
+    expect(onSongHistory).toHaveBeenCalledTimes(1);
+  });
+
+  it('delivers show changes even when the song section is unchanged', async () => {
+    service.startPolling(30000);
+    await jest.advanceTimersByTimeAsync(0);
+    jest
+      .mocked(fetch)
+      .mockResolvedValue(
+        xmlResponse(
+          metadataXml.replace(
+            '<wmbr_show>&lt;b&gt;Test Show',
+            '<wmbr_show>&lt;b&gt;Next Show',
+          ),
+        ),
+      );
+
+    await jest.advanceTimersByTimeAsync(30000);
+
+    expect(onMetadata).toHaveBeenCalledTimes(2);
+    expect(onMetadata).toHaveBeenLastCalledWith(
+      expect.objectContaining({ showTitle: 'Next Show' }),
+    );
   });
 
   it('delivers changed song metadata and history on the next poll', async () => {

@@ -294,7 +294,7 @@ class MetadataService {
     this.stopPolling();
 
     // Keep this local so a new polling session always delivers its first response.
-    let lastXmlText: string | null = null;
+    let lastMetadataContent: string | null = null;
 
     const poll = async () => {
       try {
@@ -308,8 +308,13 @@ class MetadataService {
         if (response.ok) {
           const xmlText = await response.text();
 
-          // Unchanged XML needs neither parsing nor another round of UI updates.
-          if (xmlText === lastXmlText) {
+          // Compare only the sections we use: wmbr_info includes a changing clock.
+          // Keep the raw contents to avoid decoding and parsing unchanged metadata.
+          const metadataContent = JSON.stringify([
+            xmlText.match(/<wmbr_show>(.*?)<\/wmbr_show>/s)?.[1] ?? '',
+            xmlText.match(/<wmbr_plays>(.*?)<\/wmbr_plays>/s)?.[1] ?? '',
+          ]);
+          if (metadataContent === lastMetadataContent) {
             return;
           }
 
@@ -326,10 +331,10 @@ class MetadataService {
             'songs',
           );
           this.notifySongHistoryListeners(songHistory);
-          lastXmlText = xmlText;
+          lastMetadataContent = metadataContent;
         } else {
           // Allow the next successful response to replace the fallback, even if unchanged.
-          lastXmlText = null;
+          lastMetadataContent = null;
           // Fallback to default data
           const metadata = await this.fetchMetadata();
           if (metadata) {
@@ -340,7 +345,7 @@ class MetadataService {
           this.notifySongHistoryListeners(mockHistory);
         }
       } catch (error) {
-        lastXmlText = null;
+        lastMetadataContent = null;
         debugError('Error in polling:', error);
         const metadata = this.getFallbackData();
         this.notifyListeners(metadata);

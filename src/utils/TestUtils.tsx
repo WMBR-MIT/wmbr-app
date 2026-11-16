@@ -31,7 +31,7 @@ function RecentlyPlayedServiceWrapper({
       }
     });
 
-    metadataService.startPolling(15000);
+    metadataService.startPolling();
 
     return () => {
       MetadataService.getInstance().stopPolling();

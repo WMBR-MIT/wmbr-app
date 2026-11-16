@@ -11,9 +11,10 @@ import {
   TextInputChangeEvent,
   Alert,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
+import Icon from '@components/Icon';
 import LinearGradient from 'react-native-linear-gradient';
 import { debugLog, debugError } from '@utils/Debug';
+import { dayNames, formatNextAirDate } from '@utils/DateTime';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { useHeaderHeight } from '@react-navigation/elements';
 import { ScheduleShow, ScheduleResponse } from '@customTypes/Schedule';
@@ -21,18 +22,15 @@ import { ScheduleService } from '@services/ScheduleService';
 import { RecentlyPlayedService } from '@services/RecentlyPlayedService';
 import { WmbrRouteName } from '@customTypes/Navigation';
 import { COLORS, CORE_COLORS } from '@utils/Colors';
-import { dayNames } from '@utils/DateTime';
-
-const now = new Date();
-const currentDay = now.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
-
-// Order days starting from the current day index and wrapping around.
-// e.g., if today is Wednesday (index 3) the order will be [Wed, Thu, Fri, Sat, Sun, Mon, Tue]
-const startDay = Math.max(0, Math.min(currentDay, dayNames.length - 1));
-const daysOrder = [...dayNames.slice(startDay), ...dayNames.slice(0, startDay)];
 
 type ScheduleSectionItem = ScheduleShow & {
-  sectionTitle: string;
+  /**
+   * The Eastern calendar date represented by this show's schedule section,
+   * encoded as noon UTC in milliseconds since the Unix epoch. This represents
+   * the section's day, not the show's start time, and is used to determine
+   * whether the show airs on that day. A number keeps navigation data serializable.
+   */
+  sectionDate: number;
 };
 
 export default function SchedulePage() {
@@ -138,17 +136,9 @@ export default function SchedulePage() {
       show.name.trim().toLowerCase() === currentShowTitle.trim().toLowerCase();
     if (!isNameMatch) return false;
 
-    // Get current day info
-    const currentDayName = dayNames[currentDay];
-
-    // For weekday shows (day=7), only highlight if we're rendering the current day and it's a weekday
-    if (show.day === 7) {
-      const isWeekday = currentDay >= 1 && currentDay <= 5;
-      return isWeekday && dayName === currentDayName;
-    } else {
-      // For single-day shows, only highlight if we're rendering the current day
-      return dayName === currentDayName;
-    }
+    // The service puts weekday shows only in their matching calendar sections.
+    // Highlight a matching show only in today's section.
+    return dayName === currentDayName;
   };
 
   const getShowFrequency = (show: ScheduleShow): string => {
@@ -195,20 +185,27 @@ export default function SchedulePage() {
     );
   }, [schedule, searchQuery]);
 
-  const scheduleViewData = useMemo(() => {
-    const groupedShows = scheduleService.groupShowsByDay(filteredShows);
+  const scheduleDays = scheduleService.getRollingScheduleDays(
+    filteredShows,
+    new Date(),
+  );
 
-    return daysOrder
-      .map((day, index) => ({
-        title: day,
-        key: index.toString(),
-        data: (groupedShows[day] || []).map(show => ({
+  const currentDayName = dayNames[scheduleDays[0]?.date.getUTCDay()];
+
+  const scheduleViewData: SectionListData<ScheduleSectionItem>[] = scheduleDays
+    .map(({ date, shows }) => {
+      const dayName = dayNames[date.getUTCDay()];
+      return {
+        title: dayName,
+        key: dayName,
+        data: shows.map(show => ({
           ...show,
-          sectionTitle: day,
+          // Navigation receives this item too, so keep its fields serializable.
+          sectionDate: date.getTime(),
         })),
-      }))
-      .filter(section => section.data.length > 0);
-  }, [filteredShows, scheduleService]); // Only include days that have shows
+      };
+    })
+    .filter(section => section.data.length > 0); // Only include days that have shows
 
   const firstSectionTitle = useMemo(
     () => scheduleViewData[0]?.title,
@@ -223,6 +220,16 @@ export default function SchedulePage() {
     section: SectionListData<ScheduleSectionItem>;
   }) => {
     const isCurrent = isCurrentShowForDay(item, section.title);
+    const nextAirDate = scheduleService.getNextAirDate(
+      item,
+      new Date(item.sectionDate),
+    );
+
+    // Only mute and annotate shows that skip this section's date.
+    const isInactive =
+      nextAirDate !== null && nextAirDate.getTime() !== item.sectionDate;
+    const nextAirDateText = isInactive ? formatNextAirDate(nextAirDate) : '';
+
     return (
       <TouchableOpacity
         style={[styles.showItem, isCurrent && styles.currentShowItem]}
@@ -232,7 +239,11 @@ export default function SchedulePage() {
         <View style={styles.showContent}>
           <View style={styles.showMainInfo}>
             <Text
-              style={[styles.showName, isCurrent && styles.currentShowName]}
+              style={[
+                styles.showName,
+                isCurrent && styles.currentShowName,
+                isInactive && styles.inactiveShowLabel,
+              ]}
               numberOfLines={1}
             >
               {item.name}
@@ -247,7 +258,11 @@ export default function SchedulePage() {
 
           {item.hosts && (
             <Text
-              style={[styles.showHosts, isCurrent && styles.currentShowHosts]}
+              style={[
+                styles.showHosts,
+                isCurrent && styles.currentShowHosts,
+                isInactive && styles.inactiveShowLabel,
+              ]}
               numberOfLines={1}
             >
               with {item.hosts}
@@ -261,6 +276,7 @@ export default function SchedulePage() {
             ]}
           >
             {getShowFrequency(item)}
+            {nextAirDateText}
           </Text>
 
           {item.description && (
@@ -277,7 +293,10 @@ export default function SchedulePage() {
         </View>
 
         <Icon
-          name="chevron-forward"
+          name={{
+            ios: 'chevron.right',
+            android: 'chevron-right',
+          }}
           size={20}
           color={isCurrent ? CORE_COLORS.WMBR_GREEN : '#888'}
         />
@@ -313,12 +332,12 @@ export default function SchedulePage() {
       >
         <View style={[styles.contentWrapper, { paddingTop: headerHeight }]}>
           {loading ? (
-            <View style={styles.loadingContainer}>
+            <View style={[styles.loadingContainer, styles.paddingContainer]}>
               <ActivityIndicator size="large" color={COLORS.TEXT.PRIMARY} />
               <Text style={styles.loadingText}>Loading schedule...</Text>
             </View>
           ) : error ? (
-            <View style={styles.errorContainer}>
+            <View style={[styles.errorContainer, styles.paddingContainer]}>
               <Text style={styles.errorText}>{error}</Text>
               <TouchableOpacity
                 onPress={fetchSchedule}
@@ -328,20 +347,24 @@ export default function SchedulePage() {
               </TouchableOpacity>
             </View>
           ) : (
-            <View style={styles.scheduleContainer}>
+            <>
               {schedule?.shows?.length === 0 ? (
-                <Text style={styles.debugText}>
-                  No shows were parsed from XML
-                </Text>
+                <View style={styles.paddingContainer}>
+                  <Text style={styles.debugText}>
+                    No shows were parsed from XML
+                  </Text>
+                </View>
               ) : null}
               <SectionList
+                contentInsetAdjustmentBehavior="automatic"
+                style={styles.paddingContainer}
                 stickySectionHeadersEnabled={false}
                 sections={scheduleViewData}
-                keyExtractor={item => `${item.id}-${item.sectionTitle}`}
+                keyExtractor={item => `${item.id}-${item.sectionDate}`}
                 renderItem={renderShow}
                 renderSectionHeader={renderSectionHeader}
               />
-            </View>
+            </>
           )}
         </View>
       </LinearGradient>
@@ -349,7 +372,7 @@ export default function SchedulePage() {
   );
 }
 
-const styles = StyleSheet.create({
+export const styles = StyleSheet.create({
   gradient: {
     flex: 1,
   },
@@ -368,7 +391,6 @@ const styles = StyleSheet.create({
   errorContainer: {
     alignItems: 'center',
     paddingVertical: 40,
-    paddingHorizontal: 20,
   },
   errorText: {
     color: COLORS.TEXT.ALERT,
@@ -386,7 +408,7 @@ const styles = StyleSheet.create({
     color: COLORS.BUTTON.ALERT.TEXT,
     fontWeight: '600',
   },
-  scheduleContainer: {
+  paddingContainer: {
     paddingHorizontal: 20,
   },
   daySection: {
@@ -415,6 +437,9 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     borderColor: COLORS.CARD.SUBTLE.BORDER,
+  },
+  inactiveShowLabel: {
+    color: COLORS.TEXT.TERTIARY,
   },
   currentShowItem: {
     backgroundColor: COLORS.CARD.ACTIVE.BACKGROUND,

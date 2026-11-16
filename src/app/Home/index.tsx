@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   StatusBar,
+  AppState,
 } from 'react-native';
 import {
   SafeAreaView,
@@ -14,11 +15,12 @@ import {
 } from 'react-native-safe-area-context';
 import TrackPlayer, {
   State,
+  useActiveTrack,
   usePlaybackState,
   useProgress,
 } from 'react-native-track-player';
-import Icon from 'react-native-vector-icons/Ionicons';
-import { liveCapabilities, SKIP_INTERVAL } from '@utils/TrackPlayerUtils';
+import Icon from '@components/Icon';
+import { SKIP_INTERVAL, liveCapabilities } from '@utils/TrackPlayerUtils';
 import LinearGradient from 'react-native-linear-gradient';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SvgXml } from 'react-native-svg';
@@ -42,7 +44,9 @@ import { ScheduleService } from '@services/ScheduleService';
 const streamUrl = 'https://wmbr.org:8002/hi';
 
 export default function HomeScreen() {
+  const [appState, setAppState] = useState(AppState.currentState);
   const playbackState = usePlaybackState();
+  const activeTrack = useActiveTrack();
   const progress = useProgress();
   const insets = useSafeAreaInsets();
   const [currentShow, setCurrentShow] = useState(DEFAULT_NAME);
@@ -62,6 +66,7 @@ export default function HomeScreen() {
   const scheduleService = ScheduleService.getInstance();
 
   const isPlaying = playbackState?.state === State.Playing;
+  const isBuffering = playbackState?.state === State.Buffering;
 
   const navigation =
     useNavigation<NavigationProp<Record<WmbrRouteName, object | undefined>>>();
@@ -86,6 +91,7 @@ export default function HomeScreen() {
         autoHandleInterruptions: true,
       });
 
+      // Start with live capabilities, since this is the default stream
       await TrackPlayer.updateOptions({
         capabilities: liveCapabilities,
       });
@@ -120,19 +126,61 @@ export default function HomeScreen() {
       },
     );
 
-    metadataService.startPolling(15000);
-
     // Subscribe to archive service
     const unsubscribeArchive =
       ArchiveService.getInstance().subscribe(setArchiveState);
 
     return () => {
-      MetadataService.getInstance().stopPolling();
       unsubscribeMetadata();
       unsubscribeSongs();
       unsubscribeArchive();
     };
   }, [setupPlayer]);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', setAppState);
+    return () => subscription.remove();
+  }, []);
+
+  // Live playback changes refresh metadata even when foreground polling is already enabled.
+  useEffect(() => {
+    const isPlayingLive = isPlaying && activeTrack?.id === 'wmbr-stream';
+    // Live metadata is useful offscreen only while listening to the live stream.
+    const shouldPollMetadata = appState === 'active' || isPlayingLive;
+    const metadataService = MetadataService.getInstance();
+    if (shouldPollMetadata) {
+      // Starting a polling session also fetches fresh metadata immediately.
+      metadataService.startPolling();
+    } else {
+      metadataService.stopPolling();
+    }
+
+    return () => metadataService.stopPolling();
+  }, [appState, isPlaying, activeTrack?.id]);
+
+  const liveMetadata = useMemo(() => {
+    if (showInfo?.currentSong && showInfo?.currentArtist) {
+      const titleWithHosts = currentShow
+        ? `${currentShow}${hosts ? ` with ${hosts}` : ''}`
+        : DEFAULT_NAME;
+
+      return {
+        title: `${showInfo.currentArtist} - ${showInfo.currentSong}`,
+        artist: `${titleWithHosts || 'Live Radio'} | ${DEFAULT_NAME}`,
+        artwork: require('../../../assets/cover.png'),
+      };
+    }
+
+    const titleWithHosts = currentShow
+      ? `${currentShow}${hosts ? ` with ${hosts}` : ''}`
+      : DEFAULT_NAME;
+
+    return {
+      title: titleWithHosts || DEFAULT_NAME,
+      artist: currentShow ? DEFAULT_NAME : 'Live Radio',
+      artwork: require('../../../assets/cover.png'),
+    };
+  }, [hosts, showInfo, currentShow]);
 
   // Separate useEffect for updating track metadata when show changes
   useEffect(() => {
@@ -150,16 +198,7 @@ export default function HomeScreen() {
       try {
         // Only update if we're not playing an archive
         if (!archiveState.isPlayingArchive) {
-          await TrackPlayer.updateMetadataForTrack(0, {
-            title: DEFAULT_NAME,
-            artist: currentShow || 'Live Radio',
-            artwork: require('../../../assets/cover.png'),
-          });
-
-          // Honestly unsure why this needs to be done again
-          await TrackPlayer.updateOptions({
-            capabilities: liveCapabilities,
-          });
+          await TrackPlayer.updateMetadataForTrack(0, liveMetadata);
         }
       } catch (error) {
         debugError('Error updating track metadata:', error);
@@ -168,7 +207,7 @@ export default function HomeScreen() {
 
     updateLiveTrackMetadata();
   }, [
-    currentShow,
+    liveMetadata,
     archiveState.isPlayingArchive,
     isPlayerInitialized,
     playbackState?.state,
@@ -181,6 +220,12 @@ export default function HomeScreen() {
     }
 
     try {
+      // If we're buffering, just stop
+      if (isBuffering) {
+        await TrackPlayer.stop();
+        return;
+      }
+
       const audioPreviewService = AudioPreviewService.getInstance();
       const previewState = audioPreviewService.getCurrentState();
 
@@ -199,16 +244,16 @@ export default function HomeScreen() {
 
         const hasLiveStream = queue.some(track => track.id === 'wmbr-stream');
 
+        const liveTrack = {
+          id: 'wmbr-stream',
+          url: streamUrl,
+          ...liveMetadata,
+          isLiveStream: true,
+          userAgent: getUserAgent(),
+        };
+
         if (!hasLiveStream) {
-          await TrackPlayer.add({
-            id: 'wmbr-stream',
-            url: streamUrl,
-            title: DEFAULT_NAME,
-            artist: currentShow || 'Live Radio',
-            artwork: require('../../../assets/cover.png'),
-            isLiveStream: true,
-            userAgent: getUserAgent(),
-          });
+          await TrackPlayer.add(liveTrack);
         }
 
         await TrackPlayer.play();
@@ -218,9 +263,10 @@ export default function HomeScreen() {
     }
   }, [
     archiveState.isPlayingArchive,
-    currentShow,
+    isBuffering,
     isPlayerInitialized,
     isPlaying,
+    liveMetadata,
   ]);
 
   const handleSplashEnd = () => setShowSplash(false);
@@ -346,12 +392,13 @@ export default function HomeScreen() {
                   accessibilityLabel={`Skip backward ${SKIP_INTERVAL} seconds`}
                 >
                   <Icon
-                    name="refresh-outline"
+                    name={{
+                      ios: '30.arrow.trianglehead.counterclockwise',
+                      android: 'replay-30',
+                    }}
                     size={28}
                     color={COLORS.TEXT.PRIMARY}
-                    style={styles.skipBackIcon}
                   />
-                  <Text style={styles.skipText}>{SKIP_INTERVAL}</Text>
                 </TouchableOpacity>
               )}
               <PlayButton
@@ -366,14 +413,13 @@ export default function HomeScreen() {
                   accessibilityLabel={`Skip forward ${SKIP_INTERVAL} seconds`}
                 >
                   <Icon
-                    name="refresh-outline"
+                    name={{
+                      ios: '30.arrow.trianglehead.clockwise',
+                      android: 'forward-30',
+                    }}
                     size={28}
                     color={COLORS.TEXT.PRIMARY}
-                    style={styles.skipForwardIcon}
                   />
-                  <Text style={styles.skipText} aria-hidden={true}>
-                    {SKIP_INTERVAL}
-                  </Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -493,16 +539,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     width: 48,
     height: 48,
-  },
-  skipBackIcon: {
-    transform: [{ scaleX: -1 }],
-  },
-  skipForwardIcon: {
-    transform: [{ scaleX: 1 }],
-  },
-  skipText: {
-    color: COLORS.TEXT.PRIMARY,
-    fontSize: 10,
-    fontWeight: '600',
   },
 });

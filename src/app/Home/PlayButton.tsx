@@ -4,9 +4,10 @@ import {
   TouchableOpacity,
   StyleSheet,
   Animated,
+  Easing,
   Platform,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
+import Icon from '@components/Icon';
 import { State, usePlaybackState } from 'react-native-track-player';
 import { CORE_COLORS } from '@utils/Colors';
 
@@ -21,9 +22,28 @@ export default function PlayButton({
 }: PlayButtonProps) {
   const playbackState = usePlaybackState();
   const pulseAnim = useRef(new Animated.Value(1)).current;
-  const rotateAnim = useRef(new Animated.Value(0)).current;
+  const spinAnim = useRef(new Animated.Value(0)).current;
 
   const isPlaying = playbackState?.state === State.Playing;
+  const isBuffering = playbackState?.state === State.Buffering;
+
+  const spinInterpolation = spinAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '-360deg'],
+  });
+
+  const startSpinAnimation = useCallback(() => {
+    spinAnim.setValue(0);
+
+    Animated.loop(
+      Animated.timing(spinAnim, {
+        toValue: 1,
+        duration: 3000,
+        easing: Easing.linear,
+        useNativeDriver: false,
+      }),
+    ).start();
+  }, [spinAnim]);
 
   const startPulseAnimation = useCallback(() => {
     Animated.loop(
@@ -42,25 +62,15 @@ export default function PlayButton({
     ).start();
   }, [pulseAnim]);
 
-  const startRotateAnimation = useCallback(() => {
-    Animated.loop(
-      Animated.timing(rotateAnim, {
-        toValue: 1,
-        duration: 10000,
-        useNativeDriver: true,
-      }),
-    ).start();
-  }, [rotateAnim]);
-
   const stopAnimations = useCallback(() => {
     pulseAnim.stopAnimation();
-    rotateAnim.stopAnimation();
+    spinAnim.stopAnimation();
     Animated.timing(pulseAnim, {
       toValue: 1,
       duration: 300,
       useNativeDriver: true,
     }).start();
-  }, [pulseAnim, rotateAnim]);
+  }, [pulseAnim, spinAnim]);
 
   /**
    * If we're playing, we either:
@@ -72,42 +82,71 @@ export default function PlayButton({
   const playbackButtonLabel = useMemo(() => {
     if (isPlaying) {
       if (isPlayingArchive) {
-        return 'Pause Button';
+        return 'Pause';
       } else {
-        return 'Stop Button';
+        return 'Stop';
       }
-    } else {
-      return 'Play Button';
     }
-  }, [isPlaying, isPlayingArchive]);
 
-  const playbackIcon = useMemo(() => {
-    if (isPlaying) {
-      if (isPlayingArchive) {
-        return <Icon name="pause" size={64} color={CORE_COLORS.WMBR_GREEN} />;
-      } else {
-        return <Icon name="stop" size={64} color={CORE_COLORS.WMBR_GREEN} />;
-      }
-    } else {
-      return <Icon name="play" size={64} color={CORE_COLORS.WHITE} />;
+    if (isBuffering) {
+      return 'Buffering';
     }
-  }, [isPlaying, isPlayingArchive]);
+
+    return 'Play';
+  }, [isBuffering, isPlaying, isPlayingArchive]);
+
+  const playbackIcon = useMemo(
+    () =>
+      isPlaying ? (
+        isPlayingArchive ? (
+          <Icon
+            name={{
+              ios: 'pause.fill',
+              android: 'pause',
+            }}
+            size={48}
+            color={CORE_COLORS.WMBR_GREEN}
+          />
+        ) : (
+          <Icon
+            name={{
+              ios: 'stop.fill',
+              android: 'stop',
+            }}
+            size={48}
+            color={CORE_COLORS.WMBR_GREEN}
+          />
+        )
+      ) : (
+        <Icon
+          name={{
+            ios: isBuffering ? 'progress.indicator' : 'play.fill',
+            android: isBuffering ? 'restore' : 'play-arrow',
+          }}
+          size={48}
+          color={CORE_COLORS.WHITE}
+          style={
+            isBuffering ? { transform: [{ rotate: spinInterpolation }] } : {}
+          }
+        />
+      ),
+    [isBuffering, isPlaying, isPlayingArchive, spinInterpolation],
+  );
 
   useEffect(() => {
-    if (playbackState?.state === State.Playing) {
-      startPulseAnimation();
-      startRotateAnimation();
-    } else {
-      stopAnimations();
+    stopAnimations();
+
+    switch (playbackState?.state) {
+      case State.Playing:
+        startPulseAnimation();
+        break;
+      case State.Buffering:
+        startSpinAnimation();
+        break;
+      default:
+        break;
     }
-  }, [
-    playbackState,
-    rotateAnim,
-    pulseAnim,
-    startPulseAnimation,
-    startRotateAnimation,
-    stopAnimations,
-  ]);
+  }, [playbackState, startPulseAnimation, startSpinAnimation, stopAnimations]);
 
   return (
     <View style={styles.centerButton}>

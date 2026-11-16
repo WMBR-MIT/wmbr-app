@@ -1,22 +1,37 @@
 import React, { useMemo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
-import Icon from 'react-native-vector-icons/Ionicons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS, CORE_COLORS } from '@utils/Colors';
+import Icon, { IconName } from '@components/Icon';
 
-function getIconName(routeName: string) {
+function getIconName(routeName: string): IconName {
   switch (routeName) {
-    case 'Schedule':
-      return 'calendar-outline';
-    case 'Recently Played':
-      return 'albums-outline';
-    case 'About':
-      return 'information-circle-outline';
     case 'Home':
-      return 'home-outline';
+      return {
+        ios: 'music.note.house',
+        android: 'home',
+      };
+    case 'Recently Played':
+      return {
+        ios: 'music.note.list',
+        android: 'queue-music',
+      };
+    case 'Schedule':
+      return {
+        ios: 'calendar',
+        android: 'calendar-month',
+      };
+    case 'About':
+      return {
+        ios: 'info.circle',
+        android: 'info',
+      };
     default:
-      return 'ellipse-outline';
+      return {
+        ios: 'questionmark.circle',
+        android: 'help',
+      };
   }
 }
 

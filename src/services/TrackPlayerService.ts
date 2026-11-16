@@ -1,8 +1,22 @@
+import {
+  archiveCapabilities,
+  liveCapabilities,
+  SKIP_INTERVAL,
+} from '@utils/TrackPlayerUtils';
 import TrackPlayer, { Event } from 'react-native-track-player';
 
 const TrackPlayerService = async () => {
   TrackPlayer.addEventListener(Event.RemotePlay, () => TrackPlayer.play());
-  TrackPlayer.addEventListener(Event.RemotePause, () => TrackPlayer.pause());
+  TrackPlayer.addEventListener(Event.RemotePause, async () => {
+    const activeTrack = await TrackPlayer.getActiveTrack();
+
+    // Stop live streams so playing again reconnects at the live edge.
+    if (activeTrack?.isLiveStream) {
+      await TrackPlayer.stop();
+    } else {
+      await TrackPlayer.pause();
+    }
+  });
   TrackPlayer.addEventListener(Event.RemoteStop, () => TrackPlayer.stop());
 
   /**
@@ -14,13 +28,33 @@ const TrackPlayerService = async () => {
   TrackPlayer.addEventListener(
     Event.RemoteDuck,
     async ({ paused, permanent }) => {
+      if (!paused) {
+        return;
+      }
+
       const activeTrack = await TrackPlayer.getActiveTrack();
 
-      if (!paused || permanent || activeTrack?.isLiveStream) {
+      if (permanent || activeTrack?.isLiveStream) {
         TrackPlayer.stop();
       } else {
         TrackPlayer.pause();
       }
+    },
+  );
+
+  TrackPlayer.addEventListener(
+    Event.PlaybackActiveTrackChanged,
+    async ({ track }) => {
+      const capabilities = track?.isLiveStream
+        ? liveCapabilities
+        : archiveCapabilities;
+
+      await TrackPlayer.updateOptions({
+        capabilities: capabilities,
+        compactCapabilities: capabilities,
+        forwardJumpInterval: SKIP_INTERVAL,
+        backwardJumpInterval: SKIP_INTERVAL,
+      });
     },
   );
 

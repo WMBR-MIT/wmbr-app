@@ -11,4 +11,12 @@ export const archiveCapabilities = [
   Capability.SeekTo,
 ];
 
-export const liveCapabilities = [Capability.Play, Capability.Stop];
+export const liveCapabilities = [
+  Capability.Play,
+  Capability.Stop,
+  // `Capability.Pause` won't, on its own, enable pause. We listen for
+  // RemotePause from RNTP, and if we receive it -- for instance, when AirPods
+  // are removed or pressed -- we stop if it's a live stream, and pause if it's
+  // an archive.
+  Capability.Pause,
+];

@@ -1,6 +1,8 @@
 import { DEFAULT_NAME } from '@customTypes/Playlist';
 import { debugLog, debugError } from '@utils/Debug';
 
+const METADATA_POLL_INTERVAL_MS = 30_000;
+
 interface ShowInfo {
   showTitle: string;
   hosts?: string;
@@ -290,8 +292,11 @@ class MetadataService {
       });
   }
 
-  startPolling(intervalMs: number = 15000): void {
+  startPolling(intervalMs: number = METADATA_POLL_INTERVAL_MS): void {
     this.stopPolling();
+
+    // Keep this local so a new polling session always delivers its first response.
+    let lastMetadataContent: string | null = null;
 
     const poll = async () => {
       try {
@@ -304,6 +309,16 @@ class MetadataService {
 
         if (response.ok) {
           const xmlText = await response.text();
+
+          // Compare only the sections we use: wmbr_info includes a changing clock.
+          // Keep the raw contents to avoid decoding and parsing unchanged metadata.
+          const metadataContent = JSON.stringify([
+            xmlText.match(/<wmbr_show>(.*?)<\/wmbr_show>/s)?.[1] ?? '',
+            xmlText.match(/<wmbr_plays>(.*?)<\/wmbr_plays>/s)?.[1] ?? '',
+          ]);
+          if (metadataContent === lastMetadataContent) {
+            return;
+          }
 
           // Parse show metadata
           const metadata = this.parseWMBRXML(xmlText);
@@ -318,7 +333,10 @@ class MetadataService {
             'songs',
           );
           this.notifySongHistoryListeners(songHistory);
+          lastMetadataContent = metadataContent;
         } else {
+          // Allow the next successful response to replace the fallback, even if unchanged.
+          lastMetadataContent = null;
           // Fallback to default data
           const metadata = await this.fetchMetadata();
           if (metadata) {
@@ -329,6 +347,7 @@ class MetadataService {
           this.notifySongHistoryListeners(mockHistory);
         }
       } catch (error) {
+        lastMetadataContent = null;
         debugError('Error in polling:', error);
         const metadata = this.getFallbackData();
         this.notifyListeners(metadata);

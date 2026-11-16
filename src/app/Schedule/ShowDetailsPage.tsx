@@ -14,7 +14,7 @@ import {
   ScrollView,
   StatusBar,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
+import Icon from '@components/Icon';
 import LinearGradient from 'react-native-linear-gradient';
 import { debugError } from '@utils/Debug';
 import { Show, Archive } from '@customTypes/RecentlyPlayed';
@@ -235,8 +235,14 @@ export default function ShowDetailsPage() {
                             name={
                               isCurrentlyPlaying &&
                               playbackState?.state === State.Playing
-                                ? 'pause-circle'
-                                : 'play-circle'
+                                ? {
+                                    ios: 'pause.circle',
+                                    android: 'pause-circle',
+                                  }
+                                : {
+                                    ios: 'play.circle',
+                                    android: 'play-circle',
+                                  }
                             }
                             size={28}
                             color={COLORS.TEXT.PRIMARY}

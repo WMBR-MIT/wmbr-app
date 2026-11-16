@@ -1,6 +1,14 @@
 import TrackPlayer, { State, useActiveTrack } from 'react-native-track-player';
+import { AppState, AppStateStatus } from 'react-native';
 
-import { renderAsync, screen, userEvent } from '@testing-library/react-native';
+import {
+  act,
+  renderAsync,
+  screen,
+  userEvent,
+} from '@testing-library/react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import HomeScreen from '../src/app/Home';
 import { TestWrapper, getTrackPlayerTestApi } from '../src/utils/TestUtils';
@@ -15,11 +23,18 @@ jest.mock('../src/app/Home/SplashScreen', () => (props: any) => {
 });
 
 describe('Home Screen', () => {
+  const originalAppState = AppState.currentState;
+
   beforeEach(() => {
+    AppState.currentState = 'active';
     jest.clearAllMocks();
     getTrackPlayerTestApi().resetAll();
     jest.mocked(useActiveTrack).mockReturnValue(undefined);
   });
+  afterEach(() => {
+    AppState.currentState = originalAppState;
+  });
+
   const metadataRequestCount = () =>
     jest
       .mocked(fetch)
@@ -30,14 +45,14 @@ describe('Home Screen', () => {
   const mountMetadataRequests = 2;
 
   test.each([
-    ['wmbr-stream', State.Playing, 1],
-    ['wmbr-stream', State.Paused, 0],
-    ['preview-track', State.Playing, 0],
-    ['archive-track', State.Playing, 0],
-    [undefined, State.Playing, 0],
+    ['wmbr-stream', State.Playing],
+    ['wmbr-stream', State.Paused],
+    ['preview-track', State.Playing],
+    ['archive-track', State.Playing],
+    [undefined, State.Playing],
   ])(
-    'refreshes metadata only for playing live track (%s, %s)',
-    async (trackId, playbackState, expectedExtraRequests) => {
+    'starts polling once on mount regardless of playback (%s, %s)',
+    async (trackId, playbackState) => {
       setPlaybackState(playbackState);
       jest
         .mocked(useActiveTrack)
@@ -49,10 +64,8 @@ describe('Home Screen', () => {
 
       await renderAsync(<HomeScreen />, { wrapper: TestWrapper });
 
-      // Only playing the live track should add a refresh to the mount requests.
-      expect(metadataRequestCount()).toBe(
-        mountMetadataRequests + expectedExtraRequests,
-      );
+      // Live playback must not cause a second refresh on mount.
+      expect(metadataRequestCount()).toBe(mountMetadataRequests);
     },
   );
 
@@ -110,8 +123,117 @@ describe('Home Screen', () => {
       url: 'https://example.com/archive',
     });
     await rerenderAsync(<HomeScreen />);
-    expect(metadataRequestCount()).toBe(mountMetadataRequests + 1);
+    // Leaving live playback returns to foreground polling with one fresh request.
+    expect(metadataRequestCount()).toBe(mountMetadataRequests + 2);
   });
+  test.each([
+    ['wmbr-stream', State.Stopped],
+    ['wmbr-stream', State.Playing],
+    ['archive-track', State.Playing],
+    ['preview-track', State.Playing],
+  ])(
+    'polling follows app visibility and live playback (%s, %s)',
+    async (trackId, initialPlaybackState) => {
+      jest.mocked(useActiveTrack).mockReturnValue({
+        id: trackId,
+        url: 'https://example.com/audio',
+      });
+      const appStateListener = jest.mocked(AppState.addEventListener);
+      const intervalSpy = jest.spyOn(global, 'setInterval');
+      const clearIntervalSpy = jest.spyOn(global, 'clearInterval');
+      setPlaybackState(initialPlaybackState);
+
+      try {
+        // Use only the UI providers: TestWrapper starts its own metadata poller.
+        const { rerenderAsync } = await renderAsync(<HomeScreen />, {
+          wrapper: ({ children }) => (
+            <SafeAreaProvider
+              initialMetrics={{
+                insets: { top: 0, left: 0, right: 0, bottom: 0 },
+                frame: { x: 0, y: 0, width: 0, height: 0 },
+              }}
+            >
+              <NavigationContainer>{children}</NavigationContainer>
+            </SafeAreaProvider>
+          ),
+        });
+
+        expect(metadataRequestCount()).toBe(1);
+        expect(
+          intervalSpy.mock.calls.filter(([, interval]) => interval === 30000),
+        ).toHaveLength(1);
+        const pollingIndex = intervalSpy.mock.calls.findIndex(
+          ([, interval]) => interval === 30000,
+        );
+        expect(pollingIndex).toBeGreaterThanOrEqual(0);
+        const pollingTimer = intervalSpy.mock.results[pollingIndex].value;
+        const listener = appStateListener.mock.calls.find(
+          ([event]) => event === 'change',
+        )?.[1];
+        expect(listener).toBeDefined();
+
+        const changeAppState = async (nextState: AppStateStatus) => {
+          await act(async () => listener?.(nextState));
+        };
+
+        clearIntervalSpy.mockClear();
+        intervalSpy.mockClear();
+        await changeAppState('background');
+
+        if (
+          initialPlaybackState === State.Playing &&
+          trackId === 'wmbr-stream'
+        ) {
+          // Backgrounding restarts polling for live audio, but never creates two timers.
+          expect(metadataRequestCount()).toBe(2);
+          expect(
+            intervalSpy.mock.calls.filter(([, interval]) => interval === 30000),
+          ).toHaveLength(1);
+          const backgroundPollingIndex = intervalSpy.mock.calls.findIndex(
+            ([, interval]) => interval === 30000,
+          );
+          const backgroundPollingTimer =
+            intervalSpy.mock.results[backgroundPollingIndex].value;
+
+          // Stopping live playback in the background must stop polling too.
+          setPlaybackState(State.Stopped);
+          await rerenderAsync(<HomeScreen />);
+          expect(clearIntervalSpy).toHaveBeenCalledWith(backgroundPollingTimer);
+        } else {
+          expect(metadataRequestCount()).toBe(1);
+          expect(
+            intervalSpy.mock.calls.filter(([, interval]) => interval === 30000),
+          ).toHaveLength(0);
+        }
+        expect(clearIntervalSpy).toHaveBeenCalledWith(pollingTimer);
+
+        if (
+          initialPlaybackState === State.Stopped &&
+          trackId === 'wmbr-stream'
+        ) {
+          // Starting live audio in the background must create only one polling session.
+          intervalSpy.mockClear();
+          const requestsBeforePlayback = metadataRequestCount();
+          setPlaybackState(State.Playing);
+          await rerenderAsync(<HomeScreen />);
+          expect(metadataRequestCount()).toBe(requestsBeforePlayback + 1);
+          expect(
+            intervalSpy.mock.calls.filter(([, interval]) => interval === 30000),
+          ).toHaveLength(1);
+
+          setPlaybackState(State.Stopped);
+          await rerenderAsync(<HomeScreen />);
+        }
+
+        intervalSpy.mockClear();
+        await changeAppState('active');
+        expect(intervalSpy).toHaveBeenCalledWith(expect.any(Function), 30000);
+      } finally {
+        intervalSpy.mockRestore();
+        clearIntervalSpy.mockRestore();
+      }
+    },
+  );
 
   test('track player is set up on home screen', async () => {
     await renderAsync(<HomeScreen />, { wrapper: TestWrapper });

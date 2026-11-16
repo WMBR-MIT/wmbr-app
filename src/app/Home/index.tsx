@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   StatusBar,
+  AppState,
 } from 'react-native';
 import {
   SafeAreaView,
@@ -43,6 +44,7 @@ import { ScheduleService } from '@services/ScheduleService';
 const streamUrl = 'https://wmbr.org:8002/hi';
 
 export default function HomeScreen() {
+  const [appState, setAppState] = useState(AppState.currentState);
   const playbackState = usePlaybackState();
   const activeTrack = useActiveTrack();
   const progress = useProgress();
@@ -124,14 +126,11 @@ export default function HomeScreen() {
       },
     );
 
-    metadataService.startPolling();
-
     // Subscribe to archive service
     const unsubscribeArchive =
       ArchiveService.getInstance().subscribe(setArchiveState);
 
     return () => {
-      MetadataService.getInstance().stopPolling();
       unsubscribeMetadata();
       unsubscribeSongs();
       unsubscribeArchive();
@@ -139,11 +138,25 @@ export default function HomeScreen() {
   }, [setupPlayer]);
 
   useEffect(() => {
-    if (isPlaying && activeTrack?.id === 'wmbr-stream') {
-      // Poll immediately when live playback starts, then resume the 30-second cadence.
-      MetadataService.getInstance().startPolling();
+    const subscription = AppState.addEventListener('change', setAppState);
+    return () => subscription.remove();
+  }, []);
+
+  // Live playback changes refresh metadata even when foreground polling is already enabled.
+  useEffect(() => {
+    const isPlayingLive = isPlaying && activeTrack?.id === 'wmbr-stream';
+    // Live metadata is useful offscreen only while listening to the live stream.
+    const shouldPollMetadata = appState === 'active' || isPlayingLive;
+    const metadataService = MetadataService.getInstance();
+    if (shouldPollMetadata) {
+      // Starting a polling session also fetches fresh metadata immediately.
+      metadataService.startPolling();
+    } else {
+      metadataService.stopPolling();
     }
-  }, [isPlaying, activeTrack?.id]);
+
+    return () => metadataService.stopPolling();
+  }, [appState, isPlaying, activeTrack?.id]);
 
   const liveMetadata = useMemo(() => {
     if (showInfo?.currentSong && showInfo?.currentArtist) {

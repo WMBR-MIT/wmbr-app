@@ -142,10 +142,12 @@ export default function HomeScreen() {
     return () => subscription.remove();
   }, []);
 
-  // Live metadata is useful offscreen only while listening to the live stream.
-  const shouldPollMetadata =
-    appState === 'active' || (isPlaying && activeTrack?.id === 'wmbr-stream');
+  const isPlayingLive = isPlaying && activeTrack?.id === 'wmbr-stream';
 
+  // Live metadata is useful offscreen only while listening to the live stream.
+  const shouldPollMetadata = appState === 'active' || isPlayingLive;
+
+  // Live playback changes refresh metadata even when foreground polling is already enabled.
   useEffect(() => {
     const metadataService = MetadataService.getInstance();
     if (shouldPollMetadata) {
@@ -156,14 +158,7 @@ export default function HomeScreen() {
     }
 
     return () => metadataService.stopPolling();
-  }, [shouldPollMetadata]);
-
-  useEffect(() => {
-    if (isPlaying && activeTrack?.id === 'wmbr-stream') {
-      // Poll immediately when live playback starts, then resume the 30-second cadence.
-      MetadataService.getInstance().startPolling();
-    }
-  }, [isPlaying, activeTrack?.id]);
+  }, [shouldPollMetadata, isPlayingLive]);
 
   const liveMetadata = useMemo(() => {
     if (showInfo?.currentSong && showInfo?.currentArtist) {

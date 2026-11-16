@@ -45,14 +45,14 @@ describe('Home Screen', () => {
   const mountMetadataRequests = 2;
 
   test.each([
-    ['wmbr-stream', State.Playing, 1],
-    ['wmbr-stream', State.Paused, 0],
-    ['preview-track', State.Playing, 0],
-    ['archive-track', State.Playing, 0],
-    [undefined, State.Playing, 0],
+    ['wmbr-stream', State.Playing],
+    ['wmbr-stream', State.Paused],
+    ['preview-track', State.Playing],
+    ['archive-track', State.Playing],
+    [undefined, State.Playing],
   ])(
-    'refreshes metadata only for playing live track (%s, %s)',
-    async (trackId, playbackState, expectedExtraRequests) => {
+    'starts polling once on mount regardless of playback (%s, %s)',
+    async (trackId, playbackState) => {
       setPlaybackState(playbackState);
       jest
         .mocked(useActiveTrack)
@@ -64,10 +64,8 @@ describe('Home Screen', () => {
 
       await renderAsync(<HomeScreen />, { wrapper: TestWrapper });
 
-      // Only playing the live track should add a refresh to the mount requests.
-      expect(metadataRequestCount()).toBe(
-        mountMetadataRequests + expectedExtraRequests,
-      );
+      // Live playback must not cause a second refresh on mount.
+      expect(metadataRequestCount()).toBe(mountMetadataRequests);
     },
   );
 
@@ -125,7 +123,8 @@ describe('Home Screen', () => {
       url: 'https://example.com/archive',
     });
     await rerenderAsync(<HomeScreen />);
-    expect(metadataRequestCount()).toBe(mountMetadataRequests + 1);
+    // Leaving live playback returns to foreground polling with one fresh request.
+    expect(metadataRequestCount()).toBe(mountMetadataRequests + 2);
   });
   test.each([
     ['wmbr-stream', State.Stopped],
@@ -159,11 +158,12 @@ describe('Home Screen', () => {
           ),
         });
 
-        // Live playback can restart polling on mount; use the final active timer.
-        const pollingIndex = intervalSpy.mock.calls.reduce(
-          (lastIndex, [, interval], index) =>
-            interval === 30000 ? index : lastIndex,
-          -1,
+        expect(metadataRequestCount()).toBe(1);
+        expect(
+          intervalSpy.mock.calls.filter(([, interval]) => interval === 30000),
+        ).toHaveLength(1);
+        const pollingIndex = intervalSpy.mock.calls.findIndex(
+          ([, interval]) => interval === 30000,
         );
         expect(pollingIndex).toBeGreaterThanOrEqual(0);
         const pollingTimer = intervalSpy.mock.results[pollingIndex].value;
@@ -189,6 +189,24 @@ describe('Home Screen', () => {
           await rerenderAsync(<HomeScreen />);
         }
         expect(clearIntervalSpy).toHaveBeenCalledWith(pollingTimer);
+
+        if (
+          initialPlaybackState === State.Stopped &&
+          trackId === 'wmbr-stream'
+        ) {
+          // Starting live audio in the background must create only one polling session.
+          intervalSpy.mockClear();
+          const requestsBeforePlayback = metadataRequestCount();
+          setPlaybackState(State.Playing);
+          await rerenderAsync(<HomeScreen />);
+          expect(metadataRequestCount()).toBe(requestsBeforePlayback + 1);
+          expect(
+            intervalSpy.mock.calls.filter(([, interval]) => interval === 30000),
+          ).toHaveLength(1);
+
+          setPlaybackState(State.Stopped);
+          await rerenderAsync(<HomeScreen />);
+        }
 
         intervalSpy.mockClear();
         await changeAppState('active');

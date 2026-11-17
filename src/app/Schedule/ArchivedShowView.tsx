@@ -382,28 +382,4 @@ const styles = StyleSheet.create({
     color: COLORS.TEXT.TERTIARY,
     fontSize: 16,
   },
-  progressSection: {
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    alignItems: 'center',
-  },
-  progressContainer: {
-    width: '100%',
-    maxWidth: 300,
-  },
-  timeContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  timeText: {
-    color: COLORS.TEXT.SECONDARY,
-    fontSize: 12,
-    fontWeight: '500',
-    fontVariant: ['tabular-nums'],
-  },
-  slider: {
-    width: '100%',
-    height: 40,
-  },
 });

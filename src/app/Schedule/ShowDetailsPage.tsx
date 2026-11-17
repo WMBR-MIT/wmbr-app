@@ -60,15 +60,8 @@ export default function ShowDetailsPage() {
   const [currentlyPlayingArchive, setCurrentlyPlayingArchive] =
     useState<any>(null);
 
-  const [currentPosition, setCurrentPosition] = useState<number>(0);
-  const [isSliding, setIsSliding] = useState<boolean>(false);
-
   // TrackPlayer hooks - must always be called unconditionally
-  const progressHook = useProgress();
-  const progress = useMemo(
-    () => progressHook || { position: 0, duration: 0 },
-    [progressHook],
-  );
+  const progress = useProgress();
   const playbackState = usePlaybackState();
 
   // Service instance
@@ -140,12 +133,6 @@ export default function ShowDetailsPage() {
     }
   };
 
-  // Update current progress to playback position, as long as user is not
-  // currently sliding
-  useEffect(() => {
-    !isSliding && setCurrentPosition(progress.position);
-  }, [isSliding, progress.position]);
-
   return (
     <>
       <StatusBar barStyle="light-content" backgroundColor={gradientStart} />
@@ -216,7 +203,7 @@ export default function ShowDetailsPage() {
                               ]}
                             >
                               {isCurrentlyPlaying
-                                ? `${secondsToTime(currentPosition)} / ${secondsToTime(progress.duration)}`
+                                ? `${secondsToTime(progress.position)} / ${secondsToTime(progress.duration)}`
                                 : getDurationFromSize(archive.size)}
                             </Text>
                           </View>
@@ -254,8 +241,6 @@ export default function ShowDetailsPage() {
                       {isCurrentlyPlaying && (
                         <PlaybackSlider
                           style={styles.slider}
-                          onValueChange={setCurrentPosition}
-                          onSlidingStart={() => setIsSliding(true)}
                           onSlidingComplete={async value => {
                             try {
                               await TrackPlayer.seekTo(
@@ -263,8 +248,6 @@ export default function ShowDetailsPage() {
                               );
                             } catch (error) {
                               debugError('TrackPlayer.seekTo failed', error);
-                            } finally {
-                              setIsSliding(false);
                             }
                           }}
                         />

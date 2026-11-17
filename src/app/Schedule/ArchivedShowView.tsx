@@ -53,9 +53,6 @@ export default function ArchivedShowView() {
   const [error, setError] = useState<string | null>(null);
   const [isArchivePlaying, setIsArchivePlaying] = useState(false);
 
-  const [currentPosition, setCurrentPosition] = useState<number>(0);
-  const [isSliding, setIsSliding] = useState<boolean>(false);
-
   const playlistService = PlaylistService.getInstance();
   const archiveService = ArchiveService.getInstance();
 
@@ -91,12 +88,6 @@ export default function ArchivedShowView() {
 
     return unsubscribe;
   }, [archive.url, archiveService]);
-
-  // Update current progress to playback position, as long as user is not
-  // currently sliding
-  useEffect(() => {
-    !isSliding && setCurrentPosition(progress.position);
-  }, [isSliding, progress.position]);
 
   const [gradientStart] = generateGradientColors(show.name);
   const [darkGradientStart, darkGradientEnd] = generateDarkGradientColors(
@@ -243,8 +234,6 @@ export default function ArchivedShowView() {
                 <View style={styles.progressContainer}>
                   <PlaybackSlider
                     style={styles.slider}
-                    onValueChange={setCurrentPosition}
-                    onSlidingStart={() => setIsSliding(true)}
                     onSlidingComplete={async value => {
                       try {
                         await TrackPlayer.seekTo(
@@ -252,15 +241,13 @@ export default function ArchivedShowView() {
                         );
                       } catch (e) {
                         debugError('Error seeking to position:', e);
-                      } finally {
-                        setIsSliding(false);
                       }
                     }}
                   />
 
                   <View style={styles.timeContainer}>
                     <Text style={styles.timeText}>
-                      {secondsToTime(currentPosition)}
+                      {secondsToTime(progress.position)}
                     </Text>
                     <Text style={styles.timeText}>
                       {secondsToTime(progress.duration)}

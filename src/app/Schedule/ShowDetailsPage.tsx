@@ -20,26 +20,22 @@ import { debugError } from '@utils/Debug';
 import { Show, Archive } from '@customTypes/RecentlyPlayed';
 import { WmbrRouteName } from '@customTypes/Navigation';
 import { ArchiveService } from '@services/ArchiveService';
-import {
-  useProgress,
-  usePlaybackState,
-  State,
-} from 'react-native-track-player';
+import { usePlaybackState, State } from 'react-native-track-player';
 import TrackPlayer from 'react-native-track-player';
 import { ShowImage } from '@components/ShowImage';
 import {
   formatDate,
   getDurationFromSize,
   formatShowTime,
-  secondsToTime,
 } from '@utils/DateTime';
 import { COLORS, CORE_COLORS } from '@utils/Colors';
 import {
   generateDarkGradientColors,
   generateGradientColors,
 } from '@utils/GradientColors';
-import PlaybackSlider from '@components/PlaybackSlider';
 import { ScheduleShow } from '@customTypes/Schedule';
+import PlaybackSlider from '@components/PlaybackSlider';
+import { ShowDetailsTimestamp } from './ShowDetails/Timestamp';
 
 // Route params for ShowDetailsPage
 export type ShowDetailsPageRouteParams = {
@@ -61,7 +57,6 @@ export default function ShowDetailsPage() {
     useState<any>(null);
 
   // TrackPlayer hooks - must always be called unconditionally
-  const progress = useProgress(500);
   const playbackState = usePlaybackState();
 
   // Service instance
@@ -133,17 +128,6 @@ export default function ShowDetailsPage() {
     }
   };
 
-  const onSlidingComplete = useCallback(
-    async (value: number) => {
-      try {
-        await TrackPlayer.seekTo(value * (progress?.duration || 0));
-      } catch (e) {
-        debugError('Error seeking to position:', e);
-      }
-    },
-    [progress.duration],
-  );
-
   return (
     <>
       <StatusBar barStyle="light-content" backgroundColor={gradientStart} />
@@ -213,9 +197,11 @@ export default function ShowDetailsPage() {
                                 isCurrentlyPlaying && styles.archiveSizePlaying,
                               ]}
                             >
-                              {isCurrentlyPlaying
-                                ? `${secondsToTime(progress.position)} / ${secondsToTime(progress.duration)}`
-                                : getDurationFromSize(archive.size)}
+                              {isCurrentlyPlaying ? (
+                                <ShowDetailsTimestamp />
+                              ) : (
+                                getDurationFromSize(archive.size)
+                              )}
                             </Text>
                           </View>
                         </View>
@@ -250,11 +236,7 @@ export default function ShowDetailsPage() {
 
                       {/* Progress bar */}
                       {isCurrentlyPlaying && (
-                        <PlaybackSlider
-                          progress={progress}
-                          style={styles.slider}
-                          onSlidingComplete={onSlidingComplete}
-                        />
+                        <PlaybackSlider style={styles.slider} />
                       )}
                     </TouchableOpacity>
                   );

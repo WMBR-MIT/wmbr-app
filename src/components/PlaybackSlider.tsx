@@ -1,4 +1,3 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
 import { useProgress } from 'react-native-track-player';
 import { Platform, StyleProp, ViewStyle } from 'react-native';
 import { COLORS, CORE_COLORS } from '@utils/Colors';
@@ -21,33 +20,14 @@ export default function PlaybackSlider({
 }) {
   const progress = useProgress();
 
-  const safeSliderValue = useMemo(
-    () => (progress.duration > 0 ? progress.position / progress.duration : 0),
-    [progress.position, progress.duration],
-  );
-
-  const [sliderValue, setSliderValue] = useState(safeSliderValue);
-  const isSliding = useRef(false);
-
-  useEffect(() => {
-    !isSliding.current && setSliderValue(safeSliderValue);
-  }, [safeSliderValue]);
-
   return (
     <Slider
       style={style}
       accessibilityLabel="Playback position"
       minimumValue={0}
       maximumValue={1}
-      onSlidingStart={value => {
-        isSliding.current = true;
-        onSlidingStart?.(value);
-      }}
-      onSlidingComplete={value => {
-        setSliderValue(value);
-        onSlidingComplete?.(value);
-        isSliding.current = false;
-      }}
+      onSlidingStart={onSlidingStart}
+      onSlidingComplete={onSlidingComplete}
       thumbTintColor={
         Platform.OS === 'android' ? CORE_COLORS.WMBR_GREEN : undefined
       }
@@ -55,7 +35,7 @@ export default function PlaybackSlider({
       maximumTrackTintColor={COLORS.TEXT.PRIMARY}
       onValueChange={value => onValueChange?.(value * (progress.duration || 0))}
       tapToSeek={true}
-      value={sliderValue}
+      value={progress.duration > 0 ? progress.position / progress.duration : 0}
     />
   );
 }

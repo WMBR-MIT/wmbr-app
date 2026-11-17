@@ -1,4 +1,10 @@
-import React, { useCallback, useState, useEffect, useMemo } from 'react';
+import React, {
+  useCallback,
+  useState,
+  useEffect,
+  useMemo,
+  useRef,
+} from 'react';
 import {
   useRoute,
   RouteProp,
@@ -61,14 +67,10 @@ export default function ShowDetailsPage() {
     useState<any>(null);
 
   const [currentPosition, setCurrentPosition] = useState<number>(0);
-  const [isSliding, setIsSliding] = useState<boolean>(false);
+  const isSliding = useRef(false);
 
   // TrackPlayer hooks - must always be called unconditionally
-  const progressHook = useProgress();
-  const progress = useMemo(
-    () => progressHook || { position: 0, duration: 0 },
-    [progressHook],
-  );
+  const progress = useProgress();
   const playbackState = usePlaybackState();
 
   // Service instance
@@ -143,7 +145,7 @@ export default function ShowDetailsPage() {
   // Update current progress to playback position, as long as user is not
   // currently sliding
   useEffect(() => {
-    !isSliding && setCurrentPosition(progress.position);
+    !isSliding.current && setCurrentPosition(progress.position);
   }, [isSliding, progress.position]);
 
   return (
@@ -257,16 +259,20 @@ export default function ShowDetailsPage() {
                           durationSeconds={progress.duration}
                           style={styles.slider}
                           onValueChange={setCurrentPosition}
-                          onSlidingStart={() => setIsSliding(true)}
+                          onSlidingStart={() => {
+                            isSliding.current = true;
+                          }}
                           onSlidingComplete={async value => {
                             try {
-                              await TrackPlayer.seekTo(
-                                value * (progress?.duration || 0),
-                              );
+                              const newPosition =
+                                value * (progress?.duration || 0);
+                              // Do this right away to avoid UI delay
+                              setCurrentPosition(newPosition);
+                              await TrackPlayer.seekTo(newPosition);
                             } catch (error) {
                               debugError('TrackPlayer.seekTo failed', error);
                             } finally {
-                              setIsSliding(false);
+                              isSliding.current = false;
                             }
                           }}
                         />

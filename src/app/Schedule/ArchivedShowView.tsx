@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   View,
   Text,
@@ -54,7 +60,7 @@ export default function ArchivedShowView() {
   const [isArchivePlaying, setIsArchivePlaying] = useState(false);
 
   const [currentPosition, setCurrentPosition] = useState<number>(0);
-  const [isSliding, setIsSliding] = useState<boolean>(false);
+  const isSliding = useRef(false);
 
   const playlistService = PlaylistService.getInstance();
   const archiveService = ArchiveService.getInstance();
@@ -95,7 +101,7 @@ export default function ArchivedShowView() {
   // Update current progress to playback position, as long as user is not
   // currently sliding
   useEffect(() => {
-    !isSliding && setCurrentPosition(progress.position);
+    !isSliding.current && setCurrentPosition(progress.position);
   }, [isSliding, progress.position]);
 
   const [gradientStart] = generateGradientColors(show.name);
@@ -246,16 +252,19 @@ export default function ArchivedShowView() {
                     durationSeconds={progress.duration}
                     style={styles.slider}
                     onValueChange={setCurrentPosition}
-                    onSlidingStart={() => setIsSliding(true)}
+                    onSlidingStart={() => {
+                      isSliding.current = true;
+                    }}
                     onSlidingComplete={async value => {
                       try {
-                        await TrackPlayer.seekTo(
-                          value * (progress?.duration || 0),
-                        );
+                        const newPosition = value * (progress?.duration || 0);
+                        // Do this right away to avoid UI delay
+                        setCurrentPosition(newPosition);
+                        await TrackPlayer.seekTo(newPosition);
                       } catch (e) {
                         debugError('Error seeking to position:', e);
                       } finally {
-                        setIsSliding(false);
+                        isSliding.current = false;
                       }
                     }}
                   />

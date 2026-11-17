@@ -40,6 +40,7 @@ export default function PlaybackSlider({
         onSlidingStart?.(val);
       }}
       onSlidingComplete={val => {
+        setValue(val);
         onSlidingComplete?.(val);
         isSliding.current = false;
       }}

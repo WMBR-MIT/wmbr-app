@@ -60,7 +60,22 @@ export default function BottomMenuBar({
           <TouchableOpacity
             key={route.key}
             style={styles.tab}
-            onPress={() => navigation.navigate(route.name)}
+            accessibilityRole="button"
+            accessibilityLabel={route.name}
+            accessibilityState={{ selected: focused }}
+            onPress={() => {
+              // Native stacks use tabPress to pop to their first screen when
+              // the currently selected tab is pressed again.
+              const event = navigation.emit({
+                type: 'tabPress',
+                target: route.key,
+                canPreventDefault: true,
+              });
+
+              if (!focused && !event.defaultPrevented) {
+                navigation.navigate(route.name);
+              }
+            }}
             activeOpacity={0.8}
           >
             <Icon

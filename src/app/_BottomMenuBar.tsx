@@ -56,6 +56,27 @@ export default function BottomMenuBar({
         const focused = idx === activeIndex;
         const iconName = getIconName(route.name);
 
+        const onPress = () => {
+          // Native stacks use tabPress to pop to their first screen when
+          // the currently selected tab is pressed again.
+          const event = navigation.emit({
+            type: 'tabPress',
+            target: route.key,
+            canPreventDefault: true,
+          });
+
+          if (!focused && !event.defaultPrevented) {
+            navigation.navigate(route.name);
+          }
+        };
+
+        const onLongPress = () => {
+          navigation.emit({
+            type: 'tabLongPress',
+            target: route.key,
+          });
+        };
+
         return (
           <TouchableOpacity
             key={route.key}
@@ -63,19 +84,8 @@ export default function BottomMenuBar({
             accessibilityRole="button"
             accessibilityLabel={route.name}
             accessibilityState={{ selected: focused }}
-            onPress={() => {
-              // Native stacks use tabPress to pop to their first screen when
-              // the currently selected tab is pressed again.
-              const event = navigation.emit({
-                type: 'tabPress',
-                target: route.key,
-                canPreventDefault: true,
-              });
-
-              if (!focused && !event.defaultPrevented) {
-                navigation.navigate(route.name);
-              }
-            }}
+            onLongPress={onLongPress}
+            onPress={onPress}
             activeOpacity={0.8}
           >
             <Icon

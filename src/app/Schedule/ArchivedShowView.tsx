@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -59,9 +53,6 @@ export default function ArchivedShowView() {
   const [error, setError] = useState<string | null>(null);
   const [isArchivePlaying, setIsArchivePlaying] = useState(false);
 
-  const [currentPosition, setCurrentPosition] = useState<number>(0);
-  const isSliding = useRef(false);
-
   const playlistService = PlaylistService.getInstance();
   const archiveService = ArchiveService.getInstance();
 
@@ -97,12 +88,6 @@ export default function ArchivedShowView() {
 
     return unsubscribe;
   }, [archive.url, archiveService]);
-
-  // Update current progress to playback position, as long as user is not
-  // currently sliding
-  useEffect(() => {
-    !isSliding.current && setCurrentPosition(progress.position);
-  }, [isSliding, progress.position]);
 
   const [gradientStart] = generateGradientColors(show.name);
   const [darkGradientStart, darkGradientEnd] = generateDarkGradientColors(
@@ -248,30 +233,23 @@ export default function ArchivedShowView() {
               <View style={styles.progressSection}>
                 <View style={styles.progressContainer}>
                   <PlaybackSlider
-                    progressSeconds={currentPosition}
+                    progressSeconds={progress.position}
                     durationSeconds={progress.duration}
                     style={styles.slider}
-                    onValueChange={setCurrentPosition}
-                    onSlidingStart={() => {
-                      isSliding.current = true;
-                    }}
                     onSlidingComplete={async value => {
                       try {
-                        const newPosition = value * (progress?.duration || 0);
-                        // Do this right away to avoid UI delay
-                        setCurrentPosition(newPosition);
-                        await TrackPlayer.seekTo(newPosition);
+                        await TrackPlayer.seekTo(
+                          value * (progress?.duration || 0),
+                        );
                       } catch (e) {
                         debugError('Error seeking to position:', e);
-                      } finally {
-                        isSliding.current = false;
                       }
                     }}
                   />
 
                   <View style={styles.timeContainer}>
                     <Text style={styles.timeText}>
-                      {secondsToTime(currentPosition)}
+                      {secondsToTime(progress.position)}
                     </Text>
                     <Text style={styles.timeText}>
                       {secondsToTime(progress.duration)}

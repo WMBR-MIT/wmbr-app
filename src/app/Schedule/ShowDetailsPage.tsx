@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useState,
-  useEffect,
-  useMemo,
-  useRef,
-} from 'react';
+import React, { useCallback, useState, useEffect, useMemo } from 'react';
 import {
   useRoute,
   RouteProp,
@@ -65,9 +59,6 @@ export default function ShowDetailsPage() {
 
   const [currentlyPlayingArchive, setCurrentlyPlayingArchive] =
     useState<any>(null);
-
-  const [currentPosition, setCurrentPosition] = useState<number>(0);
-  const isSliding = useRef(false);
 
   // TrackPlayer hooks - must always be called unconditionally
   const progress = useProgress();
@@ -142,12 +133,6 @@ export default function ShowDetailsPage() {
     }
   };
 
-  // Update current progress to playback position, as long as user is not
-  // currently sliding
-  useEffect(() => {
-    !isSliding.current && setCurrentPosition(progress.position);
-  }, [isSliding, progress.position]);
-
   return (
     <>
       <StatusBar barStyle="light-content" backgroundColor={gradientStart} />
@@ -218,7 +203,7 @@ export default function ShowDetailsPage() {
                               ]}
                             >
                               {isCurrentlyPlaying
-                                ? `${secondsToTime(currentPosition)} / ${secondsToTime(progress.duration)}`
+                                ? `${secondsToTime(progress.position)} / ${secondsToTime(progress.duration)}`
                                 : getDurationFromSize(archive.size)}
                             </Text>
                           </View>
@@ -255,24 +240,16 @@ export default function ShowDetailsPage() {
                       {/* Progress bar */}
                       {isCurrentlyPlaying && (
                         <PlaybackSlider
-                          progressSeconds={currentPosition}
+                          progressSeconds={progress.position}
                           durationSeconds={progress.duration}
                           style={styles.slider}
-                          onValueChange={setCurrentPosition}
-                          onSlidingStart={() => {
-                            isSliding.current = true;
-                          }}
                           onSlidingComplete={async value => {
                             try {
-                              const newPosition =
-                                value * (progress?.duration || 0);
-                              // Do this right away to avoid UI delay
-                              setCurrentPosition(newPosition);
-                              await TrackPlayer.seekTo(newPosition);
+                              await TrackPlayer.seekTo(
+                                value * (progress?.duration || 0),
+                              );
                             } catch (error) {
                               debugError('TrackPlayer.seekTo failed', error);
-                            } finally {
-                              isSliding.current = false;
                             }
                           }}
                         />

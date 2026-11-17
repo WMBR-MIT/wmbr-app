@@ -11,14 +11,19 @@ import { NavigationContainer } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import HomeScreen from '../src/app/Home';
+import { ArchiveService } from '../src/services/ArchiveService';
 import { TestWrapper, getTrackPlayerTestApi } from '../src/utils/TestUtils';
+import { SKIP_INTERVAL } from '../src/utils/TrackPlayerUtils';
+import { mockShow } from '../__mocks__/MockShows';
 
 const { setPlaybackState } = getTrackPlayerTestApi();
 
 // Mock the local SplashScreen so Home renders its UI immediately
 jest.mock('../src/app/Home/SplashScreen', () => (props: any) => {
   // Call onAnimationEnd asynchronously to avoid setState during render warnings.
-  setTimeout(() => props.onAnimationEnd?.(), 0);
+  // Wrap it in act so the resulting Home state update is expected by React.
+  const testingLibrary = require('@testing-library/react-native');
+  setTimeout(() => testingLibrary.act(() => props.onAnimationEnd?.()), 0);
   return null;
 });
 
@@ -273,5 +278,73 @@ describe('Home Screen', () => {
     await user.press(stopButton);
 
     expect(TrackPlayer.stop).toHaveBeenCalled();
+  });
+
+  describe('archive skip buttons', () => {
+    const { setDuration, setPosition } = getTrackPlayerTestApi();
+
+    beforeEach(async () => {
+      // Home only shows the skip buttons while an archive is playing, so start
+      // one through the real ArchiveService rather than mocking its state.
+      await act(async () => {
+        await ArchiveService.getInstance().playArchive(
+          mockShow.archives[0],
+          mockShow,
+        );
+        setDuration(120); // 2 minutes
+        setPosition(40); // start at 40s
+      });
+    });
+
+    afterEach(async () => {
+      // ArchiveService is a singleton, so return it to live for the next test.
+      await act(async () => {
+        await ArchiveService.getInstance().switchToLive();
+      });
+    });
+
+    test('skip forward seeks 30 seconds ahead with a relative seek', async () => {
+      const user = userEvent.setup();
+      await renderAsync(<HomeScreen />, { wrapper: TestWrapper });
+
+      await user.press(
+        await screen.findByLabelText(`Skip forward ${SKIP_INTERVAL} seconds`),
+      );
+
+      expect(TrackPlayer.seekBy).toHaveBeenLastCalledWith(SKIP_INTERVAL);
+      expect(TrackPlayer.seekTo).not.toHaveBeenCalled();
+      expect(await TrackPlayer.getPosition()).toBe(70);
+    });
+
+    test('skip backward seeks 30 seconds back with a relative seek', async () => {
+      const user = userEvent.setup();
+      await renderAsync(<HomeScreen />, { wrapper: TestWrapper });
+
+      await user.press(
+        await screen.findByLabelText(`Skip backward ${SKIP_INTERVAL} seconds`),
+      );
+
+      expect(TrackPlayer.seekBy).toHaveBeenLastCalledWith(-SKIP_INTERVAL);
+      expect(TrackPlayer.seekTo).not.toHaveBeenCalled();
+      expect(await TrackPlayer.getPosition()).toBe(10);
+    });
+
+    test('successive presses stack without a progress update', async () => {
+      const user = userEvent.setup();
+      await renderAsync(<HomeScreen />, { wrapper: TestWrapper });
+
+      // No progress event is emitted between presses, so each seek must build
+      // on the player's own position (40s -> 70s -> 100s).
+      const skipForwardButton = await screen.findByLabelText(
+        `Skip forward ${SKIP_INTERVAL} seconds`,
+      );
+      await user.press(skipForwardButton);
+      await user.press(skipForwardButton);
+
+      expect(TrackPlayer.seekBy).toHaveBeenCalledTimes(2);
+      expect(TrackPlayer.seekBy).toHaveBeenNthCalledWith(1, SKIP_INTERVAL);
+      expect(TrackPlayer.seekBy).toHaveBeenNthCalledWith(2, SKIP_INTERVAL);
+      expect(await TrackPlayer.getPosition()).toBe(100);
+    });
   });
 });

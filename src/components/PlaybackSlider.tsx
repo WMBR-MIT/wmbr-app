@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useProgress } from 'react-native-track-player';
 import { Platform, StyleProp, ViewStyle } from 'react-native';
 import { COLORS, CORE_COLORS } from '@utils/Colors';
@@ -20,14 +20,18 @@ export default function PlaybackSlider({
   onSlidingStart?: (value: number) => void;
 }) {
   const progress = useProgress();
-  const [value, setValue] = useState(
-    progress.duration > 0 ? progress.position / progress.duration : 0,
+
+  const safeSliderValue = useMemo(
+    () => (progress.duration > 0 ? progress.position / progress.duration : 0),
+    [progress.position, progress.duration],
   );
+
+  const [sliderValue, setSliderValue] = useState(safeSliderValue);
   const isSliding = useRef(false);
 
   useEffect(() => {
-    !isSliding.current && setValue(progress.position / progress.duration);
-  }, [progress.position, progress.duration]);
+    !isSliding.current && setSliderValue(safeSliderValue);
+  }, [safeSliderValue]);
 
   return (
     <Slider
@@ -35,13 +39,13 @@ export default function PlaybackSlider({
       accessibilityLabel="Playback position"
       minimumValue={0}
       maximumValue={1}
-      onSlidingStart={val => {
+      onSlidingStart={value => {
         isSliding.current = true;
-        onSlidingStart?.(val);
+        onSlidingStart?.(value);
       }}
-      onSlidingComplete={val => {
-        setValue(val);
-        onSlidingComplete?.(val);
+      onSlidingComplete={value => {
+        setSliderValue(value);
+        onSlidingComplete?.(value);
         isSliding.current = false;
       }}
       thumbTintColor={
@@ -49,11 +53,9 @@ export default function PlaybackSlider({
       }
       minimumTrackTintColor={CORE_COLORS.WMBR_GREEN}
       maximumTrackTintColor={COLORS.TEXT.PRIMARY}
-      onValueChange={value =>
-        onValueChange?.(value * (progress?.duration || 0))
-      }
+      onValueChange={value => onValueChange?.(value * (progress.duration || 0))}
       tapToSeek={true}
-      value={value}
+      value={sliderValue}
     />
   );
 }

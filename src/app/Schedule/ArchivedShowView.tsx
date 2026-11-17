@@ -15,7 +15,6 @@ import { useRoute, RouteProp } from '@react-navigation/native';
 import { useHeaderHeight } from '@react-navigation/elements';
 import { debugError } from '@utils/Debug';
 import TrackPlayer, {
-  useProgress,
   usePlaybackState,
   State,
 } from 'react-native-track-player';
@@ -23,7 +22,7 @@ import { Show, Archive } from '@customTypes/RecentlyPlayed';
 import { PlaylistResponse, PlaylistSong } from '@customTypes/Playlist';
 import { PlaylistService } from '@services/PlaylistService';
 import { ArchiveService } from '@services/ArchiveService';
-import { secondsToTime, formatTime } from '@utils/DateTime';
+import { formatTime } from '@utils/DateTime';
 import { COLORS } from '@utils/Colors';
 import { SKIP_INTERVAL } from '@utils/TrackPlayerUtils';
 import {
@@ -31,7 +30,7 @@ import {
   generateGradientColors,
 } from '@utils/GradientColors';
 import { ShowImage } from '@components/ShowImage';
-import PlaybackSlider from '@components/PlaybackSlider';
+import { ArchivedShowProgress } from './ArchivedShow/ArchivedShowProgress';
 
 interface ArchivedShowViewProps {
   show: Show;
@@ -45,7 +44,6 @@ export default function ArchivedShowView() {
 
   const headerHeight = useHeaderHeight();
 
-  const progress = useProgress(500);
   const playbackState = usePlaybackState();
 
   const [playlist, setPlaylist] = useState<PlaylistResponse | null>(null);
@@ -115,23 +113,16 @@ export default function ArchivedShowView() {
   };
 
   const handleSkipBackward = async () => {
-    const newPosition = Math.max(progress.position - SKIP_INTERVAL, 0);
-
     try {
-      await TrackPlayer.seekTo(newPosition);
+      await TrackPlayer.seekBy(SKIP_INTERVAL * -1);
     } catch (e) {
       debugError('Error skipping backward:', e);
     }
   };
 
   const handleSkipForward = async () => {
-    const newPosition = Math.min(
-      progress.position + SKIP_INTERVAL,
-      progress.duration,
-    );
-
     try {
-      await TrackPlayer.seekTo(newPosition);
+      await TrackPlayer.seekBy(SKIP_INTERVAL);
     } catch (e) {
       debugError('Error skipping forward:', e);
     }
@@ -167,17 +158,6 @@ export default function ArchivedShowView() {
         />
       ),
     [isArchivePlaying, playbackState?.state],
-  );
-
-  const onSlidingComplete = useCallback(
-    async (value: number) => {
-      try {
-        await TrackPlayer.seekTo(value * (progress?.duration || 0));
-      } catch (e) {
-        debugError('Error seeking to position:', e);
-      }
-    },
-    [progress.duration],
   );
 
   return (
@@ -240,26 +220,7 @@ export default function ArchivedShowView() {
             </View>
 
             {/* Progress Bar - Only show when this archive is playing */}
-            {isArchivePlaying && progress.duration > 0 && (
-              <View style={styles.progressSection}>
-                <View style={styles.progressContainer}>
-                  <PlaybackSlider
-                    progress={progress}
-                    style={styles.slider}
-                    onSlidingComplete={onSlidingComplete}
-                  />
-
-                  <View style={styles.timeContainer}>
-                    <Text style={styles.timeText}>
-                      {secondsToTime(progress.position)}
-                    </Text>
-                    <Text style={styles.timeText}>
-                      {secondsToTime(progress.duration)}
-                    </Text>
-                  </View>
-                </View>
-              </View>
-            )}
+            {isArchivePlaying && <ArchivedShowProgress />}
 
             {/* Playlist Section */}
             <View style={styles.playlistSection}>
@@ -416,29 +377,5 @@ const styles = StyleSheet.create({
   emptyText: {
     color: COLORS.TEXT.TERTIARY,
     fontSize: 16,
-  },
-  progressSection: {
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    alignItems: 'center',
-  },
-  progressContainer: {
-    width: '100%',
-    maxWidth: 300,
-  },
-  timeContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  timeText: {
-    color: COLORS.TEXT.SECONDARY,
-    fontSize: 12,
-    fontWeight: '500',
-    fontVariant: ['tabular-nums'],
-  },
-  slider: {
-    width: '100%',
-    height: 40,
   },
 });

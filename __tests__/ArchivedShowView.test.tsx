@@ -67,7 +67,8 @@ describe('ArchivedShowView skip buttons', () => {
       await screen.findByLabelText(`Skip forward ${SKIP_INTERVAL} seconds`),
     );
 
-    expect(TrackPlayer.seekTo).toHaveBeenLastCalledWith(70);
+    expect(TrackPlayer.seekBy).toHaveBeenLastCalledWith(SKIP_INTERVAL);
+    expect(await TrackPlayer.getPosition()).toBe(70);
   });
 
   test('skip backward works', async () => {
@@ -88,7 +89,8 @@ describe('ArchivedShowView skip buttons', () => {
       await screen.findByLabelText(`Skip backward ${SKIP_INTERVAL} seconds`),
     );
 
-    expect(TrackPlayer.seekTo).toHaveBeenLastCalledWith(10);
+    expect(TrackPlayer.seekBy).toHaveBeenLastCalledWith(-SKIP_INTERVAL);
+    expect(await TrackPlayer.getPosition()).toBe(10);
   });
 
   test('skip forward is clamped to duration', async () => {
@@ -108,7 +110,8 @@ describe('ArchivedShowView skip buttons', () => {
     await user.press(
       await screen.findByLabelText(`Skip forward ${SKIP_INTERVAL} seconds`),
     );
-    expect(TrackPlayer.seekTo).toHaveBeenLastCalledWith(120);
+    // The player clamps relative seeks to the duration.
+    expect(await TrackPlayer.getPosition()).toBe(120);
   });
 
   test('skip backward is clamped to 0', async () => {
@@ -128,6 +131,7 @@ describe('ArchivedShowView skip buttons', () => {
     await user.press(
       await screen.findByLabelText(`Skip backward ${SKIP_INTERVAL} seconds`),
     );
-    expect(TrackPlayer.seekTo).toHaveBeenLastCalledWith(0);
+    // The player clamps relative seeks at zero.
+    expect(await TrackPlayer.getPosition()).toBe(0);
   });
 });

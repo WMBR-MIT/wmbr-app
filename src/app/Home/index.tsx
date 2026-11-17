@@ -17,7 +17,6 @@ import TrackPlayer, {
   State,
   useActiveTrack,
   usePlaybackState,
-  useProgress,
 } from 'react-native-track-player';
 import Icon from '@components/Icon';
 import { SKIP_INTERVAL, liveCapabilities } from '@utils/TrackPlayerUtils';
@@ -47,7 +46,6 @@ export default function HomeScreen() {
   const [appState, setAppState] = useState(AppState.currentState);
   const playbackState = usePlaybackState();
   const activeTrack = useActiveTrack();
-  const progress = useProgress();
   const insets = useSafeAreaInsets();
   const [currentShow, setCurrentShow] = useState(DEFAULT_NAME);
   const [, setSongHistory] = useState<Song[]>([]);
@@ -279,18 +277,13 @@ export default function HomeScreen() {
     }
   }, [currentShow]);
 
-  const handleSkipBackward = useCallback(async () => {
-    const newPosition = Math.max(progress.position - SKIP_INTERVAL, 0);
-    await TrackPlayer.seekTo(newPosition);
-  }, [progress.position]);
+  const handleSkipBackward = async () => {
+    await TrackPlayer.seekBy(SKIP_INTERVAL * -1);
+  };
 
-  const handleSkipForward = useCallback(async () => {
-    const newPosition = Math.min(
-      progress.position + SKIP_INTERVAL,
-      progress.duration,
-    );
-    await TrackPlayer.seekTo(newPosition);
-  }, [progress.position, progress.duration]);
+  const handleSkipForward = async () => {
+    await TrackPlayer.seekBy(SKIP_INTERVAL);
+  };
 
   const handleOpenShowDetails = useCallback(async () => {
     const show = archiveState.currentShow;
@@ -387,7 +380,7 @@ export default function HomeScreen() {
               {archiveState.isPlayingArchive && (
                 <TouchableOpacity
                   style={styles.skipButton}
-                  onPress={handleSkipBackward}
+                  onPress={async () => await handleSkipBackward()}
                   activeOpacity={0.7}
                   accessibilityLabel={`Skip backward ${SKIP_INTERVAL} seconds`}
                 >
@@ -408,7 +401,7 @@ export default function HomeScreen() {
               {archiveState.isPlayingArchive && (
                 <TouchableOpacity
                   style={styles.skipButton}
-                  onPress={handleSkipForward}
+                  onPress={async () => await handleSkipForward()}
                   activeOpacity={0.7}
                   accessibilityLabel={`Skip forward ${SKIP_INTERVAL} seconds`}
                 >

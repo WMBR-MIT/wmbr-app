@@ -88,6 +88,13 @@ const TrackPlayer = {
     position = Math.max(0, Math.min(duration, sec));
     return Promise.resolve();
   }),
+  // relative seek: offsets from the current position, clamped like seekTo.
+  // Reads the internal position directly, so successive calls stack without a
+  // progress event in between (matching the native player).
+  seekBy: jest.fn(async (offsetSec: number) => {
+    position = Math.max(0, Math.min(duration, position + offsetSec));
+    return Promise.resolve();
+  }),
   play: jest.fn(async () => Promise.resolve()),
   pause: jest.fn(async () => Promise.resolve()),
   stop: jest.fn(async () => Promise.resolve()),

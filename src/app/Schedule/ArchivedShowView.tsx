@@ -233,8 +233,6 @@ export default function ArchivedShowView() {
               <View style={styles.progressSection}>
                 <View style={styles.progressContainer}>
                   <PlaybackSlider
-                    progressSeconds={progress.position}
-                    durationSeconds={progress.duration}
                     style={styles.slider}
                     onSlidingComplete={async value => {
                       try {

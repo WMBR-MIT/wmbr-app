@@ -240,8 +240,6 @@ export default function ShowDetailsPage() {
                       {/* Progress bar */}
                       {isCurrentlyPlaying && (
                         <PlaybackSlider
-                          progressSeconds={progress.position}
-                          durationSeconds={progress.duration}
                           style={styles.slider}
                           onSlidingComplete={async value => {
                             try {

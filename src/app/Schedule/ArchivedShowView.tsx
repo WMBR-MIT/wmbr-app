@@ -15,7 +15,6 @@ import { useRoute, RouteProp } from '@react-navigation/native';
 import { useHeaderHeight } from '@react-navigation/elements';
 import { debugError } from '@utils/Debug';
 import TrackPlayer, {
-  useProgress,
   usePlaybackState,
   State,
 } from 'react-native-track-player';
@@ -45,7 +44,6 @@ export default function ArchivedShowView() {
 
   const headerHeight = useHeaderHeight();
 
-  const progress = useProgress(500);
   const playbackState = usePlaybackState();
 
   const [playlist, setPlaylist] = useState<PlaylistResponse | null>(null);
@@ -222,9 +220,7 @@ export default function ArchivedShowView() {
             </View>
 
             {/* Progress Bar - Only show when this archive is playing */}
-            {isArchivePlaying && progress.duration > 0 && (
-              <ArchivedShowProgress />
-            )}
+            {isArchivePlaying && <ArchivedShowProgress />}
 
             {/* Playlist Section */}
             <View style={styles.playlistSection}>

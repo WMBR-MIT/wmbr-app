@@ -7,6 +7,10 @@ import { secondsToTime } from '@utils/DateTime';
 export const ArchivedShowProgress = () => {
   const progress = useProgress();
 
+  if (!(progress.duration > 0)) {
+    return null;
+  }
+
   return (
     <View style={styles.progressSection}>
       <View style={styles.progressContainer}>

@@ -23,7 +23,7 @@ import { Show, Archive } from '@customTypes/RecentlyPlayed';
 import { PlaylistResponse, PlaylistSong } from '@customTypes/Playlist';
 import { PlaylistService } from '@services/PlaylistService';
 import { ArchiveService } from '@services/ArchiveService';
-import { secondsToTime, formatTime } from '@utils/DateTime';
+import { formatTime } from '@utils/DateTime';
 import { COLORS } from '@utils/Colors';
 import { SKIP_INTERVAL } from '@utils/TrackPlayerUtils';
 import {
@@ -31,7 +31,7 @@ import {
   generateGradientColors,
 } from '@utils/GradientColors';
 import { ShowImage } from '@components/ShowImage';
-import PlaybackSlider from '@components/PlaybackSlider';
+import { ArchivedShowProgress } from './ArchivedShow/ArchivedShowProgress';
 
 interface ArchivedShowViewProps {
   show: Show;
@@ -115,23 +115,16 @@ export default function ArchivedShowView() {
   };
 
   const handleSkipBackward = async () => {
-    const newPosition = Math.max(progress.position - SKIP_INTERVAL, 0);
-
     try {
-      await TrackPlayer.seekTo(newPosition);
+      await TrackPlayer.seekBy(SKIP_INTERVAL * -1);
     } catch (e) {
       debugError('Error skipping backward:', e);
     }
   };
 
   const handleSkipForward = async () => {
-    const newPosition = Math.min(
-      progress.position + SKIP_INTERVAL,
-      progress.duration,
-    );
-
     try {
-      await TrackPlayer.seekTo(newPosition);
+      await TrackPlayer.seekBy(SKIP_INTERVAL);
     } catch (e) {
       debugError('Error skipping forward:', e);
     }
@@ -167,17 +160,6 @@ export default function ArchivedShowView() {
         />
       ),
     [isArchivePlaying, playbackState?.state],
-  );
-
-  const onSlidingComplete = useCallback(
-    async (value: number) => {
-      try {
-        await TrackPlayer.seekTo(value * (progress?.duration || 0));
-      } catch (e) {
-        debugError('Error seeking to position:', e);
-      }
-    },
-    [progress.duration],
   );
 
   return (
@@ -241,24 +223,7 @@ export default function ArchivedShowView() {
 
             {/* Progress Bar - Only show when this archive is playing */}
             {isArchivePlaying && progress.duration > 0 && (
-              <View style={styles.progressSection}>
-                <View style={styles.progressContainer}>
-                  <PlaybackSlider
-                    progress={progress}
-                    style={styles.slider}
-                    onSlidingComplete={onSlidingComplete}
-                  />
-
-                  <View style={styles.timeContainer}>
-                    <Text style={styles.timeText}>
-                      {secondsToTime(progress.position)}
-                    </Text>
-                    <Text style={styles.timeText}>
-                      {secondsToTime(progress.duration)}
-                    </Text>
-                  </View>
-                </View>
-              </View>
+              <ArchivedShowProgress />
             )}
 
             {/* Playlist Section */}

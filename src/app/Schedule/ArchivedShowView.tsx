@@ -45,7 +45,7 @@ export default function ArchivedShowView() {
 
   const headerHeight = useHeaderHeight();
 
-  const progress = useProgress();
+  const progress = useProgress(500);
   const playbackState = usePlaybackState();
 
   const [playlist, setPlaylist] = useState<PlaylistResponse | null>(null);
@@ -169,6 +169,17 @@ export default function ArchivedShowView() {
     [isArchivePlaying, playbackState?.state],
   );
 
+  const onSlidingComplete = useCallback(
+    async (value: number) => {
+      try {
+        await TrackPlayer.seekTo(value * (progress?.duration || 0));
+      } catch (e) {
+        debugError('Error seeking to position:', e);
+      }
+    },
+    [progress.duration],
+  );
+
   return (
     <>
       <StatusBar barStyle="light-content" backgroundColor={gradientStart} />
@@ -233,16 +244,9 @@ export default function ArchivedShowView() {
               <View style={styles.progressSection}>
                 <View style={styles.progressContainer}>
                   <PlaybackSlider
+                    progress={progress}
                     style={styles.slider}
-                    onSlidingComplete={async value => {
-                      try {
-                        await TrackPlayer.seekTo(
-                          value * (progress?.duration || 0),
-                        );
-                      } catch (e) {
-                        debugError('Error seeking to position:', e);
-                      }
-                    }}
+                    onSlidingComplete={onSlidingComplete}
                   />
 
                   <View style={styles.timeContainer}>

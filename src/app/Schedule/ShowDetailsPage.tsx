@@ -61,7 +61,7 @@ export default function ShowDetailsPage() {
     useState<any>(null);
 
   // TrackPlayer hooks - must always be called unconditionally
-  const progress = useProgress();
+  const progress = useProgress(500);
   const playbackState = usePlaybackState();
 
   // Service instance
@@ -132,6 +132,17 @@ export default function ShowDetailsPage() {
       handleArchiveRowPress(archive);
     }
   };
+
+  const onSlidingComplete = useCallback(
+    async (value: number) => {
+      try {
+        await TrackPlayer.seekTo(value * (progress?.duration || 0));
+      } catch (e) {
+        debugError('Error seeking to position:', e);
+      }
+    },
+    [progress.duration],
+  );
 
   return (
     <>
@@ -240,16 +251,9 @@ export default function ShowDetailsPage() {
                       {/* Progress bar */}
                       {isCurrentlyPlaying && (
                         <PlaybackSlider
+                          progress={progress}
                           style={styles.slider}
-                          onSlidingComplete={async value => {
-                            try {
-                              await TrackPlayer.seekTo(
-                                value * (progress?.duration || 0),
-                              );
-                            } catch (error) {
-                              debugError('TrackPlayer.seekTo failed', error);
-                            }
-                          }}
+                          onSlidingComplete={onSlidingComplete}
                         />
                       )}
                     </TouchableOpacity>

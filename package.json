@@ -62,7 +62,7 @@
     "prettier-eslint": "^16.4.2",
     "react-native-cli-bump-version": "^1.5.1",
     "react-test-renderer": "19.2.3",
-    "typescript": "5.0.4"
+    "typescript": "5.9.3"
   },
   "engines": {
     "node": ">=20.19.4"

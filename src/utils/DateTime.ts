@@ -30,6 +30,60 @@ export const getEasternCalendarDateAtNoonUTC = (date: Date): Date => {
   return calendarDate;
 };
 
+export type EasternWallClockParts = {
+  year: number;
+  month: number; // 1-12
+  day: number; // 1-31
+  hour: number; // 0-23
+  minute: number;
+  dayOfWeek: number; // 0 = Sunday, ..., 6 = Saturday
+};
+
+/**
+ * Return a timestamp's Eastern wall-clock fields as plain numbers.
+ * Don't build a local Date from them: on a device whose timezone skips the
+ * same wall-clock hour (a DST gap), the Date constructor shifts the time.
+ * Read the named parts of a fixed en-US format instead of parsing a
+ * locale-formatted string, which Hermes can't reliably parse.
+ * Throws if any part is missing, so a bad format fails loudly.
+ */
+export const getEasternWallClockParts = (date: Date): EasternWallClockParts => {
+  const dateParts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/New_York',
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: 'numeric',
+    hour12: true,
+  }).formatToParts(date);
+  const getPartValue = (partType: string): string | undefined =>
+    dateParts.find(part => part.type === partType)?.value;
+
+  const year = Number(getPartValue('year'));
+  const month = Number(getPartValue('month'));
+  const day = Number(getPartValue('day'));
+  const hour = Number(getPartValue('hour'));
+  const minute = Number(getPartValue('minute'));
+  const dayPeriod = getPartValue('dayPeriod')?.toUpperCase();
+
+  // Any NaN here means the runtime returned a format we don't understand.
+  const fields = [year, month, day, hour, minute];
+  if (fields.some(Number.isNaN) || !dayPeriod) {
+    throw new Error(
+      `Unexpected Eastern date/time parts for ${date.toISOString()}`,
+    );
+  }
+
+  // hour12 gives 1-12 plus AM/PM. 12 AM is midnight and 12 PM is noon.
+  const hour24 = (hour % 12) + (dayPeriod === 'PM' ? 12 : 0);
+
+  // Compute the weekday in UTC so the calendar date alone decides it.
+  const dayOfWeek = new Date(Date.UTC(year, month - 1, day)).getUTCDay();
+
+  return { year, month, day, hour: hour24, minute, dayOfWeek };
+};
+
 export const dayNames = [
   'Sunday',
   'Monday',

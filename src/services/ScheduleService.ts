@@ -6,7 +6,7 @@ import {
   weekdays,
   isAlternatingShowActive,
   getEasternCalendarDateAtNoonUTC,
-  getEasternWallClockDate,
+  getEasternWallClockParts,
 } from '@utils/DateTime';
 
 export class ScheduleService {
@@ -268,15 +268,22 @@ export class ScheduleService {
     try {
       const scheduleData = await this.fetchSchedule();
       const now = new Date();
-      // Parsing toLocaleString() output returns Invalid Date on Hermes, so build the Eastern time from its parts.
-      const easternNow = getEasternWallClockDate(now);
-      const currentDay = easternNow.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
-      const currentTimeMinutes =
-        easternNow.getHours() * 60 + easternNow.getMinutes();
+      // Parsing toLocaleString() output returns Invalid Date on Hermes, so read the Eastern time from its parts.
+      const easternNow = getEasternWallClockParts(now);
+      const currentDay = easternNow.dayOfWeek; // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+      const currentTimeMinutes = easternNow.hour * 60 + easternNow.minute;
+      // Local noon on the Eastern calendar date, used for the playlist lookup.
+      // Noon is never skipped by a DST gap, so this Date keeps its calendar day.
+      const easternCalendarDate = new Date(
+        easternNow.year,
+        easternNow.month - 1,
+        easternNow.day,
+        12,
+      );
 
       debugLog(`Finding previous show for: "${currentShowName}"`);
       debugLog(
-        `Eastern Time: ${easternNow.toLocaleString()}, Day: ${currentDay}, Minutes: ${currentTimeMinutes}`,
+        `Eastern Time: ${easternNow.year}-${easternNow.month}-${easternNow.day} ${easternNow.hour}:${String(easternNow.minute).padStart(2, '0')}, Day: ${currentDay}, Minutes: ${currentTimeMinutes}`,
       );
       debugLog(`Total shows in schedule: ${scheduleData.shows.length}`);
 
@@ -323,7 +330,7 @@ export class ScheduleService {
         debugLog(
           `Previous show found: "${previousShow.name}" at ${previousShow.time_str}`,
         );
-        return { show: previousShow, date: easternNow };
+        return { show: previousShow, date: easternCalendarDate };
       }
 
       // If current show is the first show of the day, we've reached the beginning
@@ -352,7 +359,7 @@ export class ScheduleService {
           debugLog(
             `Previous show by time: "${previousByTime.name}" at ${previousByTime.time_str}`,
           );
-          return { show: previousByTime, date: easternNow };
+          return { show: previousByTime, date: easternCalendarDate };
         }
       }
 

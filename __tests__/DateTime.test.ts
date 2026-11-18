@@ -1,7 +1,7 @@
 import {
   getEasternCalendarDate,
   getEasternCalendarDateAtNoonUTC,
-  getEasternWallClockDate,
+  getEasternWallClockParts,
   isAlternatingShowActive,
   parsePlaylistTimestamp,
 } from '@utils/DateTime';
@@ -12,18 +12,34 @@ import { Show } from '@customTypes/RecentlyPlayed';
 
 const mockedDebugError = debugError as jest.MockedFunction<typeof debugError>;
 
-describe('getEasternWallClockDate', () => {
+describe('getEasternWallClockParts', () => {
   test.each([
-    ['2026-01-15T14:30:00Z', 0, 9],
-    ['2026-07-15T13:30:00Z', 6, 9],
-  ])('returns the Eastern wall-clock time for %s', (timestamp, month, hour) => {
-    const result = getEasternWallClockDate(new Date(timestamp));
+    // Winter (EST, UTC-5): 14:30 UTC is 9:30 AM Eastern, Thursday.
+    ['2026-01-15T14:30:00Z', { month: 1, dayOfWeek: 4, hour: 9 }],
+    // Summer (EDT, UTC-4): 13:30 UTC is 9:30 AM Eastern, Wednesday.
+    ['2026-07-15T13:30:00Z', { month: 7, dayOfWeek: 3, hour: 9 }],
+  ])('returns the Eastern wall-clock fields for %s', (timestamp, expected) => {
+    const result = getEasternWallClockParts(new Date(timestamp));
 
-    expect(result.getFullYear()).toBe(2026);
-    expect(result.getMonth()).toBe(month);
-    expect(result.getDate()).toBe(15);
-    expect(result.getHours()).toBe(hour);
-    expect(result.getMinutes()).toBe(30);
+    expect(result).toEqual({
+      year: 2026,
+      month: expected.month,
+      day: 15,
+      hour: expected.hour,
+      minute: 30,
+      dayOfWeek: expected.dayOfWeek,
+    });
+  });
+
+  test('keeps the Eastern hour when the device timezone skips it', () => {
+    // 06:30 UTC on 2026-03-29 is 2:30 AM Eastern. In Europe/Berlin, 2:00-3:00
+    // AM doesn't exist that day, so a local Date would shift this to 3:30.
+    // Running `TZ=Europe/Berlin npm test` exercises that gap.
+    const result = getEasternWallClockParts(new Date('2026-03-29T06:30:00Z'));
+
+    expect(result.hour).toBe(2);
+    expect(result.minute).toBe(30);
+    expect(result.day).toBe(29);
   });
 });
 

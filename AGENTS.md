@@ -64,6 +64,15 @@ React Native app for WMBR radio streaming (live + archives), schedules, and play
   - `1` & `2` alternate every other week (pair at same timeslot)
   - `5–8` one specific week in a 4‑week cycle (Week 1–4)
   - Weekday shows use `day=7` and are expanded across Monday–Friday.
+- **Broadcast Day vs. Calendar Day**: The schedule XML sets `daystart` (240 =
+  4 AM). A broadcast day runs from one `daystart` to the next.
+  - Each show's `day` is its broadcast day. A Monday 1 AM show is `day=0`
+    (Sunday), because it belongs to Sunday's broadcast day.
+  - The Schedule page groups shows by calendar day, so that show appears under
+    Monday.
+  - Weekly cycles (`alternates`) follow the broadcast day.
+  - `findPreviousShow()` must follow the same rule. See the plan
+    "Broadcast-day lookup for findPreviousShow."
 
 ## Best Practices
 

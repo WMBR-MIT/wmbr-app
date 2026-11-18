@@ -1,6 +1,7 @@
 import {
   getEasternCalendarDate,
   getEasternCalendarDateAtNoonUTC,
+  getEasternWallClockDate,
   isAlternatingShowActive,
   parsePlaylistTimestamp,
 } from '@utils/DateTime';
@@ -10,6 +11,21 @@ import { debugError } from '@utils/Debug';
 import { Show } from '@customTypes/RecentlyPlayed';
 
 const mockedDebugError = debugError as jest.MockedFunction<typeof debugError>;
+
+describe('getEasternWallClockDate', () => {
+  test.each([
+    ['2026-01-15T14:30:00Z', 0, 9],
+    ['2026-07-15T13:30:00Z', 6, 9],
+  ])('returns the Eastern wall-clock time for %s', (timestamp, month, hour) => {
+    const result = getEasternWallClockDate(new Date(timestamp));
+
+    expect(result.getFullYear()).toBe(2026);
+    expect(result.getMonth()).toBe(month);
+    expect(result.getDate()).toBe(15);
+    expect(result.getHours()).toBe(hour);
+    expect(result.getMinutes()).toBe(30);
+  });
+});
 
 describe('parsePlaylistTimestamp', () => {
   beforeEach(() => {

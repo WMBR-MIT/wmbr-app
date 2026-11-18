@@ -6,6 +6,7 @@ import {
   weekdays,
   isAlternatingShowActive,
   getEasternCalendarDateAtNoonUTC,
+  getEasternWallClockDate,
 } from '@utils/DateTime';
 
 export class ScheduleService {
@@ -267,9 +268,8 @@ export class ScheduleService {
     try {
       const scheduleData = await this.fetchSchedule();
       const now = new Date();
-      const easternNow = new Date(
-        now.toLocaleString('en-US', { timeZone: 'America/New_York' }),
-      );
+      // Parsing toLocaleString() output returns Invalid Date on Hermes, so build the Eastern time from its parts.
+      const easternNow = getEasternWallClockDate(now);
       const currentDay = easternNow.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
       const currentTimeMinutes =
         easternNow.getHours() * 60 + easternNow.getMinutes();
@@ -359,8 +359,10 @@ export class ScheduleService {
       debugLog(`No previous show found`);
       return null;
     } catch (error) {
-      debugError('Error finding previous show:', error);
-      return null;
+      // Rethrow instead of returning null: null means "no earlier show today",
+      // so returning it here would mislabel a failure as the end of the day.
+      debugError('Error finding previous show (not end of day):', error);
+      throw error;
     }
   }
 }

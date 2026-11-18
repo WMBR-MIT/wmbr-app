@@ -30,6 +30,48 @@ export const getEasternCalendarDateAtNoonUTC = (date: Date): Date => {
   return calendarDate;
 };
 
+/**
+ * Represent a timestamp's Eastern wall-clock time as a local Date, so its
+ * getDay(), getHours(), and getMinutes() match the Eastern time.
+ * Read the named parts of a fixed en-US format instead of parsing a
+ * locale-formatted string, which Hermes can't reliably parse.
+ * Throws if any part is missing, so a bad format fails loudly instead of
+ * producing an Invalid Date.
+ */
+export const getEasternWallClockDate = (date: Date): Date => {
+  const dateParts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/New_York',
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: 'numeric',
+    hour12: true,
+  }).formatToParts(date);
+  const getPartValue = (partType: string): string | undefined =>
+    dateParts.find(part => part.type === partType)?.value;
+
+  const year = Number(getPartValue('year'));
+  const month = Number(getPartValue('month'));
+  const day = Number(getPartValue('day'));
+  const hour = Number(getPartValue('hour'));
+  const minute = Number(getPartValue('minute'));
+  const dayPeriod = getPartValue('dayPeriod')?.toUpperCase();
+
+  // Any NaN here means the runtime returned a format we don't understand.
+  const fields = [year, month, day, hour, minute];
+  if (fields.some(Number.isNaN) || !dayPeriod) {
+    throw new Error(
+      `Unexpected Eastern date/time parts for ${date.toISOString()}`,
+    );
+  }
+
+  // hour12 gives 1-12 plus AM/PM. 12 AM is midnight and 12 PM is noon.
+  const hour24 = (hour % 12) + (dayPeriod === 'PM' ? 12 : 0);
+
+  return new Date(year, month - 1, day, hour24, minute);
+};
+
 export const dayNames = [
   'Sunday',
   'Monday',

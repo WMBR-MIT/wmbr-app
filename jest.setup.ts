@@ -35,7 +35,14 @@ jest.mock('react-native-reanimated', () => {
     useSharedValue: (value: unknown) => ({ value }),
     withDelay: (_delay: number, animation: unknown) => animation,
     withSequence: (...animations: unknown[]) => animations.at(-1),
-    withTiming: (value: unknown) => value,
+    withTiming: (
+      value: unknown,
+      _config?: unknown,
+      callback?: (finished: boolean) => void,
+    ) => {
+      callback?.(true);
+      return value;
+    },
     runOnJS: (callback: () => void) => callback,
   };
 });

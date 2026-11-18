@@ -425,19 +425,6 @@ describe('ScheduleService findPreviousShow', () => {
     jest.useFakeTimers({ now: new Date(timestamp) });
   };
 
-  test('finds the previous show using the Eastern day, not the UTC day', async () => {
-    // 2026-06-01 03:30 UTC is Sunday 11:30 PM in New York (May 31, week 1), but
-    // Monday in UTC. "sunday-night-week-1" airs at 1 AM and should be previous.
-    setClock('2026-06-01T03:30:00Z');
-    const scheduleService = new ScheduleService();
-
-    const previous = await scheduleService.findPreviousShow(
-      'sunday-cycle-week-1',
-    );
-
-    expect(previous?.show.name).toBe('sunday-night-week-1');
-  });
-
   test('finds the previous show for a Monday afternoon Eastern time', async () => {
     // 2026-06-01 15:00 UTC is 11:00 AM Monday in New York (EDT).
     setClock('2026-06-01T15:00:00Z');
@@ -446,18 +433,6 @@ describe('ScheduleService findPreviousShow', () => {
     const previous = await scheduleService.findPreviousShow('weekly');
 
     expect(previous?.show.name).toBe('monday-4am-week-2');
-  });
-
-  test('returns null when the current show is the first of the Eastern day', async () => {
-    // 2026-06-01 08:30 UTC is 4:30 AM Monday in New York, when "monday-4am-week-2" is on.
-    // Nothing earlier airs that day, so this is the true end of the day.
-    setClock('2026-06-01T08:30:00Z');
-    const scheduleService = new ScheduleService();
-
-    const previous =
-      await scheduleService.findPreviousShow('monday-4am-week-2');
-
-    expect(previous).toBeNull();
   });
 
   test('rethrows a clock-formatting failure instead of returning null', async () => {

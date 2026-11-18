@@ -19,6 +19,27 @@ jest.mock('react-native-gesture-handler', () => {
   };
 });
 
+jest.mock('react-native-reanimated', () => {
+  const { Easing, View } = require('react-native');
+
+  return {
+    __esModule: true,
+    default: {
+      View,
+      createAnimatedComponent: (component: unknown) => component,
+    },
+    Easing,
+    useAnimatedProps: (callback: () => unknown) => callback(),
+    useAnimatedStyle: (callback: () => unknown) => callback(),
+    useDerivedValue: (callback: () => unknown) => ({ value: callback() }),
+    useSharedValue: (value: unknown) => ({ value }),
+    withDelay: (_delay: number, animation: unknown) => animation,
+    withSequence: (...animations: unknown[]) => animations.at(-1),
+    withTiming: (value: unknown) => value,
+    runOnJS: (callback: () => void) => callback,
+  };
+});
+
 // Silence debug logs
 jest.mock('./src/utils/Debug.ts', () => ({
   debugLog: jest.fn(),

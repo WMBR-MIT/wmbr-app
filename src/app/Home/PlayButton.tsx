@@ -29,7 +29,7 @@ export default function PlayButton({
 
   const spinInterpolation = spinAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: ['0deg', '-360deg'],
+    outputRange: ['0deg', '360deg'],
   });
 
   const startSpinAnimation = useCallback(() => {
@@ -121,7 +121,7 @@ export default function PlayButton({
         <Icon
           name={{
             ios: isBuffering ? 'progress.indicator' : 'play.fill',
-            android: isBuffering ? 'restore' : 'play-arrow',
+            android: isBuffering ? 'refresh' : 'play-arrow',
           }}
           size={48}
           color={CORE_COLORS.WHITE}

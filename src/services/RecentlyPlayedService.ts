@@ -40,9 +40,9 @@ export class RecentlyPlayedService {
       this.currentShowSubscribers.forEach(callback => {
         try {
           callback(this.currentShow);
-        } catch (e) {}
+        } catch {}
       });
-    } catch (e) {}
+    } catch {}
   }
 
   getCurrentShow(): string | null {
@@ -53,7 +53,7 @@ export class RecentlyPlayedService {
     this.currentShowSubscribers.push(callback);
     try {
       callback(this.currentShow);
-    } catch (e) {}
+    } catch {}
     return () => {
       this.currentShowSubscribers = this.currentShowSubscribers.filter(
         c => c !== callback,

@@ -81,7 +81,7 @@ export default function HomeScreen() {
         await TrackPlayer.getPlaybackState();
         setIsPlayerInitialized(true);
         return;
-      } catch (e) {
+      } catch {
         // not initialized yet, proceed
       }
 

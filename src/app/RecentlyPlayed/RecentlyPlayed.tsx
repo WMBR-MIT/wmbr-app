@@ -74,7 +74,7 @@ export default function RecentlyPlayed() {
       // Stop any playing preview when component unmounts
       audioPreviewService.stop();
       // Reset appearance
-      Appearance.setColorScheme(null);
+      Appearance.setColorScheme('unspecified');
     };
   }, [audioPreviewService]);
 
@@ -187,7 +187,7 @@ export default function RecentlyPlayed() {
             songs,
           },
         ]);
-      } catch (playlistError) {
+      } catch {
         // Handle 404 or other playlist fetch errors gracefully - still add the show with empty songs
         setShowPlaylists(prev => [
           ...prev,

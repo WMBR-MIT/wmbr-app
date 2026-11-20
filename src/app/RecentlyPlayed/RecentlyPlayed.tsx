@@ -12,12 +12,10 @@ import {
   StyleSheet,
   ActivityIndicator,
   Alert,
-  Appearance,
   SectionListData,
   SectionList,
   StatusBar,
 } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
 import { debugError } from '@utils/Debug';
 import {
   AudioPreviewService,
@@ -65,18 +63,6 @@ export default function RecentlyPlayed() {
 
   // Prevent concurrent fetches
   const fetchInFlightRef = useRef(false);
-
-  useEffect(() => {
-    // Force dark mode for light-colored refresh control spinner
-    Appearance.setColorScheme('dark');
-
-    return () => {
-      // Stop any playing preview when component unmounts
-      audioPreviewService.stop();
-      // Reset appearance
-      Appearance.setColorScheme('unspecified');
-    };
-  }, [audioPreviewService]);
 
   useEffect(() => {
     // Subscribe to preview state changes
@@ -431,10 +417,7 @@ export default function RecentlyPlayed() {
         backgroundColor={COLORS.BACKGROUND.PRIMARY}
       />
 
-      <LinearGradient
-        colors={[COLORS.BACKGROUND.SECONDARY, COLORS.BACKGROUND.PRIMARY]}
-        style={styles.gradient}
-      >
+      <View style={styles.gradient}>
         <View style={[styles.contentWrapper, { paddingTop: headerHeight }]}>
           {loading && (
             <View style={styles.loadingContainer}>
@@ -470,13 +453,14 @@ export default function RecentlyPlayed() {
             />
           )}
         </View>
-      </LinearGradient>
+      </View>
     </>
   );
 }
 
 const styles = StyleSheet.create({
   gradient: {
+    backgroundColor: COLORS.BACKGROUND.PRIMARY,
     flex: 1,
   },
   contentWrapper: {
@@ -508,12 +492,12 @@ const styles = StyleSheet.create({
   },
   songAlbum: {
     fontSize: 12,
-    color: COLORS.TEXT.TERTIARY,
+    color: COLORS.TEXT.SECONDARY,
     marginBottom: 4,
   },
   playedTime: {
     fontSize: 11,
-    color: COLORS.TEXT.TERTIARY,
+    color: COLORS.TEXT.SECONDARY,
   },
   previewButton: {
     width: 40,
@@ -566,7 +550,7 @@ const styles = StyleSheet.create({
     paddingVertical: 60,
   },
   loadingText: {
-    color: COLORS.TEXT.TERTIARY,
+    color: COLORS.TEXT.SECONDARY,
     marginTop: 16,
     fontSize: 16,
   },
@@ -600,12 +584,12 @@ const styles = StyleSheet.create({
     paddingVertical: 60,
   },
   emptyText: {
-    color: COLORS.TEXT.TERTIARY,
+    color: COLORS.TEXT.SECONDARY,
     fontSize: 16,
     textAlign: 'center',
   },
   showHeader: {
-    backgroundColor: COLORS.BACKGROUND.ELEVATED,
+    backgroundColor: COLORS.BACKGROUND.SECONDARY,
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderBottomWidth: 1,
@@ -620,7 +604,7 @@ const styles = StyleSheet.create({
   },
   showHeaderSubtitle: {
     fontSize: 12,
-    color: COLORS.TEXT.TERTIARY,
+    color: COLORS.TEXT.SECONDARY,
   },
   loadingMoreContainer: {
     paddingVertical: 20,
@@ -628,7 +612,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   loadingMoreText: {
-    color: COLORS.TEXT.TERTIARY,
+    color: COLORS.TEXT.SECONDARY,
     fontSize: 14,
     marginTop: 8,
   },
@@ -639,7 +623,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   emptyShowText: {
-    color: COLORS.TEXT.TERTIARY,
+    color: COLORS.TEXT.SECONDARY,
     fontSize: 14,
     textAlign: 'center',
     fontStyle: 'italic',

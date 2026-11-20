@@ -105,7 +105,7 @@ export default function PlayButton({
               android: 'pause',
             }}
             size={48}
-            color={CORE_COLORS.WMBR_GREEN}
+            color={CORE_COLORS.WHITE}
           />
         ) : (
           <Icon
@@ -114,7 +114,7 @@ export default function PlayButton({
               android: 'stop',
             }}
             size={48}
-            color={CORE_COLORS.WMBR_GREEN}
+            color={CORE_COLORS.WHITE}
           />
         )
       ) : (
@@ -211,7 +211,7 @@ const styles = StyleSheet.create({
     elevation: 12,
   },
   playButtonActive: {
-    backgroundColor: CORE_COLORS.WHITE,
+    backgroundColor: CORE_COLORS.WMBR_GREEN,
     shadowColor: CORE_COLORS.WHITE,
   },
   buttonContent: {

@@ -1,4 +1,4 @@
-import { Animated, Platform } from 'react-native';
+import { Animated, OpaqueColorValue, Platform } from 'react-native';
 import { SFSymbol } from 'react-native-sfsymbols';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
@@ -15,7 +15,7 @@ export interface IconProps {
   name: IconName;
   /** Icon size (used on both platforms) */
   size: number;
-  color: string;
+  color: string | OpaqueColorValue;
   style?: Record<string, any>;
 }
 

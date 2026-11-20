@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
   nowPlayingContainer: { alignItems: 'center', marginTop: 4 },
   nowPlayingLabel: {
     fontSize: 10,
-    color: COLORS.TEXT.TERTIARY,
+    color: COLORS.TEXT.SECONDARY,
     fontWeight: '500',
     marginBottom: 2,
     textTransform: 'uppercase',
@@ -167,5 +167,5 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontStyle: 'italic',
   },
-  currentSongTextActive: { color: COLORS.TEXT.ACTIVE },
+  currentSongTextActive: { color: COLORS.TEXT.SECONDARY },
 });

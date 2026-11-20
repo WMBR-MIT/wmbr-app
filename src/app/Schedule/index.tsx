@@ -1,4 +1,4 @@
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, useColorScheme } from 'react-native';
 import { RouteProp } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
@@ -6,7 +6,7 @@ import ArchivedShowView from './ArchivedShowView';
 import ShowDetailsPage from './ShowDetailsPage';
 import SchedulePage from './SchedulePage';
 import { Platform } from 'react-native';
-import { COLORS } from '@utils/Colors';
+import { COLORS, CORE_COLORS } from '@utils/Colors';
 
 const Stack = createNativeStackNavigator();
 
@@ -33,6 +33,8 @@ export const ScheduleStack = () => {
       : 'Archived Show',
   });
 
+  const colorScheme = useColorScheme();
+
   return (
     <View style={styles.gradient}>
       <Stack.Navigator
@@ -43,11 +45,13 @@ export const ScheduleStack = () => {
           // background color
           ...(Platform.OS === 'android' && {
             headerStyle: {
-              backgroundColor: COLORS.BACKGROUND.PRIMARY,
+              backgroundColor:
+                colorScheme === 'dark' ? CORE_COLORS.BLACK : CORE_COLORS.WHITE,
             },
           }),
           title: 'Schedule',
-          headerTintColor: COLORS.TEXT.PRIMARY,
+          headerTintColor:
+            colorScheme === 'dark' ? CORE_COLORS.WHITE : CORE_COLORS.BLACK,
         }}
       >
         <Stack.Screen name="ScheduleMain" component={SchedulePage} />

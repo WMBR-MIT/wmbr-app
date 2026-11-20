@@ -46,6 +46,38 @@ You can download the latest release from the [Apple](https://apps.apple.com/app/
   npm run android
   ```
 
+## Upgrading React Native
+
+Upgrade one minor version at a time. Skipping versions makes the native diffs
+harder to review.
+
+1. Find the target version in the
+   [React Native releases overview](https://reactnative.dev/releases/overview).
+2. Look up the changes between your current and target versions in the
+   [Upgrade Helper](https://react-native-community.github.io/upgrade-helper/).
+   It shows the native file diffs to apply and the steps to follow.
+3. Align the JavaScript dependencies with Microsoft's
+   [`@rnx-kit/align-deps`](https://www.npmjs.com/package/@rnx-kit/align-deps),
+   which the Upgrade Helper instructions also use. For example:
+   ```bash
+   npx @rnx-kit/align-deps@latest --requirements react-native@0.86
+   npx @rnx-kit/align-deps@latest --requirements react-native@0.86 --write
+   ```
+   Review the proposed changes before running `--write`, then run
+   `npm install`.
+4. Update the React Native pods, which are pinned in `ios/Podfile.lock`:
+   ```bash
+   cd ios && pod update React-Core-prebuilt --no-repo-update
+   ```
+   If other React Native pods still show the old version, delete
+   `ios/Podfile.lock` and run `pod install --no-repo-update` instead.
+5. Check that `ios/Podfile.lock` lists the new version for the React Native
+   pods.
+6. Build and run both apps, then fix any native breakage the Upgrade Helper
+   flagged.
+7. Commit `package.json`, `package-lock.json`, `ios/Podfile.lock`, and any
+   changed native files together.
+
 ## Building for Release
 
 ### Bump the version number

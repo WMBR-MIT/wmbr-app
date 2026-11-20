@@ -15,6 +15,7 @@ import {
   SectionListData,
   SectionList,
   StatusBar,
+  useColorScheme,
 } from 'react-native';
 import { debugError } from '@utils/Debug';
 import {
@@ -29,7 +30,7 @@ import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { useHeaderHeight } from '@react-navigation/elements';
 import { WmbrRouteName } from '@customTypes/Navigation';
 import { DEFAULT_NAME } from '@customTypes/Playlist';
-import { COLORS } from '@utils/Colors';
+import { COLORS, CORE_COLORS } from '@utils/Colors';
 
 interface ShowPlaylist {
   showName: string;
@@ -410,12 +411,14 @@ export default function RecentlyPlayed() {
     [],
   );
 
+  const colorScheme = useColorScheme();
+
+  const statusBarColor =
+    colorScheme === 'dark' ? CORE_COLORS.BLACK : CORE_COLORS.WHITE;
+
   return (
     <>
-      <StatusBar
-        barStyle="light-content"
-        backgroundColor={COLORS.BACKGROUND.PRIMARY}
-      />
+      <StatusBar backgroundColor={statusBarColor} />
 
       <View style={styles.gradient}>
         <View style={[styles.contentWrapper, { paddingTop: headerHeight }]}>
@@ -444,6 +447,7 @@ export default function RecentlyPlayed() {
               sections={playlistViewData}
               keyExtractor={keyExtractor}
               renderItem={renderSong}
+              stickySectionHeadersEnabled={true}
               renderSectionHeader={renderShowHeader}
               renderSectionFooter={SectionFooterComponent}
               onRefresh={handleRefresh}

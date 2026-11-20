@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
   TextInputChangeEvent,
   Alert,
+  useColorScheme,
 } from 'react-native';
 import Icon from '@components/Icon';
 import { debugLog, debugError } from '@utils/Debug';
@@ -316,12 +317,14 @@ export default function SchedulePage() {
     </View>
   );
 
+  const colorScheme = useColorScheme();
+
+  const statusBarColor =
+    colorScheme === 'dark' ? CORE_COLORS.BLACK : CORE_COLORS.WHITE;
+
   return (
     <>
-      <StatusBar
-        barStyle="light-content"
-        backgroundColor={COLORS.BACKGROUND.PRIMARY}
-      />
+      <StatusBar backgroundColor={statusBarColor} />
 
       <View style={styles.gradient}>
         <View style={[styles.contentWrapper, { paddingTop: headerHeight }]}>

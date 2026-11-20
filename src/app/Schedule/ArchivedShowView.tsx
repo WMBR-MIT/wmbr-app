@@ -155,7 +155,7 @@ export default function ArchivedShowView() {
 
   return (
     <>
-      <StatusBar barStyle="light-content" backgroundColor={gradientStart} />
+      <StatusBar backgroundColor={gradientStart} />
 
       <View style={styles.gradient}>
         <ScrollView>

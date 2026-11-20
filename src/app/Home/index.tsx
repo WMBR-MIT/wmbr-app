@@ -8,6 +8,7 @@ import {
   StyleSheet,
   StatusBar,
   AppState,
+  useColorScheme,
 } from 'react-native';
 import {
   SafeAreaView,
@@ -311,15 +312,17 @@ export default function HomeScreen() {
     navigation,
   ]);
 
+  const colorScheme = useColorScheme();
+
   if (showSplash) return <SplashScreen onAnimationEnd={handleSplashEnd} />;
+
+  const statusBarColor =
+    colorScheme === 'dark' ? CORE_COLORS.BLACK : CORE_COLORS.WHITE;
 
   return (
     <GestureHandlerRootView style={styles.container}>
       <StatusBar
-        barStyle="light-content"
-        backgroundColor={
-          isPlaying ? CORE_COLORS.WMBR_GREEN : COLORS.BACKGROUND.PRIMARY
-        }
+        backgroundColor={isPlaying ? CORE_COLORS.WMBR_GREEN : statusBarColor}
         translucent={false}
       />
       <View style={styles.fullScreenGradient}>

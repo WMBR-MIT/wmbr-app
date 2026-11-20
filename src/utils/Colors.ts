@@ -12,7 +12,7 @@ export const CORE_COLORS = {
   RED_500:
     Platform.select({
       ios: PlatformColor('systemRed'),
-      android: PlatformColor('?android:attr/colorError'),
+      android: PlatformColor('@color/wmbr_text_primary'),
     }) || '#FF4444',
   GREEN_500: '#3EA95F', // Same Chroma and Hue as WMBR_GREEN in LCH; WCAG AAA for normal text on black
   WMBR_GREEN: '#00843D',
@@ -26,17 +26,17 @@ export const COLORS = {
     PRIMARY:
       Platform.select({
         ios: PlatformColor('label'),
-        android: PlatformColor('?android:attr/textColorPrimary'),
+        android: PlatformColor('@color/wmbr_text_primary'),
       }) || CORE_COLORS.WHITE,
     SECONDARY:
       Platform.select({
         ios: PlatformColor('secondaryLabel'),
-        android: PlatformColor('?android:attr/textColorSecondary'),
+        android: PlatformColor('@color/wmbr_text_secondary'),
       }) || CORE_COLORS.GRAY_200,
     TERTIARY:
       Platform.select({
         ios: PlatformColor('tertiaryLabel'),
-        android: PlatformColor('?android:attr/textColorTertiary'),
+        android: PlatformColor('@color/wmbr_text_secondary'),
       }) || CORE_COLORS.GRAY_600,
     ACTIVE: CORE_COLORS.GRAY_100,
     ALERT: CORE_COLORS.RED_500,
@@ -50,17 +50,17 @@ export const COLORS = {
     PRIMARY:
       Platform.select({
         ios: PlatformColor('systemBackground'),
-        android: PlatformColor('?android:attr/colorBackground'),
+        android: PlatformColor('@color/wmbr_background'),
       }) || CORE_COLORS.BLACK,
     SECONDARY:
       Platform.select({
         ios: PlatformColor('secondarySystemBackground'),
-        android: PlatformColor('?android:attr/colorBackgroundFloating'),
+        android: PlatformColor('@color/wmbr_background_secondary'),
       }) || CORE_COLORS.GRAY_975,
     ELEVATED:
       Platform.select({
         ios: PlatformColor('tertiarySystemBackground'),
-        android: PlatformColor('?android:attr/colorBackgroundFloating'),
+        android: PlatformColor('@color/wmbr_background_tertiary'),
       }) || CORE_COLORS.GRAY_950,
   },
   BUTTON: {
@@ -69,7 +69,7 @@ export const COLORS = {
       TEXT:
         Platform.select({
           ios: PlatformColor('label'),
-          android: PlatformColor('?android:attr/textColorPrimary'),
+          android: PlatformColor('@color/wmbr_text_primary'),
         }) || CORE_COLORS.WHITE,
     },
     ACCENT: {
@@ -90,13 +90,13 @@ export const COLORS = {
       BORDER:
         Platform.select({
           ios: PlatformColor('label'),
-          android: PlatformColor('?android:attr/textColorPrimary'),
+          android: PlatformColor('@color/wmbr_text_primary'),
         }) || CORE_COLORS.WHITE,
       BACKGROUND: CORE_COLORS.OVERLAY_WHITE_10,
       TEXT:
         Platform.select({
           ios: PlatformColor('label'),
-          android: PlatformColor('?android:attr/textColorPrimary'),
+          android: PlatformColor('@color/wmbr_text_primary'),
         }) || CORE_COLORS.WHITE,
     },
   },
@@ -105,12 +105,12 @@ export const COLORS = {
       BORDER:
         Platform.select({
           ios: PlatformColor('separator'),
-          android: PlatformColor('?android:attr/listDivider'),
+          android: PlatformColor('@color/wmbr_card_subtle_border'),
         }) || CORE_COLORS.OVERLAY_WHITE_10,
       BACKGROUND:
         Platform.select({
           ios: PlatformColor('secondarySystemBackground'),
-          android: PlatformColor('?android:attr/colorBackgroundFloating'),
+          android: PlatformColor('@color/wmbr_card_subtle_background'),
         }) || CORE_COLORS.OVERLAY_WHITE_05,
     },
     ACTIVE: {
@@ -122,7 +122,7 @@ export const COLORS = {
     SUBTLE:
       Platform.select({
         ios: PlatformColor('separator'),
-        android: PlatformColor('?android:attr/listDivider'),
+        android: PlatformColor('@color/wmbr_border_subtle'),
       }) || CORE_COLORS.OVERLAY_WHITE_10,
   },
 } as const;

@@ -95,11 +95,7 @@ export default function SplashScreen({ onAnimationEnd }: SplashScreenProps) {
 
   return (
     <Animated.View style={[styles.container, containerAnimatedStyle]}>
-      <StatusBar
-        barStyle="light-content"
-        backgroundColor="#000000"
-        translucent={false}
-      />
+      <StatusBar backgroundColor="#000000" translucent={false} />
 
       <LinearGradient
         colors={[CORE_COLORS.BLACK, CORE_COLORS.GRAY_950]}

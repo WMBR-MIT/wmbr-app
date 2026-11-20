@@ -68,6 +68,12 @@ React Native app for WMBR radio streaming (live + archives), schedules, and play
   4 AM). A broadcast day runs from one `daystart` to the next.
   - Each show's `day` is its broadcast day. A Monday 1 AM show is `day=0`
     (Sunday), because it belongs to Sunday's broadcast day.
+  - `time` is minutes past calendar midnight, and `day_str` is the name of the
+    broadcast day, not the calendar day of the show. Shows with a `time` below
+    `daystart` (240) air after midnight on the calendar day following their
+    `day`. For example, `day=5` with `time=60` is Saturday 1:00 AM.
+  - A show may cross midnight. `time + length` can exceed 1440, so a Friday
+    11:00 PM show (`time=1380`) with `length=120` ends at 1:00 AM Saturday.
   - The Schedule page groups shows by calendar day, so that show appears under
     Monday.
   - Weekly cycles (`alternates`) follow the broadcast day.

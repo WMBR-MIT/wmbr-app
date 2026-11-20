@@ -352,7 +352,7 @@ export default function SchedulePage() {
               <SectionList
                 contentInsetAdjustmentBehavior="automatic"
                 style={styles.paddingContainer}
-                stickySectionHeadersEnabled={false}
+                stickySectionHeadersEnabled={true}
                 sections={scheduleViewData}
                 keyExtractor={item => `${item.id}-${item.sectionDate}`}
                 renderItem={renderShow}

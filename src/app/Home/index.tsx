@@ -322,6 +322,7 @@ export default function HomeScreen() {
   return (
     <GestureHandlerRootView style={styles.container}>
       <StatusBar
+        barStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'}
         backgroundColor={isPlaying ? CORE_COLORS.WMBR_GREEN : statusBarColor}
         translucent={false}
       />

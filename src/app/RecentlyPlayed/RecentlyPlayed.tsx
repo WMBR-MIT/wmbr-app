@@ -425,7 +425,10 @@ export default function RecentlyPlayed() {
 
   return (
     <>
-      <StatusBar backgroundColor={statusBarColor} />
+      <StatusBar
+        barStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'}
+        backgroundColor={statusBarColor}
+      />
 
       <View style={styles.gradient}>
         <View style={[styles.contentWrapper, { paddingTop: headerHeight }]}>

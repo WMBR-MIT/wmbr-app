@@ -4,7 +4,11 @@ import { Show, Archive } from '@customTypes/RecentlyPlayed';
 import { debugLog, debugError } from '@utils/Debug';
 import { DEFAULT_NAME } from '@customTypes/Playlist';
 import { getUserAgent } from '@utils/UserAgent';
-import { getShowImage } from '@utils/ShowImages';
+import {
+  getShowImage,
+  SHOW_IMAGE_MAX_RETRIES,
+  SHOW_IMAGE_RETRY_INTERVAL_MS,
+} from '@utils/ShowImages';
 
 export interface ArchivePlaybackState {
   isPlayingArchive: boolean;
@@ -68,8 +72,6 @@ export class ArchiveService {
         ? `${show.name}${hosts ? ` with ${hosts}` : ''}`
         : DEFAULT_NAME;
 
-      const archiveArtwork = getShowImage(show.name);
-
       // Create archive track.
       //
       // We set an explicit `duration` (show length is in minutes) so iOS has a
@@ -79,12 +81,15 @@ export class ArchiveService {
       // controls before that happens — showing play/pause/stop but hiding the
       // skip-interval buttons and scrubber for the rest of the session. RNTP
       // corrects this value once the real duration is known.
+      //
+      // The track starts with the generic WMBR cover so playback doesn't wait on
+      // the server. The show's own artwork is applied below once it's found.
       const archiveTrack: Track = {
         id: `${show.name}-${archive.date}`,
         url: archive.url,
         title: `${titleWithHosts}: ${showDate}`,
         artist: DEFAULT_NAME,
-        artwork: archiveArtwork,
+        artwork: require('@assets/cover.png'),
         userAgent: getUserAgent(),
         ...(show.length > 0 && { duration: show.length * 60 }),
       };
@@ -102,9 +107,56 @@ export class ArchiveService {
       };
 
       this.notifyCallbacks();
+
+      // Not awaited: the artwork can arrive after playback has started.
+      this.applyShowArtwork(archive, show);
     } catch (error) {
       debugError('Error playing archive:', error);
       throw error;
+    }
+  }
+
+  // Whether the archive is still the track at index 0. Checks the player itself
+  // rather than our own state, since other code (such as the audio preview) can
+  // replace the queue without updating this service.
+  private async isArchiveQueued(archive: Archive): Promise<boolean> {
+    const [queuedTrack] = await TrackPlayer.getQueue();
+    return queuedTrack?.url === archive.url;
+  }
+
+  // Looks up the show's own artwork and applies it to the archive track that
+  // was started with the cover. A failed check (timeout, server error) is tried
+  // again every minute, up to the same limit the screen uses. Stops early once
+  // the remote image is applied, or when the archive is no longer playing,
+  // since the track at index 0 would then be something else.
+  private async applyShowArtwork(archive: Archive, show: Show): Promise<void> {
+    try {
+      for (let attempt = 0; attempt <= SHOW_IMAGE_MAX_RETRIES; attempt++) {
+        if (attempt > 0) {
+          await new Promise(resolve =>
+            setTimeout(resolve, SHOW_IMAGE_RETRY_INTERVAL_MS),
+          );
+        }
+
+        if (!(await this.isArchiveQueued(archive))) {
+          return;
+        }
+
+        const showArtwork = await getShowImage(show.name);
+
+        // A show with no artwork of its own keeps the cover, so there's nothing
+        // to apply yet. Its retries only read the cache.
+        if (showArtwork && (await this.isArchiveQueued(archive))) {
+          await TrackPlayer.updateMetadataForTrack(0, { artwork: showArtwork });
+        }
+
+        // A remote image is the best result, so later attempts aren't needed.
+        if (typeof showArtwork === 'string') {
+          return;
+        }
+      }
+    } catch (error) {
+      debugError('Error applying show artwork:', error);
     }
   }
 

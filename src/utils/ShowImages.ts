@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import slugify from 'slugify';
 import { Track } from 'react-native-track-player';
 
@@ -51,9 +52,9 @@ const remoteImageExists = async (imageUrl: string): Promise<boolean> => {
   }
 };
 
-// Returns the artwork for a show's lock-screen/notification controls. Preference
-// order: the image on the WMBR server, then a bundled image, then the generic
-// WMBR cover.
+// Returns the show's own artwork: the image on the WMBR server if there is one,
+// otherwise the bundled image. Returns undefined when neither exists, so each
+// caller can pick its own fallback.
 export const getShowImage = async (
   showName: string,
 ): Promise<Track['artwork']> => {
@@ -70,5 +71,30 @@ export const getShowImage = async (
     return remoteImageUrl;
   }
 
-  return SHOW_IMAGES[showName] || require('@assets/cover.png');
+  return SHOW_IMAGES[showName];
+};
+
+// Keeps a show's artwork (see getShowImage) in state. Until the lookup finishes,
+// the hook returns the bundled image, so something shows right away.
+export const useShowArtwork = (showName: string): Track['artwork'] => {
+  const [showArtwork, setShowArtwork] = useState<Track['artwork']>(
+    SHOW_IMAGES[showName],
+  );
+
+  useEffect(() => {
+    // Ignore a lookup that finishes after the show has already changed.
+    let isCurrentLookup = true;
+
+    getShowImage(showName).then(artwork => {
+      if (isCurrentLookup) {
+        setShowArtwork(artwork);
+      }
+    });
+
+    return () => {
+      isCurrentLookup = false;
+    };
+  }, [showName]);
+
+  return showArtwork;
 };

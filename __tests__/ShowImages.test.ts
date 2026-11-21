@@ -57,13 +57,13 @@ describe('getShowImage', () => {
     );
   });
 
-  test('falls back to the WMBR cover when the request fails', async () => {
+  test('returns nothing when the request fails and there is no bundled image', async () => {
     mockFetch(jest.fn().mockRejectedValue(new Error('Network request failed')));
     const getShowImage = loadGetShowImage();
 
     const artwork = await getShowImage('Unknown Show');
 
-    expect(artwork).toEqual(require('@assets/cover.png'));
+    expect(artwork).toBeUndefined();
   });
 
   test('checks each show only once per session', async () => {

@@ -68,7 +68,9 @@ export class ArchiveService {
         ? `${show.name}${hosts ? ` with ${hosts}` : ''}`
         : DEFAULT_NAME;
 
-      const archiveArtwork = await getShowImage(show.name);
+      // Fall back to the generic WMBR cover when the show has no artwork of its own.
+      const archiveArtwork =
+        (await getShowImage(show.name)) ?? require('@assets/cover.png');
 
       // Create archive track.
       //

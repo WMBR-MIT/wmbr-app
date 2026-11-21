@@ -16,7 +16,6 @@ import {
 } from 'react-native-safe-area-context';
 import TrackPlayer, {
   State,
-  Track,
   useActiveTrack,
   usePlaybackState,
 } from 'react-native-track-player';
@@ -37,7 +36,7 @@ import { DEFAULT_NAME } from '@customTypes/Playlist';
 import { COLORS, CORE_COLORS } from '@utils/Colors';
 import { formatArchiveDate } from '@utils/DateTime';
 import { getUserAgent } from '@utils/UserAgent';
-import { getShowImage } from '@utils/ShowImages';
+import { useShowArtwork } from '@utils/ShowImages';
 
 import HomeNowPlaying from './HomeNowPlaying';
 import { ScheduleService } from '@services/ScheduleService';
@@ -158,26 +157,7 @@ export default function HomeScreen() {
     return () => metadataService.stopPolling();
   }, [appState, isPlaying, activeTrack?.id]);
 
-  // The show's artwork is looked up asynchronously (it may check the server), so
-  // it's kept in state and filled in once the lookup finishes.
-  const [liveShowArtwork, setLiveShowArtwork] = useState<Track['artwork']>(
-    require('@assets/cover.png'),
-  );
-
-  useEffect(() => {
-    // Ignore a lookup that finishes after the show has already changed.
-    let isCurrentLookup = true;
-
-    getShowImage(currentShow).then(artwork => {
-      if (isCurrentLookup) {
-        setLiveShowArtwork(artwork);
-      }
-    });
-
-    return () => {
-      isCurrentLookup = false;
-    };
-  }, [currentShow]);
+  const liveShowArtwork = useShowArtwork(currentShow);
 
   const liveMetadata = useMemo(() => {
     if (showInfo?.currentSong && showInfo?.currentArtist) {
@@ -188,7 +168,8 @@ export default function HomeScreen() {
       return {
         title: `${showInfo.currentArtist} - ${showInfo.currentSong}`,
         artist: `${titleWithHosts || 'Live Radio'} | ${DEFAULT_NAME}`,
-        artwork: liveShowArtwork,
+        // Fall back to the generic WMBR cover when the show has no artwork of its own.
+        artwork: liveShowArtwork ?? require('@assets/cover.png'),
       };
     }
 

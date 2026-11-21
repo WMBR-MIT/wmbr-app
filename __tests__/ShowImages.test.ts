@@ -46,15 +46,13 @@ describe('getShowImage', () => {
     );
   });
 
-  test('falls back to the bundled image when the server has no file', async () => {
+  test('returns undefined when the server has no file', async () => {
     mockFetch(jest.fn().mockResolvedValue({ ok: false }));
     const getShowImage = loadGetShowImage();
 
     const artwork = await getShowImage('Breakfast of Champions');
 
-    expect(artwork).toEqual(
-      require('@assets/showImages/breakfastofchampions.jpg'),
-    );
+    expect(artwork).toEqual(undefined);
   });
 
   test('returns nothing when the request fails and there is no bundled image', async () => {

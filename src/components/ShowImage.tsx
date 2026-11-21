@@ -6,7 +6,7 @@ import { formatDate } from '@utils/DateTime';
 import { getWMBRLogoSVG } from '@utils/WMBRLogo';
 import { generateGradientColors } from '@utils/GradientColors';
 import { COLORS, CORE_COLORS } from '@utils/Colors';
-import { SHOW_IMAGES } from '@utils/ShowImages';
+import { useShowArtwork } from '@utils/ShowImages';
 
 const { width } = Dimensions.get('window');
 const ALBUM_SIZE = width * 0.6;
@@ -20,21 +20,25 @@ const ShowImage = ({
 }) => {
   const [gradientStart, gradientEnd] = generateGradientColors(showName);
 
-  const showImage = SHOW_IMAGES[showName as keyof typeof SHOW_IMAGES];
+  // Shows with no image at all keep the gradient.
+  const showImage = useShowArtwork(showName);
 
   return (
     <View style={styles.albumSection}>
       <View style={[styles.albumCover, { backgroundColor: gradientStart }]}>
         {showImage ? (
           <Image
-            source={showImage}
+            // Remote images are URLs; bundled images are require() asset IDs.
+            source={
+              typeof showImage === 'string' ? { uri: showImage } : showImage
+            }
             accessible
             accessibilityLabel={
               archiveDate
                 ? `${showName}, archive, ${formatDate(archiveDate)}`
                 : showName
             }
-            style={styles.albumCover}
+            style={[styles.albumCover, styles.showThumb]}
             resizeMode="cover"
           />
         ) : (
@@ -153,6 +157,9 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 3,
     textAlign: 'left',
+  },
+  showThumb: {
+    backgroundColor: COLORS.BACKGROUND.SECONDARY,
   },
 });
 

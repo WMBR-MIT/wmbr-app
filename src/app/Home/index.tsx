@@ -36,7 +36,7 @@ import { DEFAULT_NAME } from '@customTypes/Playlist';
 import { COLORS, CORE_COLORS } from '@utils/Colors';
 import { formatArchiveDate } from '@utils/DateTime';
 import { getUserAgent } from '@utils/UserAgent';
-import { getShowImage } from '@utils/ShowImages';
+import { useShowArtwork } from '@utils/ShowImages';
 
 import HomeNowPlaying from './HomeNowPlaying';
 import { ScheduleService } from '@services/ScheduleService';
@@ -157,18 +157,23 @@ export default function HomeScreen() {
     return () => metadataService.stopPolling();
   }, [appState, isPlaying, activeTrack?.id]);
 
+  const liveShowArtwork = useShowArtwork(currentShow);
+
   const liveMetadata = useMemo(() => {
+    const artworkMetadata = {
+      // Fall back to the generic WMBR cover when the show has no artwork of its own.
+      artwork: liveShowArtwork ?? require('@assets/cover.png'),
+    };
+
     if (showInfo?.currentSong && showInfo?.currentArtist) {
       const titleWithHosts = currentShow
         ? `${currentShow}${hosts ? ` with ${hosts}` : ''}`
         : DEFAULT_NAME;
 
-      const liveArtwork = getShowImage(currentShow);
-
       return {
         title: `${showInfo.currentArtist} - ${showInfo.currentSong}`,
         artist: `${titleWithHosts || 'Live Radio'} | ${DEFAULT_NAME}`,
-        artwork: liveArtwork,
+        ...artworkMetadata,
       };
     }
 
@@ -179,9 +184,9 @@ export default function HomeScreen() {
     return {
       title: titleWithHosts || DEFAULT_NAME,
       artist: currentShow ? DEFAULT_NAME : 'Live Radio',
-      artwork: require('@assets/cover.png'),
+      ...artworkMetadata,
     };
-  }, [hosts, showInfo, currentShow]);
+  }, [hosts, showInfo, currentShow, liveShowArtwork]);
 
   // Separate useEffect for updating track metadata when show changes
   useEffect(() => {
@@ -197,9 +202,18 @@ export default function HomeScreen() {
       }
 
       try {
-        // Only update if we're not playing an archive
-        if (!archiveState.isPlayingArchive) {
-          await TrackPlayer.updateMetadataForTrack(0, liveMetadata);
+        // Only update if we're playing live
+        if (activeTrack?.id === 'wmbr-stream') {
+          const queue = await TrackPlayer.getQueue();
+          const liveTrackIndex = queue.findIndex(
+            track => track.id === 'wmbr-stream',
+          );
+          if (liveTrackIndex !== -1) {
+            await TrackPlayer.updateMetadataForTrack(
+              liveTrackIndex,
+              liveMetadata,
+            );
+          }
         }
       } catch (error) {
         debugError('Error updating track metadata:', error);
@@ -209,7 +223,7 @@ export default function HomeScreen() {
     updateLiveTrackMetadata();
   }, [
     liveMetadata,
-    archiveState.isPlayingArchive,
+    activeTrack?.id,
     isPlayerInitialized,
     playbackState?.state,
   ]);

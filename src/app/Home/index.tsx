@@ -204,7 +204,16 @@ export default function HomeScreen() {
       try {
         // Only update if we're playing live
         if (activeTrack?.id === 'wmbr-stream') {
-          await TrackPlayer.updateMetadataForTrack(0, liveMetadata);
+          const queue = await TrackPlayer.getQueue();
+          const liveTrackIndex = queue.findIndex(
+            track => track.id === 'wmbr-stream',
+          );
+          if (liveTrackIndex !== -1) {
+            await TrackPlayer.updateMetadataForTrack(
+              liveTrackIndex,
+              liveMetadata,
+            );
+          }
         }
       } catch (error) {
         debugError('Error updating track metadata:', error);

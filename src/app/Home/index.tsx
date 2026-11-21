@@ -36,6 +36,7 @@ import { DEFAULT_NAME } from '@customTypes/Playlist';
 import { COLORS, CORE_COLORS } from '@utils/Colors';
 import { formatArchiveDate } from '@utils/DateTime';
 import { getUserAgent } from '@utils/UserAgent';
+import { getShowImage } from '@utils/ShowImages';
 
 import HomeNowPlaying from './HomeNowPlaying';
 import { ScheduleService } from '@services/ScheduleService';
@@ -162,10 +163,12 @@ export default function HomeScreen() {
         ? `${currentShow}${hosts ? ` with ${hosts}` : ''}`
         : DEFAULT_NAME;
 
+      const liveArtwork = getShowImage(currentShow);
+
       return {
         title: `${showInfo.currentArtist} - ${showInfo.currentSong}`,
         artist: `${titleWithHosts || 'Live Radio'} | ${DEFAULT_NAME}`,
-        artwork: require('@assets/cover.png'),
+        artwork: liveArtwork,
       };
     }
 

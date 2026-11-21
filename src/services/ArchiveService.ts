@@ -4,7 +4,7 @@ import { Show, Archive } from '@customTypes/RecentlyPlayed';
 import { debugLog, debugError } from '@utils/Debug';
 import { DEFAULT_NAME } from '@customTypes/Playlist';
 import { getUserAgent } from '@utils/UserAgent';
-import { SHOW_IMAGES } from '@utils/ShowImages';
+import { getShowImage } from '@utils/ShowImages';
 
 export interface ArchivePlaybackState {
   isPlayingArchive: boolean;
@@ -68,11 +68,7 @@ export class ArchiveService {
         ? `${show.name}${hosts ? ` with ${hosts}` : ''}`
         : DEFAULT_NAME;
 
-      // Use the show's own image for lock-screen/notification artwork when one
-      // exists, falling back to the generic WMBR cover otherwise.
-      const showSpecificArtwork = SHOW_IMAGES[show.name];
-      const archiveArtwork =
-        showSpecificArtwork ?? require('@assets/cover.png');
+      const archiveArtwork = getShowImage(show.name);
 
       // Create archive track.
       //

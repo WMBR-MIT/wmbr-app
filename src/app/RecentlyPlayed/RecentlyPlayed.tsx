@@ -431,7 +431,7 @@ export default function RecentlyPlayed() {
         <View style={[styles.contentWrapper, { paddingTop: headerHeight }]}>
           {loading && (
             <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color="#FFFFFF" />
+              <ActivityIndicator size="large" color={COLORS.TEXT.PRIMARY} />
               <Text style={styles.loadingText}>Loading playlist...</Text>
             </View>
           )}

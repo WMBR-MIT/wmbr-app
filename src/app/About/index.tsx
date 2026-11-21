@@ -1,17 +1,17 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   Linking,
+  useColorScheme,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import LinearGradient from 'react-native-linear-gradient';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Icon from '@components/Icon';
 import { getWMBRLogoSVG } from '@utils/WMBRLogo';
-import { COLORS } from '@utils/Colors';
+import { COLORS, CORE_COLORS } from '@utils/Colors';
 import { SvgXml } from 'react-native-svg';
 
 const openLink = (url: string) => Linking.openURL(url).catch(() => {});
@@ -25,19 +25,22 @@ const openProgramGuide = () =>
   openLink('https://wmbr.org/WMBR_ProgramGuide.pdf');
 
 export default function AboutPage() {
+  const colorScheme = useColorScheme();
+
+  const svgColor =
+    colorScheme === 'dark' ? CORE_COLORS.WHITE : CORE_COLORS.BLACK;
+
+  const linkTextStyle = useMemo(
+    () => (colorScheme === 'dark' ? styles.linkText : styles.linkTextDark),
+    [colorScheme],
+  );
+
   return (
-    <LinearGradient
-      colors={[COLORS.BACKGROUND.SECONDARY, COLORS.BACKGROUND.PRIMARY]}
-      style={styles.gradient}
-    >
+    <View style={styles.gradient}>
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.container}>
           <View style={styles.logoRow}>
-            <SvgXml
-              xml={getWMBRLogoSVG(COLORS.TEXT.PRIMARY)}
-              width={60}
-              height={16}
-            />
+            <SvgXml xml={getWMBRLogoSVG(svgColor)} width={60} height={16} />
           </View>
 
           <Text style={styles.body}>
@@ -67,7 +70,7 @@ export default function AboutPage() {
                 color={COLORS.TEXT.PRIMARY}
               />
               <View style={styles.textBlock}>
-                <Text style={styles.linkText}>(617) 253-8810</Text>
+                <Text style={linkTextStyle}>(617) 253-8810</Text>
                 <Text style={styles.smallText}>Requests Line</Text>
               </View>
             </TouchableOpacity>
@@ -87,7 +90,7 @@ export default function AboutPage() {
                 color={COLORS.TEXT.PRIMARY}
               />
               <View style={styles.textBlock}>
-                <Text style={styles.linkText}>music@wmbr.org</Text>
+                <Text style={linkTextStyle}>music@wmbr.org</Text>
                 <Text style={styles.smallText}>Music Department</Text>
               </View>
             </TouchableOpacity>
@@ -106,7 +109,7 @@ export default function AboutPage() {
                 color={COLORS.TEXT.PRIMARY}
               />
               <View style={styles.textBlock}>
-                <Text style={styles.linkText}>press@wmbr.org</Text>
+                <Text style={linkTextStyle}>press@wmbr.org</Text>
                 <Text style={styles.smallText}>News Department</Text>
               </View>
             </TouchableOpacity>
@@ -187,12 +190,15 @@ export default function AboutPage() {
           </View>
         </View>
       </SafeAreaView>
-    </LinearGradient>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  gradient: { flex: 1 },
+  gradient: {
+    backgroundColor: COLORS.BACKGROUND.PRIMARY,
+    flex: 1,
+  },
   safeArea: { flex: 1 },
   container: {
     flex: 1,
@@ -201,7 +207,7 @@ const styles = StyleSheet.create({
   },
   logoRow: { alignItems: 'center', marginBottom: 20, marginTop: 20 },
   body: {
-    color: COLORS.TEXT.SECONDARY,
+    color: COLORS.TEXT.PRIMARY,
     fontSize: 15,
     lineHeight: 22,
     marginBottom: 20,
@@ -235,7 +241,11 @@ const styles = StyleSheet.create({
   buttonOutlineText: { color: COLORS.BUTTON.PRIMARY.TEXT },
   socialRow: { flexDirection: 'row', marginTop: 18, columnGap: 12 },
   linkText: { color: COLORS.TEXT.LINK, textDecorationLine: 'underline' },
-  smallText: { color: COLORS.TEXT.TERTIARY, fontSize: 12, marginTop: 2 },
+  linkTextDark: {
+    color: CORE_COLORS.WMBR_GREEN,
+    textDecorationLine: 'underline',
+  },
+  smallText: { color: COLORS.TEXT.SECONDARY, fontSize: 12, marginTop: 2 },
   section: { marginTop: 12, marginBottom: 8 },
   sectionTitle: {
     color: COLORS.TEXT.PRIMARY,

@@ -5,14 +5,15 @@ import {
   TouchableOpacity,
   StyleSheet,
   SectionList,
+  SectionListRenderItemInfo,
   SectionListData,
   StatusBar,
   ActivityIndicator,
   TextInputChangeEvent,
   Alert,
+  useColorScheme,
 } from 'react-native';
 import Icon from '@components/Icon';
-import LinearGradient from 'react-native-linear-gradient';
 import { debugLog, debugError } from '@utils/Debug';
 import { dayNames, formatNextAirDate } from '@utils/DateTime';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
@@ -63,8 +64,8 @@ export default function SchedulePage() {
         autoCapitalize: 'none',
         shouldShowHintSearchIcon: false,
         placeholder: 'Search shows, hosts, or keywords',
-        hintTextColor: COLORS.TEXT.TERTIARY,
-        textColor: COLORS.TEXT.PRIMARY,
+        // hintTextColor: COLORS.TEXT.TERTIARY,
+        // textColor: COLORS.TEXT.PRIMARY,
         onChangeText: (event: TextInputChangeEvent) =>
           setSearchQuery(event.nativeEvent.text),
       },
@@ -215,10 +216,7 @@ export default function SchedulePage() {
   const renderShow = ({
     item,
     section,
-  }: {
-    item: ScheduleSectionItem;
-    section: SectionListData<ScheduleSectionItem>;
-  }) => {
+  }: SectionListRenderItemInfo<ScheduleSectionItem>) => {
     const isCurrent = isCurrentShowForDay(item, section.title);
     const nextAirDate = scheduleService.getNextAirDate(
       item,
@@ -298,7 +296,7 @@ export default function SchedulePage() {
             android: 'chevron-right',
           }}
           size={20}
-          color={isCurrent ? CORE_COLORS.WMBR_GREEN : '#888'}
+          color={isCurrent ? CORE_COLORS.WMBR_GREEN : COLORS.TEXT.TERTIARY}
         />
       </TouchableOpacity>
     );
@@ -319,17 +317,19 @@ export default function SchedulePage() {
     </View>
   );
 
+  const colorScheme = useColorScheme();
+
+  const statusBarColor =
+    colorScheme === 'dark' ? CORE_COLORS.BLACK : CORE_COLORS.WHITE;
+
   return (
     <>
       <StatusBar
-        barStyle="light-content"
-        backgroundColor={COLORS.BACKGROUND.PRIMARY}
+        barStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'}
+        backgroundColor={statusBarColor}
       />
 
-      <LinearGradient
-        colors={[COLORS.BACKGROUND.SECONDARY, COLORS.BACKGROUND.PRIMARY]}
-        style={styles.gradient}
-      >
+      <View style={styles.gradient}>
         <View style={[styles.contentWrapper, { paddingTop: headerHeight }]}>
           {loading ? (
             <View style={[styles.loadingContainer, styles.paddingContainer]}>
@@ -358,7 +358,7 @@ export default function SchedulePage() {
               <SectionList
                 contentInsetAdjustmentBehavior="automatic"
                 style={styles.paddingContainer}
-                stickySectionHeadersEnabled={false}
+                stickySectionHeadersEnabled={true}
                 sections={scheduleViewData}
                 keyExtractor={item => `${item.id}-${item.sectionDate}`}
                 renderItem={renderShow}
@@ -367,13 +367,14 @@ export default function SchedulePage() {
             </>
           )}
         </View>
-      </LinearGradient>
+      </View>
     </>
   );
 }
 
 export const styles = StyleSheet.create({
   gradient: {
+    backgroundColor: COLORS.BACKGROUND.PRIMARY,
     flex: 1,
   },
   contentWrapper: {
@@ -412,11 +413,11 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   daySection: {
-    marginBottom: 16,
-    marginTop: 24,
+    backgroundColor: COLORS.BACKGROUND.PRIMARY,
+    marginBottom: 12,
   },
   firstDaySection: {
-    marginTop: 0,
+    paddingTop: 0,
   },
   dayHeader: {
     color: COLORS.TEXT.PRIMARY,
@@ -439,7 +440,7 @@ export const styles = StyleSheet.create({
     borderColor: COLORS.CARD.SUBTLE.BORDER,
   },
   inactiveShowLabel: {
-    color: COLORS.TEXT.TERTIARY,
+    color: COLORS.TEXT.SECONDARY,
   },
   currentShowItem: {
     backgroundColor: COLORS.CARD.ACTIVE.BACKGROUND,
@@ -468,7 +469,7 @@ export const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   showTime: {
-    color: COLORS.TEXT.TERTIARY,
+    color: COLORS.TEXT.SECONDARY,
     fontSize: 14,
     fontWeight: '500',
   },
@@ -485,7 +486,7 @@ export const styles = StyleSheet.create({
     color: COLORS.TEXT.PRIMARY,
   },
   showFrequency: {
-    color: COLORS.TEXT.TERTIARY,
+    color: COLORS.TEXT.SECONDARY,
     fontSize: 11,
     fontStyle: 'italic',
     marginBottom: 4,
@@ -494,7 +495,7 @@ export const styles = StyleSheet.create({
     color: COLORS.TEXT.SECONDARY,
   },
   showDescription: {
-    color: COLORS.TEXT.TERTIARY,
+    color: COLORS.TEXT.SECONDARY,
     fontSize: 12,
     lineHeight: 16,
   },

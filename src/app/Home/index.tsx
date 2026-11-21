@@ -8,6 +8,7 @@ import {
   StyleSheet,
   StatusBar,
   AppState,
+  useColorScheme,
 } from 'react-native';
 import {
   SafeAreaView,
@@ -20,7 +21,6 @@ import TrackPlayer, {
 } from 'react-native-track-player';
 import Icon from '@components/Icon';
 import { SKIP_INTERVAL, liveCapabilities } from '@utils/TrackPlayerUtils';
-import LinearGradient from 'react-native-linear-gradient';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SvgXml } from 'react-native-svg';
 import PlayButton from './PlayButton';
@@ -312,32 +312,26 @@ export default function HomeScreen() {
     navigation,
   ]);
 
+  const colorScheme = useColorScheme();
+
   if (showSplash) return <SplashScreen onAnimationEnd={handleSplashEnd} />;
+
+  const statusBarColor =
+    colorScheme === 'dark' ? CORE_COLORS.BLACK : CORE_COLORS.WHITE;
 
   return (
     <GestureHandlerRootView style={styles.container}>
       <StatusBar
-        barStyle="light-content"
-        backgroundColor={
-          isPlaying ? CORE_COLORS.WMBR_GREEN : COLORS.BACKGROUND.PRIMARY
-        }
+        barStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'}
+        backgroundColor={isPlaying ? CORE_COLORS.WMBR_GREEN : statusBarColor}
         translucent={false}
       />
-      <LinearGradient
-        colors={
-          isPlaying
-            ? [CORE_COLORS.WMBR_GREEN, '#006B31', CORE_COLORS.WMBR_GREEN]
-            : [COLORS.BACKGROUND.SECONDARY, COLORS.BACKGROUND.PRIMARY]
-        }
-        style={styles.fullScreenGradient}
-      >
+      <View style={styles.fullScreenGradient}>
         <SafeAreaView style={styles.safeContainer}>
           <View style={styles.content}>
             <View style={styles.logoContainer}>
               <SvgXml
-                xml={getWMBRLogoSVG(
-                  isPlaying ? '#000000' : CORE_COLORS.WMBR_GREEN,
-                )}
+                xml={getWMBRLogoSVG(CORE_COLORS.WMBR_GREEN)}
                 width={80}
                 height={17}
               />
@@ -418,13 +412,7 @@ export default function HomeScreen() {
             </View>
             <View style={styles.bottomInfo}>
               {!archiveState.isPlayingArchive && showDescription && (
-                <Text
-                  style={[
-                    styles.showDescription,
-                    isPlaying && styles.showDescriptionActive,
-                  ]}
-                  numberOfLines={3}
-                >
+                <Text style={styles.showDescription} numberOfLines={3}>
                   {showDescription}
                 </Text>
               )}
@@ -453,7 +441,7 @@ export default function HomeScreen() {
             <View style={bottomSpacerStyle} />
           </View>
         </SafeAreaView>
-      </LinearGradient>
+      </View>
     </GestureHandlerRootView>
   );
 }
@@ -484,23 +472,22 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 8,
   },
-  archiveInfoActive: { color: COLORS.TEXT.ACTIVE },
+  archiveInfoActive: { color: COLORS.TEXT.SECONDARY },
   hosts: {
     fontSize: 16,
     color: COLORS.TEXT.SECONDARY,
     textAlign: 'center',
     marginBottom: 8,
   },
-  hostsActive: { color: COLORS.TEXT.ACTIVE },
+  hostsActive: { color: COLORS.TEXT.SECONDARY },
   bottomInfo: { alignItems: 'center', paddingHorizontal: 20, marginTop: 20 },
   showDescription: {
     fontSize: 12,
-    color: COLORS.TEXT.SECONDARY,
+    color: COLORS.TEXT.PRIMARY,
     textAlign: 'center',
     marginBottom: 12,
     lineHeight: 16,
   },
-  showDescriptionActive: { color: COLORS.TEXT.ACTIVE },
   liveButton: {
     marginTop: 16,
     paddingHorizontal: 20,

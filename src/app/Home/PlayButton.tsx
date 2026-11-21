@@ -105,7 +105,7 @@ export default function PlayButton({
               android: 'pause',
             }}
             size={48}
-            color={CORE_COLORS.WMBR_GREEN}
+            color={CORE_COLORS.WHITE}
           />
         ) : (
           <Icon
@@ -114,7 +114,7 @@ export default function PlayButton({
               android: 'stop',
             }}
             size={48}
-            color={CORE_COLORS.WMBR_GREEN}
+            color={CORE_COLORS.WHITE}
           />
         )
       ) : (
@@ -181,20 +181,18 @@ const styles = StyleSheet.create({
     height: 280,
     borderRadius: 140,
     borderWidth: 2,
-    borderColor: CORE_COLORS.WMBR_GREEN,
+    borderColor: `${CORE_COLORS.WMBR_GREEN}44`,
     justifyContent: 'center',
     alignItems: 'center',
-    opacity: 0.3,
   },
   middleRing: {
     width: 240,
     height: 240,
     borderRadius: 120,
     borderWidth: 3,
-    borderColor: CORE_COLORS.WMBR_GREEN,
+    borderColor: `${CORE_COLORS.WMBR_GREEN}66`,
     justifyContent: 'center',
     alignItems: 'center',
-    opacity: 0.6,
   },
   playButton: {
     width: 180,
@@ -204,15 +202,10 @@ const styles = StyleSheet.create({
     backgroundColor: CORE_COLORS.WMBR_GREEN,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: CORE_COLORS.WMBR_GREEN,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
-    shadowRadius: 16,
     elevation: 12,
   },
   playButtonActive: {
-    backgroundColor: CORE_COLORS.WHITE,
-    shadowColor: CORE_COLORS.WHITE,
+    backgroundColor: CORE_COLORS.WMBR_GREEN,
   },
   buttonContent: {
     width: '100%',

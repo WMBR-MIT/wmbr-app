@@ -15,7 +15,6 @@ import {
   StatusBar,
 } from 'react-native';
 import Icon from '@components/Icon';
-import LinearGradient from 'react-native-linear-gradient';
 import { debugError } from '@utils/Debug';
 import { Show, Archive } from '@customTypes/RecentlyPlayed';
 import { WmbrRouteName } from '@customTypes/Navigation';
@@ -28,11 +27,8 @@ import {
   getDurationFromSize,
   formatShowTime,
 } from '@utils/DateTime';
-import { COLORS, CORE_COLORS } from '@utils/Colors';
-import {
-  generateDarkGradientColors,
-  generateGradientColors,
-} from '@utils/GradientColors';
+import { COLORS } from '@utils/Colors';
+import { generateGradientColors } from '@utils/GradientColors';
 import { ScheduleShow } from '@customTypes/Schedule';
 import PlaybackSlider from '@components/PlaybackSlider';
 import { ShowDetailsTimestamp } from './ShowDetails/Timestamp';
@@ -78,10 +74,6 @@ export default function ShowDetailsPage() {
   // Since we're now conditionally rendered, show will always exist
   const [gradientStart] = useMemo(
     () => generateGradientColors(show.name),
-    [show.name],
-  );
-  const [darkGradientStart, darkGradientEnd] = useMemo(
-    () => generateDarkGradientColors(show.name),
     [show.name],
   );
 
@@ -130,13 +122,9 @@ export default function ShowDetailsPage() {
 
   return (
     <>
-      <StatusBar barStyle="light-content" backgroundColor={gradientStart} />
+      <StatusBar backgroundColor={gradientStart} />
 
-      <LinearGradient
-        colors={[darkGradientStart, darkGradientEnd, CORE_COLORS.BLACK]}
-        locations={[0, 0.3, 1]}
-        style={styles.gradient}
-      >
+      <View style={styles.gradient}>
         <ScrollView>
           <View style={[{ paddingTop: headerHeight }]}>
             <ShowImage showName={show.name} />
@@ -251,13 +239,14 @@ export default function ShowDetailsPage() {
             </View>
           </View>
         </ScrollView>
-      </LinearGradient>
+      </View>
     </>
   );
 }
 
 const styles = StyleSheet.create({
   gradient: {
+    backgroundColor: COLORS.BACKGROUND.PRIMARY,
     flex: 1,
   },
   infoSection: {
@@ -272,11 +261,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   showSchedule: {
-    color: COLORS.TEXT.TERTIARY,
+    color: COLORS.TEXT.SECONDARY,
     fontSize: 14,
   },
   showHosts: {
-    color: COLORS.TEXT.TERTIARY,
+    color: COLORS.TEXT.SECONDARY,
     fontSize: 14,
   },
   showDescription: {
@@ -284,7 +273,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   archiveCount: {
-    color: COLORS.TEXT.TERTIARY,
+    color: COLORS.TEXT.SECONDARY,
     fontSize: 14,
   },
   archivesSection: {
@@ -350,7 +339,7 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
   },
   noArchivesText: {
-    color: COLORS.TEXT.TERTIARY,
+    color: COLORS.TEXT.SECONDARY,
     fontSize: 16,
     fontStyle: 'italic',
   },

@@ -10,7 +10,6 @@ import {
   Alert,
 } from 'react-native';
 import Icon from '@components/Icon';
-import LinearGradient from 'react-native-linear-gradient';
 import { useRoute, RouteProp } from '@react-navigation/native';
 import { useHeaderHeight } from '@react-navigation/elements';
 import { debugError } from '@utils/Debug';
@@ -25,10 +24,7 @@ import { ArchiveService } from '@services/ArchiveService';
 import { formatTime } from '@utils/DateTime';
 import { COLORS } from '@utils/Colors';
 import { SKIP_INTERVAL } from '@utils/TrackPlayerUtils';
-import {
-  generateDarkGradientColors,
-  generateGradientColors,
-} from '@utils/GradientColors';
+import { generateGradientColors } from '@utils/GradientColors';
 import { ShowImage } from '@components/ShowImage';
 import { ArchivedShowProgress } from './ArchivedShow/ArchivedShowProgress';
 
@@ -88,9 +84,6 @@ export default function ArchivedShowView() {
   }, [archive.url, archiveService]);
 
   const [gradientStart] = generateGradientColors(show.name);
-  const [darkGradientStart, darkGradientEnd] = generateDarkGradientColors(
-    show.name,
-  );
 
   const handlePlayPause = async () => {
     try {
@@ -162,13 +155,9 @@ export default function ArchivedShowView() {
 
   return (
     <>
-      <StatusBar barStyle="light-content" backgroundColor={gradientStart} />
+      <StatusBar backgroundColor={gradientStart} />
 
-      <LinearGradient
-        colors={[darkGradientStart, darkGradientEnd, COLORS.BACKGROUND.PRIMARY]}
-        locations={[0, 0.3, 1]}
-        style={styles.gradient}
-      >
+      <View style={styles.gradient}>
         <ScrollView>
           <View style={[{ paddingTop: headerHeight }]}>
             <ShowImage showName={show.name} archiveDate={archive.date} />
@@ -268,13 +257,14 @@ export default function ArchivedShowView() {
             </View>
           </View>
         </ScrollView>
-      </LinearGradient>
+      </View>
     </>
   );
 }
 
 const styles = StyleSheet.create({
   gradient: {
+    backgroundColor: COLORS.BACKGROUND.PRIMARY,
     flex: 1,
   },
   playSection: {
@@ -333,11 +323,11 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   songAlbum: {
-    color: COLORS.TEXT.TERTIARY,
+    color: COLORS.TEXT.SECONDARY,
     fontSize: 12,
   },
   songTime: {
-    color: COLORS.TEXT.TERTIARY,
+    color: COLORS.TEXT.SECONDARY,
     fontSize: 12,
     fontWeight: '500',
   },
@@ -346,7 +336,7 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
   },
   loadingText: {
-    color: COLORS.TEXT.TERTIARY,
+    color: COLORS.TEXT.SECONDARY,
     marginTop: 16,
     fontSize: 16,
   },
@@ -375,7 +365,7 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
   },
   emptyText: {
-    color: COLORS.TEXT.TERTIARY,
+    color: COLORS.TEXT.SECONDARY,
     fontSize: 16,
   },
 });

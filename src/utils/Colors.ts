@@ -12,7 +12,6 @@ export const CORE_COLORS = {
   RED_500:
     Platform.select({
       ios: PlatformColor('systemRed'),
-      android: PlatformColor('@color/wmbr_text_primary'),
     }) || '#FF4444',
   GREEN_500: '#3EA95F', // Same Chroma and Hue as WMBR_GREEN in LCH; WCAG AAA for normal text on black
   WMBR_GREEN: '#00843D',
@@ -41,6 +40,7 @@ export const COLORS = {
     ACTIVE: CORE_COLORS.GRAY_100,
     ALERT: CORE_COLORS.RED_500,
     LINK: CORE_COLORS.GREEN_500,
+    LINK_DARK: CORE_COLORS.WMBR_GREEN,
     ACCENT: CORE_COLORS.WMBR_GREEN,
   },
   TEXT_SHADOW: {
@@ -83,7 +83,7 @@ export const COLORS = {
     },
     SWITCH: {
       BORDER: CORE_COLORS.RED_500,
-      BACKGROUND: CORE_COLORS.RED_500,
+      BACKGROUND: `#FF444433`,
       TEXT: CORE_COLORS.RED_500,
     },
     SWITCH_ACTIVE: {

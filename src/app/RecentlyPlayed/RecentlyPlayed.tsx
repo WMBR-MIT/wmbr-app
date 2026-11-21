@@ -66,6 +66,13 @@ export default function RecentlyPlayed() {
   const fetchInFlightRef = useRef(false);
 
   useEffect(() => {
+    return () => {
+      // Stop any playing preview when component unmounts
+      audioPreviewService.stop();
+    };
+  }, [audioPreviewService]);
+
+  useEffect(() => {
     // Subscribe to preview state changes
     const unsubscribe = audioPreviewService.subscribe(setPreviewState);
     return unsubscribe;

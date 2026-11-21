@@ -1,57 +1,21 @@
 import React from 'react';
-import { StyleSheet, useColorScheme } from 'react-native';
+import { Platform, StyleSheet, useColorScheme } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { NavigationContainer } from '@react-navigation/native';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createNativeBottomTabNavigator } from '@react-navigation/bottom-tabs/unstable';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 import { COLORS, CORE_COLORS } from '@utils/Colors';
-import Icon, { IconName } from '@components/Icon';
 
 import RecentlyPlayed from './RecentlyPlayed';
 import HomeScreen from './Home';
 import AboutPage from './About';
 import { ScheduleStack } from './Schedule';
+import { PlaybackAccessory } from '@components/PlaybackAccessory';
 
-const Tab = createBottomTabNavigator<any>();
-
-const getIconName = (routeName: string): IconName => {
-  switch (routeName) {
-    case 'Home':
-      return {
-        ios: 'music.note.house',
-        android: 'home',
-      };
-    case 'Recently Played':
-      return {
-        ios: 'music.note.list',
-        android: 'queue-music',
-      };
-    case 'Schedule':
-      return {
-        ios: 'calendar',
-        android: 'calendar-month',
-      };
-    case 'About':
-      return {
-        ios: 'info.circle',
-        android: 'info',
-      };
-    default:
-      return {
-        ios: 'questionmark.circle',
-        android: 'help',
-      };
-  }
-};
-
-const renderTabBarIcon = (routeName: string) => {
-  const iconName = getIconName(routeName);
-  return ({ color, size }: { color: string; size: number }) => (
-    <Icon name={iconName} size={size} color={color} />
-  );
-};
+const Tab = createNativeBottomTabNavigator();
 
 export default function App() {
   const colorScheme = useColorScheme();
@@ -61,7 +25,7 @@ export default function App() {
       <GestureHandlerRootView style={styles.gestureRoot}>
         <NavigationContainer>
           <Tab.Navigator
-            screenOptions={({ route }) => ({
+            screenOptions={{
               headerShown: false,
               headerTransparent: true,
               headerTintColor:
@@ -69,21 +33,75 @@ export default function App() {
               tabBarActiveTintColor: CORE_COLORS.GREEN_500,
               tabBarStyle: {
                 backgroundColor: COLORS.BACKGROUND.PRIMARY,
-                borderTopColor: COLORS.BORDER.SUBTLE,
               },
-              tabBarIcon: renderTabBarIcon(route.name),
-            })}
+              bottomAccessory: PlaybackAccessory,
+            }}
           >
-            <Tab.Screen name="Home" component={HomeScreen} />
+            <Tab.Screen
+              name="Home"
+              component={HomeScreen}
+              options={{
+                tabBarIcon: Platform.select({
+                  ios: {
+                    type: 'sfSymbol',
+                    name: 'music.note.house',
+                  },
+                  android: {
+                    type: 'image',
+                    source: MaterialIcons.getImageSourceSync('home', 24),
+                  },
+                }),
+              }}
+            />
             <Tab.Screen
               name="Recently Played"
               component={RecentlyPlayed}
               options={{
                 headerShown: true,
+                tabBarIcon: Platform.select({
+                  ios: {
+                    type: 'sfSymbol',
+                    name: 'music.note.list',
+                  },
+                  android: {
+                    type: 'image',
+                    source: MaterialIcons.getImageSourceSync('home', 24),
+                  },
+                }),
               }}
             />
-            <Tab.Screen name="Schedule" component={ScheduleStack} />
-            <Tab.Screen name="About" component={AboutPage} />
+            <Tab.Screen
+              name="Schedule"
+              component={ScheduleStack}
+              options={{
+                tabBarIcon: Platform.select({
+                  ios: {
+                    type: 'sfSymbol',
+                    name: 'calendar',
+                  },
+                  android: {
+                    type: 'image',
+                    source: MaterialIcons.getImageSourceSync('home', 24),
+                  },
+                }),
+              }}
+            />
+            <Tab.Screen
+              name="About"
+              component={AboutPage}
+              options={{
+                tabBarIcon: Platform.select({
+                  ios: {
+                    type: 'sfSymbol',
+                    name: 'info.circle',
+                  },
+                  android: {
+                    type: 'image',
+                    source: MaterialIcons.getImageSourceSync('home', 24),
+                  },
+                }),
+              }}
+            />
           </Tab.Navigator>
         </NavigationContainer>
       </GestureHandlerRootView>

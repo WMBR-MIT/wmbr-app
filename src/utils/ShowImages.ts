@@ -11,6 +11,11 @@ export const SHOW_IMAGES: Record<string, any> = {
 
 export const REMOTE_SHOW_IMAGE_BASE_URL = 'https://wmbr.org/images/show-thumbs';
 
+// While a show has no remote image, the hook looks it up again every minute, at
+// most this many times (per show).
+export const SHOW_IMAGE_RETRY_INTERVAL_MS = 60 * 1000;
+export const SHOW_IMAGE_MAX_RETRIES = 5;
+
 // Long enough for a normal response, short enough that playback isn't held up
 // when the server is slow or unreachable.
 const REMOTE_CHECK_TIMEOUT_MS = 3000;
@@ -94,11 +99,6 @@ export const getShowImage = async (
   // bundled image.
   return remoteImageCache.get(slug) ?? SHOW_IMAGES[showName];
 };
-
-// While a show has no remote image, the hook looks it up again every minute, at
-// most this many times (per show).
-const SHOW_IMAGE_RETRY_INTERVAL_MS = 60 * 1000;
-const SHOW_IMAGE_MAX_RETRIES = 5;
 
 // Keeps a show's artwork (see getShowImage) in state. Until the lookup finishes,
 // the hook returns the bundled image, so something shows right away.

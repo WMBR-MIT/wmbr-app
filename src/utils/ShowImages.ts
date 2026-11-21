@@ -6,6 +6,7 @@ import { Track } from 'react-native-track-player';
 export const SHOW_IMAGES: Record<string, any> = {
   'Breakfast of Champions': require('@assets/showImages/breakfastofchampions.jpg'),
   'The Willows': require('@assets/showImages/the-willows.jpg'),
+  Coffeetime: require('@assets/showImages/coffeetime.jpg'),
 };
 
 export const REMOTE_SHOW_IMAGE_BASE_URL = 'https://wmbr.org/images/show-thumbs';

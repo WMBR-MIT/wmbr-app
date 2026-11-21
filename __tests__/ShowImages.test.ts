@@ -66,13 +66,50 @@ describe('getShowImage', () => {
     expect(artwork).toBeUndefined();
   });
 
-  test('checks each show only once per session', async () => {
-    const fetchMock = mockFetch(jest.fn().mockResolvedValue({ ok: false }));
+  test('checks a confirmed missing file only once per session', async () => {
+    const fetchMock = mockFetch(
+      jest.fn().mockResolvedValue({ ok: false, status: 404 }),
+    );
     const getShowImage = loadGetShowImage();
 
     await getShowImage('Unknown Show');
     await getShowImage('Unknown Show');
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  test('retries a show whose check failed, so it gets its artwork once the connection recovers', async () => {
+    const fetchMock = mockFetch(
+      jest
+        .fn()
+        .mockRejectedValueOnce(new Error('Network request failed'))
+        .mockResolvedValueOnce({ ok: true }),
+    );
+    const getShowImage = loadGetShowImage();
+
+    const offlineArtwork = await getShowImage('Sound Principles');
+    const onlineArtwork = await getShowImage('Sound Principles');
+
+    expect(offlineArtwork).toBeUndefined();
+    expect(onlineArtwork).toBe(
+      `${REMOTE_SHOW_IMAGE_BASE_URL}/sound-principles.jpg`,
+    );
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  test('retries a show after a server error rather than treating it as missing', async () => {
+    const fetchMock = mockFetch(
+      jest
+        .fn()
+        .mockResolvedValueOnce({ ok: false, status: 503 })
+        .mockResolvedValueOnce({ ok: true }),
+    );
+    const getShowImage = loadGetShowImage();
+
+    await getShowImage('Sound Principles');
+    const artwork = await getShowImage('Sound Principles');
+
+    expect(artwork).toBe(`${REMOTE_SHOW_IMAGE_BASE_URL}/sound-principles.jpg`);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 });

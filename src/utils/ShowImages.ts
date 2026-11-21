@@ -34,13 +34,12 @@ export const normalizeShowName = (showName: string): string => {
 //   server error, ...), so it may succeed later.
 type RemoteImageCheck = 'found' | 'missing' | 'failed';
 
-// Remembers each show's confirmed outcome ('found' with its URL, or 'missing')
-// for the rest of the app session, so those shows aren't re-checked. 'failed'
-// checks are never stored, so they're retried the next time the show is looked up.
-const remoteImageCache = new Map<
-  string,
-  { check: 'found'; imageUrl: string } | { check: 'missing' }
->();
+// Remembers each show's confirmed outcome for the rest of the app session, so
+// those shows aren't re-checked. The value is the image URL, or null when the
+// server confirmed there is no file. Shows not in the map haven't been confirmed
+// yet. 'failed' checks are never stored, so they're retried the next time the
+// show is looked up.
+const remoteImageCache = new Map<string, string | null>();
 
 // Sends a HEAD request, which asks whether the file exists without downloading
 // it. Only a 404 counts as a confirmed missing file; other responses and
@@ -78,8 +77,7 @@ export const getShowImage = async (
 ): Promise<Track['artwork']> => {
   const slug = normalizeShowName(showName);
 
-  let cachedResult = remoteImageCache.get(slug);
-  if (!cachedResult) {
+  if (!remoteImageCache.has(slug)) {
     const imageUrl = `${REMOTE_SHOW_IMAGE_BASE_URL}/${slug}.jpg`;
     const check = await checkRemoteImage(imageUrl);
 
@@ -89,16 +87,12 @@ export const getShowImage = async (
       return SHOW_IMAGES[showName];
     }
 
-    cachedResult =
-      check === 'found' ? { check: 'found', imageUrl } : { check: 'missing' };
-    remoteImageCache.set(slug, cachedResult);
+    remoteImageCache.set(slug, check === 'found' ? imageUrl : null);
   }
 
-  if (cachedResult.check === 'found') {
-    return cachedResult.imageUrl;
-  }
-
-  return SHOW_IMAGES[showName];
+  // A confirmed missing file is cached as null, which falls through to the
+  // bundled image.
+  return remoteImageCache.get(slug) ?? SHOW_IMAGES[showName];
 };
 
 // While a show has no remote image, the hook looks it up again every minute, at

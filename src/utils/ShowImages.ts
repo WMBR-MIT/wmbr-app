@@ -113,9 +113,13 @@ const SHOW_IMAGE_MAX_RETRIES = 5;
 // have been offline while the app was in the background. Confirmed results are
 // cached, so repeated lookups don't re-check those shows.
 export const useShowArtwork = (showName: string): Track['artwork'] => {
-  const [showArtwork, setShowArtwork] = useState<Track['artwork']>(
-    SHOW_IMAGES[showName],
-  );
+  const [showArtwork, setShowArtwork] = useState<{
+    showName: string;
+    artwork: Track['artwork'];
+  }>({
+    showName,
+    artwork: SHOW_IMAGES[showName],
+  });
   const [retryCount, setRetryCount] = useState(0);
   const hasRemoteImage = typeof showArtwork === 'string';
 
@@ -158,7 +162,7 @@ export const useShowArtwork = (showName: string): Track['artwork'] => {
 
     getShowImage(showName).then(artwork => {
       if (isCurrentLookup) {
-        setShowArtwork(artwork);
+        setShowArtwork({ showName, artwork });
       }
     });
 
@@ -167,5 +171,8 @@ export const useShowArtwork = (showName: string): Track['artwork'] => {
     };
   }, [showName, retryCount]);
 
-  return showArtwork;
+  // Ensure we're getting the correct show artwork
+  return showArtwork.showName === showName
+    ? showArtwork.artwork
+    : SHOW_IMAGES[showName];
 };

@@ -28,6 +28,12 @@ const ShowImage = ({
         {showImage ? (
           <Image
             source={showImage}
+            accessible
+            accessibilityLabel={
+              archiveDate
+                ? `${showName}, archive, ${formatDate(archiveDate)}`
+                : showName
+            }
             style={styles.albumCover}
             resizeMode="cover"
           />

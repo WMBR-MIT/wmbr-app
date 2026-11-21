@@ -202,8 +202,8 @@ export default function HomeScreen() {
       }
 
       try {
-        // Only update if we're not playing an archive
-        if (!archiveState.isPlayingArchive) {
+        // Only update if we're playing live
+        if (activeTrack?.id === 'wmbr-stream') {
           await TrackPlayer.updateMetadataForTrack(0, liveMetadata);
         }
       } catch (error) {
@@ -214,7 +214,7 @@ export default function HomeScreen() {
     updateLiveTrackMetadata();
   }, [
     liveMetadata,
-    archiveState.isPlayingArchive,
+    activeTrack?.id,
     isPlayerInitialized,
     playbackState?.state,
   ]);

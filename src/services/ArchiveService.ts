@@ -81,7 +81,7 @@ export class ArchiveService {
         url: archive.url,
         title: `${titleWithHosts}: ${showDate}`,
         artist: DEFAULT_NAME,
-        artwork: require('../../assets/cover.png'),
+        artwork: require('@assets/cover.png'),
         userAgent: getUserAgent(),
         ...(show.length > 0 && { duration: show.length * 60 }),
       };
@@ -119,7 +119,7 @@ export class ArchiveService {
         url: this.currentState.liveStreamUrl,
         title: DEFAULT_NAME,
         artist: currentShowTitle || 'Live Radio',
-        artwork: require('../../assets/cover.png'),
+        artwork: require('@assets/cover.png'),
         isLiveStream: true,
         userAgent: getUserAgent(),
       };

@@ -1,0 +1,41 @@
+<resources>
+    <!-- Light-mode surfaces and text. -->
+    <color name="wmbr_background">#FFFFFF</color>
+    <color name="wmbr_background_secondary">#E0E0E0</color>
+    <color name="wmbr_background_tertiary">#CCCCCC</color>
+    <color name="wmbr_text_primary">#171717</color>
+    <color name="wmbr_text_secondary">#595959</color>
+    <color name="wmbr_text_tertiary">#888888</color>
+    <color name="wmbr_text_active">#555555</color>
+    <color name="wmbr_text_alert">#FF4444</color>
+    <color name="wmbr_text_link">#3EA95F</color>
+    <color name="wmbr_text_accent">#00843D</color>
+    <color name="wmbr_text_shadow_primary">#4D000000</color>
+
+    <!-- Borders and cards. -->
+    <color name="wmbr_border_subtle">#E0E0E0</color>
+    <color name="wmbr_card_subtle_border">#E0E0E0</color>
+    <color name="wmbr_card_subtle_background">#0D000000</color>
+    <color name="wmbr_card_active_background">#3300843D</color>
+    <color name="wmbr_card_active_border">#00843D</color>
+
+    <!-- Buttons. -->
+    <color name="wmbr_button_primary_border">#555555</color>
+    <color name="wmbr_button_primary_text">#171717</color>
+    <color name="wmbr_button_accent_background">#00843D</color>
+    <color name="wmbr_button_accent_text">#FFFFFF</color>
+    <color name="wmbr_button_accent_shadow">#00843D</color>
+    <color name="wmbr_button_alert_background">#FF4444</color>
+    <color name="wmbr_button_alert_text">#FFFFFF</color>
+    <color name="wmbr_button_switch_border">#FF4444</color>
+    <color name="wmbr_button_switch_background">#33FF4444</color>
+    <color name="wmbr_button_switch_text">#FF4444</color>
+    <color name="wmbr_button_switch_active_border">#171717</color>
+    <color name="wmbr_button_switch_active_background">#1A000000</color>
+    <color name="wmbr_button_switch_active_text">#171717</color>
+
+    <!-- Inputs. -->
+    <color name="wmbr_input_background">#0D000000</color>
+    <color name="wmbr_input_border">#1A000000</color>
+    <color name="wmbr_input_text">#171717</color>
+</resources>

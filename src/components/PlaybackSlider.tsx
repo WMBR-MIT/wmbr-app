@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from 'react';
 import TrackPlayer, { useProgress } from 'react-native-track-player';
-import { Platform, StyleProp, ViewStyle } from 'react-native';
-import { COLORS, CORE_COLORS } from '@utils/Colors';
+import { Platform, StyleProp, ViewStyle, useColorScheme } from 'react-native';
+import { CORE_COLORS } from '@utils/Colors';
 import { debugError } from '@utils/Debug';
 
 import Slider from '@react-native-community/slider';
@@ -35,6 +35,8 @@ export default function PlaybackSlider({
     [progress.duration],
   );
 
+  const colorScheme = useColorScheme();
+
   return (
     <Slider
       style={style}
@@ -49,7 +51,9 @@ export default function PlaybackSlider({
         Platform.OS === 'android' ? CORE_COLORS.WMBR_GREEN : undefined
       }
       minimumTrackTintColor={CORE_COLORS.WMBR_GREEN}
-      maximumTrackTintColor={COLORS.TEXT.PRIMARY}
+      maximumTrackTintColor={
+        colorScheme === 'dark' ? CORE_COLORS.GRAY_600 : CORE_COLORS.GRAY_200
+      }
       tapToSeek={true}
       value={sliderValue}
     />

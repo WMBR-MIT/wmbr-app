@@ -12,12 +12,11 @@ import {
   StyleSheet,
   ActivityIndicator,
   Alert,
-  Appearance,
   SectionListData,
   SectionList,
   StatusBar,
+  useColorScheme,
 } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
 import { debugError } from '@utils/Debug';
 import {
   AudioPreviewService,
@@ -31,7 +30,7 @@ import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { useHeaderHeight } from '@react-navigation/elements';
 import { WmbrRouteName } from '@customTypes/Navigation';
 import { DEFAULT_NAME } from '@customTypes/Playlist';
-import { COLORS } from '@utils/Colors';
+import { COLORS, CORE_COLORS } from '@utils/Colors';
 
 interface ShowPlaylist {
   showName: string;
@@ -67,14 +66,9 @@ export default function RecentlyPlayed() {
   const fetchInFlightRef = useRef(false);
 
   useEffect(() => {
-    // Force dark mode for light-colored refresh control spinner
-    Appearance.setColorScheme('dark');
-
     return () => {
       // Stop any playing preview when component unmounts
       audioPreviewService.stop();
-      // Reset appearance
-      Appearance.setColorScheme('unspecified');
     };
   }, [audioPreviewService]);
 
@@ -424,21 +418,23 @@ export default function RecentlyPlayed() {
     [],
   );
 
+  const colorScheme = useColorScheme();
+
+  const statusBarColor =
+    colorScheme === 'dark' ? CORE_COLORS.BLACK : CORE_COLORS.WHITE;
+
   return (
     <>
       <StatusBar
-        barStyle="light-content"
-        backgroundColor={COLORS.BACKGROUND.PRIMARY}
+        barStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'}
+        backgroundColor={statusBarColor}
       />
 
-      <LinearGradient
-        colors={[COLORS.BACKGROUND.SECONDARY, COLORS.BACKGROUND.PRIMARY]}
-        style={styles.gradient}
-      >
+      <View style={styles.gradient}>
         <View style={[styles.contentWrapper, { paddingTop: headerHeight }]}>
           {loading && (
             <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color="#FFFFFF" />
+              <ActivityIndicator size="large" color={COLORS.TEXT.PRIMARY} />
               <Text style={styles.loadingText}>Loading playlist...</Text>
             </View>
           )}
@@ -461,6 +457,7 @@ export default function RecentlyPlayed() {
               sections={playlistViewData}
               keyExtractor={keyExtractor}
               renderItem={renderSong}
+              stickySectionHeadersEnabled={true}
               renderSectionHeader={renderShowHeader}
               renderSectionFooter={SectionFooterComponent}
               onRefresh={handleRefresh}
@@ -470,13 +467,14 @@ export default function RecentlyPlayed() {
             />
           )}
         </View>
-      </LinearGradient>
+      </View>
     </>
   );
 }
 
 const styles = StyleSheet.create({
   gradient: {
+    backgroundColor: COLORS.BACKGROUND.PRIMARY,
     flex: 1,
   },
   contentWrapper: {
@@ -508,12 +506,12 @@ const styles = StyleSheet.create({
   },
   songAlbum: {
     fontSize: 12,
-    color: COLORS.TEXT.TERTIARY,
+    color: COLORS.TEXT.SECONDARY,
     marginBottom: 4,
   },
   playedTime: {
     fontSize: 11,
-    color: COLORS.TEXT.TERTIARY,
+    color: COLORS.TEXT.SECONDARY,
   },
   previewButton: {
     width: 40,
@@ -566,7 +564,7 @@ const styles = StyleSheet.create({
     paddingVertical: 60,
   },
   loadingText: {
-    color: COLORS.TEXT.TERTIARY,
+    color: COLORS.TEXT.SECONDARY,
     marginTop: 16,
     fontSize: 16,
   },
@@ -600,12 +598,12 @@ const styles = StyleSheet.create({
     paddingVertical: 60,
   },
   emptyText: {
-    color: COLORS.TEXT.TERTIARY,
+    color: COLORS.TEXT.SECONDARY,
     fontSize: 16,
     textAlign: 'center',
   },
   showHeader: {
-    backgroundColor: COLORS.BACKGROUND.ELEVATED,
+    backgroundColor: COLORS.BACKGROUND.SECONDARY,
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderBottomWidth: 1,
@@ -620,7 +618,7 @@ const styles = StyleSheet.create({
   },
   showHeaderSubtitle: {
     fontSize: 12,
-    color: COLORS.TEXT.TERTIARY,
+    color: COLORS.TEXT.SECONDARY,
   },
   loadingMoreContainer: {
     paddingVertical: 20,
@@ -628,7 +626,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   loadingMoreText: {
-    color: COLORS.TEXT.TERTIARY,
+    color: COLORS.TEXT.SECONDARY,
     fontSize: 14,
     marginTop: 8,
   },
@@ -639,7 +637,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   emptyShowText: {
-    color: COLORS.TEXT.TERTIARY,
+    color: COLORS.TEXT.SECONDARY,
     fontSize: 14,
     textAlign: 'center',
     fontStyle: 'italic',

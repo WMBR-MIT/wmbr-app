@@ -12,7 +12,7 @@ import Animated, {
 import LinearGradient from 'react-native-linear-gradient';
 import { SvgXml } from 'react-native-svg';
 import { getWMBRLogoSVG } from '@utils/WMBRLogo';
-import { COLORS, CORE_COLORS } from '@utils/Colors';
+import { CORE_COLORS } from '@utils/Colors';
 
 interface SplashScreenProps {
   onAnimationEnd: () => void;
@@ -95,14 +95,10 @@ export default function SplashScreen({ onAnimationEnd }: SplashScreenProps) {
 
   return (
     <Animated.View style={[styles.container, containerAnimatedStyle]}>
-      <StatusBar
-        barStyle="light-content"
-        backgroundColor="#000000"
-        translucent={false}
-      />
+      <StatusBar backgroundColor="#000000" translucent={false} />
 
       <LinearGradient
-        colors={[COLORS.BACKGROUND.SECONDARY, COLORS.BACKGROUND.PRIMARY]}
+        colors={[CORE_COLORS.BLACK, CORE_COLORS.GRAY_950]}
         style={styles.gradient}
       >
         <View style={styles.content}>

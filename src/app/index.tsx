@@ -1,5 +1,5 @@
 import React from 'react';
-import { Platform, StyleSheet } from 'react-native';
+import { StyleSheet, useColorScheme } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
@@ -54,6 +54,8 @@ const renderTabBarIcon = (routeName: string) => {
 };
 
 export default function App() {
+  const colorScheme = useColorScheme();
+
   return (
     <SafeAreaProvider>
       <GestureHandlerRootView style={styles.gestureRoot}>
@@ -62,16 +64,9 @@ export default function App() {
             screenOptions={({ route }) => ({
               headerShown: false,
               headerTransparent: true,
-              // Android doesn't do header blur effects, so it needs a solid
-              // background color
-              ...(Platform.OS === 'android' && {
-                headerStyle: {
-                  backgroundColor: COLORS.BACKGROUND.PRIMARY,
-                },
-              }),
-              headerTintColor: COLORS.TEXT.PRIMARY,
+              headerTintColor:
+                colorScheme === 'dark' ? CORE_COLORS.WHITE : CORE_COLORS.BLACK,
               tabBarActiveTintColor: CORE_COLORS.GREEN_500,
-              tabBarInactiveTintColor: COLORS.TEXT.TERTIARY,
               tabBarStyle: {
                 backgroundColor: COLORS.BACKGROUND.PRIMARY,
                 borderTopColor: COLORS.BORDER.SUBTLE,

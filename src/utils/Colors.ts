@@ -1,3 +1,5 @@
+import { Platform, PlatformColor } from 'react-native';
+
 export const CORE_COLORS = {
   WHITE: '#FFFFFF',
   BLACK: '#000000',
@@ -7,7 +9,10 @@ export const CORE_COLORS = {
   GRAY_700: '#555555',
   GRAY_950: '#2a2a2a',
   GRAY_975: '#1a1a1a',
-  RED_500: '#FF4444',
+  RED_500:
+    Platform.select({
+      ios: PlatformColor('systemRed'),
+    }) || '#FF4444',
   GREEN_500: '#3EA95F', // Same Chroma and Hue as WMBR_GREEN in LCH; WCAG AAA for normal text on black
   WMBR_GREEN: '#00843D',
   OVERLAY_WHITE_05: 'rgba(255, 255, 255, 0.05)',
@@ -17,26 +22,55 @@ export const CORE_COLORS = {
 
 export const COLORS = {
   TEXT: {
-    PRIMARY: CORE_COLORS.WHITE,
-    SECONDARY: CORE_COLORS.GRAY_200,
-    TERTIARY: CORE_COLORS.GRAY_600,
+    PRIMARY:
+      Platform.select({
+        ios: PlatformColor('label'),
+        android: PlatformColor('@color/wmbr_text_primary'),
+      }) || CORE_COLORS.WHITE,
+    SECONDARY:
+      Platform.select({
+        ios: PlatformColor('secondaryLabel'),
+        android: PlatformColor('@color/wmbr_text_secondary'),
+      }) || CORE_COLORS.GRAY_200,
+    TERTIARY:
+      Platform.select({
+        ios: PlatformColor('tertiaryLabel'),
+        android: PlatformColor('@color/wmbr_text_secondary'),
+      }) || CORE_COLORS.GRAY_600,
     ACTIVE: CORE_COLORS.GRAY_100,
     ALERT: CORE_COLORS.RED_500,
     LINK: CORE_COLORS.GREEN_500,
+    LINK_DARK: CORE_COLORS.WMBR_GREEN,
     ACCENT: CORE_COLORS.WMBR_GREEN,
   },
   TEXT_SHADOW: {
     PRIMARY: CORE_COLORS.OVERLAY_BLACK_30,
   },
   BACKGROUND: {
-    PRIMARY: CORE_COLORS.BLACK,
-    SECONDARY: CORE_COLORS.GRAY_975,
-    ELEVATED: CORE_COLORS.GRAY_950,
+    PRIMARY:
+      Platform.select({
+        ios: PlatformColor('systemBackground'),
+        android: PlatformColor('@color/wmbr_background'),
+      }) || CORE_COLORS.BLACK,
+    SECONDARY:
+      Platform.select({
+        ios: PlatformColor('secondarySystemBackground'),
+        android: PlatformColor('@color/wmbr_background_secondary'),
+      }) || CORE_COLORS.GRAY_975,
+    ELEVATED:
+      Platform.select({
+        ios: PlatformColor('tertiarySystemBackground'),
+        android: PlatformColor('@color/wmbr_background_tertiary'),
+      }) || CORE_COLORS.GRAY_950,
   },
   BUTTON: {
     PRIMARY: {
       BORDER: CORE_COLORS.GRAY_700,
-      TEXT: CORE_COLORS.WHITE,
+      TEXT:
+        Platform.select({
+          ios: PlatformColor('label'),
+          android: PlatformColor('@color/wmbr_text_primary'),
+        }) || CORE_COLORS.WHITE,
     },
     ACCENT: {
       BACKGROUND: CORE_COLORS.WMBR_GREEN,
@@ -49,24 +83,35 @@ export const COLORS = {
     },
     SWITCH: {
       BORDER: CORE_COLORS.RED_500,
-      BACKGROUND: `${CORE_COLORS.RED_500}33`,
+      BACKGROUND: `#FF444433`,
       TEXT: CORE_COLORS.RED_500,
     },
     SWITCH_ACTIVE: {
-      BORDER: CORE_COLORS.WHITE,
+      BORDER:
+        Platform.select({
+          ios: PlatformColor('label'),
+          android: PlatformColor('@color/wmbr_text_primary'),
+        }) || CORE_COLORS.WHITE,
       BACKGROUND: CORE_COLORS.OVERLAY_WHITE_10,
-      TEXT: CORE_COLORS.WHITE,
+      TEXT:
+        Platform.select({
+          ios: PlatformColor('label'),
+          android: PlatformColor('@color/wmbr_text_primary'),
+        }) || CORE_COLORS.WHITE,
     },
-  },
-  INPUT: {
-    BACKGROUND: CORE_COLORS.OVERLAY_WHITE_05,
-    BORDER: CORE_COLORS.OVERLAY_WHITE_10,
-    TEXT: CORE_COLORS.WHITE,
   },
   CARD: {
     SUBTLE: {
-      BORDER: CORE_COLORS.OVERLAY_WHITE_10,
-      BACKGROUND: CORE_COLORS.OVERLAY_WHITE_05,
+      BORDER:
+        Platform.select({
+          ios: PlatformColor('separator'),
+          android: PlatformColor('@color/wmbr_card_subtle_border'),
+        }) || CORE_COLORS.OVERLAY_WHITE_10,
+      BACKGROUND:
+        Platform.select({
+          ios: PlatformColor('secondarySystemBackground'),
+          android: PlatformColor('@color/wmbr_card_subtle_background'),
+        }) || CORE_COLORS.OVERLAY_WHITE_05,
     },
     ACTIVE: {
       BACKGROUND: `${CORE_COLORS.WMBR_GREEN}33`,
@@ -74,6 +119,10 @@ export const COLORS = {
     },
   },
   BORDER: {
-    SUBTLE: CORE_COLORS.OVERLAY_WHITE_10,
+    SUBTLE:
+      Platform.select({
+        ios: PlatformColor('separator'),
+        android: PlatformColor('@color/wmbr_border_subtle'),
+      }) || CORE_COLORS.OVERLAY_WHITE_10,
   },
 } as const;

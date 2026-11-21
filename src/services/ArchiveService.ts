@@ -4,6 +4,7 @@ import { Show, Archive } from '@customTypes/RecentlyPlayed';
 import { debugLog, debugError } from '@utils/Debug';
 import { DEFAULT_NAME } from '@customTypes/Playlist';
 import { getUserAgent } from '@utils/UserAgent';
+import { SHOW_IMAGES } from '@utils/ShowImages';
 
 export interface ArchivePlaybackState {
   isPlayingArchive: boolean;
@@ -67,6 +68,12 @@ export class ArchiveService {
         ? `${show.name}${hosts ? ` with ${hosts}` : ''}`
         : DEFAULT_NAME;
 
+      // Use the show's own image for lock-screen/notification artwork when one
+      // exists, falling back to the generic WMBR cover otherwise.
+      const showSpecificArtwork = SHOW_IMAGES[show.name];
+      const archiveArtwork =
+        showSpecificArtwork ?? require('@assets/cover.png');
+
       // Create archive track.
       //
       // We set an explicit `duration` (show length is in minutes) so iOS has a
@@ -81,7 +88,7 @@ export class ArchiveService {
         url: archive.url,
         title: `${titleWithHosts}: ${showDate}`,
         artist: DEFAULT_NAME,
-        artwork: require('@assets/cover.png'),
+        artwork: archiveArtwork,
         userAgent: getUserAgent(),
         ...(show.length > 0 && { duration: show.length * 60 }),
       };

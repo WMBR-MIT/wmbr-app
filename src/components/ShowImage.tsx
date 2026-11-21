@@ -1,4 +1,4 @@
-import { Dimensions, StyleSheet, Text, View } from 'react-native';
+import { Dimensions, Image, StyleSheet, Text, View } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { SvgXml } from 'react-native-svg';
 
@@ -6,6 +6,7 @@ import { formatDate } from '@utils/DateTime';
 import { getWMBRLogoSVG } from '@utils/WMBRLogo';
 import { generateGradientColors } from '@utils/GradientColors';
 import { COLORS, CORE_COLORS } from '@utils/Colors';
+import { SHOW_IMAGES } from '@utils/ShowImages';
 
 const { width } = Dimensions.get('window');
 const ALBUM_SIZE = width * 0.6;
@@ -19,42 +20,58 @@ const ShowImage = ({
 }) => {
   const [gradientStart, gradientEnd] = generateGradientColors(showName);
 
+  const showImage = SHOW_IMAGES[showName as keyof typeof SHOW_IMAGES];
+
   return (
     <View style={styles.albumSection}>
       <View style={[styles.albumCover, { backgroundColor: gradientStart }]}>
-        <LinearGradient
-          colors={[gradientStart, gradientEnd, 'rgba(0,0,0,0.3)']}
-          locations={[0, 0.6, 1]}
-          style={styles.albumGradient}
-        >
-          <View style={styles.albumContent}>
-            {/* Centered logo at top */}
-            <View style={styles.albumLogoContainer}>
-              <SvgXml
-                xml={getWMBRLogoSVG(CORE_COLORS.WHITE)}
-                width={60}
-                height={13}
-              />
-            </View>
+        {showImage ? (
+          <Image
+            source={showImage}
+            accessible
+            accessibilityLabel={
+              archiveDate
+                ? `${showName}, archive, ${formatDate(archiveDate)}`
+                : showName
+            }
+            style={styles.albumCover}
+            resizeMode="cover"
+          />
+        ) : (
+          <LinearGradient
+            colors={[gradientStart, gradientEnd, 'rgba(0,0,0,0.3)']}
+            locations={[0, 0.6, 1]}
+            style={styles.albumGradient}
+          >
+            <View style={styles.albumContent}>
+              {/* Centered logo at top */}
+              <View style={styles.albumLogoContainer}>
+                <SvgXml
+                  xml={getWMBRLogoSVG(CORE_COLORS.WHITE)}
+                  width={60}
+                  height={13}
+                />
+              </View>
 
-            {/* Left-aligned content area */}
-            <View style={styles.albumTextContainer}>
-              <Text style={styles.albumShowName} numberOfLines={2}>
-                {showName}
-              </Text>
-              {archiveDate ? (
-                <>
-                  <Text style={styles.albumArchiveLabel}>ARCHIVE</Text>
-                  <Text style={styles.albumDate}>
-                    {formatDate(archiveDate)}
-                  </Text>
-                </>
-              ) : (
-                <Text style={styles.albumFrequency}>88.1 FM</Text>
-              )}
+              {/* Left-aligned content area */}
+              <View style={styles.albumTextContainer}>
+                <Text style={styles.albumShowName} numberOfLines={2}>
+                  {showName}
+                </Text>
+                {archiveDate ? (
+                  <>
+                    <Text style={styles.albumArchiveLabel}>ARCHIVE</Text>
+                    <Text style={styles.albumDate}>
+                      {formatDate(archiveDate)}
+                    </Text>
+                  </>
+                ) : (
+                  <Text style={styles.albumFrequency}>88.1 FM</Text>
+                )}
+              </View>
             </View>
-          </View>
-        </LinearGradient>
+          </LinearGradient>
+        )}
       </View>
     </View>
   );

@@ -120,18 +120,18 @@ export class ArchiveService {
       const showArtwork = await getShowImage(show.name);
 
       // Shows with no artwork of their own keep the cover.
-      //
-      // Stop if this archive is no longer the one playing: a live switch clears
-      // currentArchive, and a newer archive replaces it. Index 0 would then be a
-      // different track, so the update would land on the wrong one.
-      if (
-        !showArtwork ||
-        this.currentState.currentArchive?.url !== archive.url
-      ) {
+      if (!showArtwork) {
         return;
       }
 
-      // The queue holds only this archive after the reset, so it's at index 0.
+      // Check the player itself rather than our own state. Other code (such as
+      // the audio preview) can replace the queue without updating this service,
+      // so only update if the track at index 0 is still this archive.
+      const [queuedTrack] = await TrackPlayer.getQueue();
+      if (queuedTrack?.url !== archive.url) {
+        return;
+      }
+
       await TrackPlayer.updateMetadataForTrack(0, { artwork: showArtwork });
     } catch (error) {
       debugError('Error applying show artwork:', error);

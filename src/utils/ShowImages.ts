@@ -3,13 +3,7 @@ import { AppState } from 'react-native';
 import slugify from 'slugify';
 import { Track } from 'react-native-track-player';
 
-export const SHOW_IMAGES: Record<string, any> = {
-  'Breakfast of Champions': require('@assets/showImages/breakfastofchampions.jpg'),
-  'The Willows': require('@assets/showImages/the-willows.jpg'),
-  Coffeetime: require('@assets/showImages/coffeetime.jpg'),
-};
-
-export const REMOTE_SHOW_IMAGE_BASE_URL = 'https://wmbr.org/images/show-thumbs';
+export const REMOTE_SHOW_IMAGE_BASE_URL = 'https://wmbr.org/images/shows';
 
 // While a show has no remote image, the hook looks it up again every minute, at
 // most this many times (per show).
@@ -89,7 +83,7 @@ export const getShowImage = async (
     if (check === 'failed') {
       // Not cached, so a later lookup will check again. This call uses the
       // bundled image.
-      return SHOW_IMAGES[showName];
+      return undefined;
     }
 
     remoteImageCache.set(slug, check === 'found' ? imageUrl : null);
@@ -97,7 +91,7 @@ export const getShowImage = async (
 
   // A confirmed missing file is cached as null, which falls through to the
   // bundled image.
-  return remoteImageCache.get(slug) ?? SHOW_IMAGES[showName];
+  return remoteImageCache.get(slug) ?? undefined;
 };
 
 // Keeps a show's artwork (see getShowImage) in state. Until the lookup finishes,
@@ -113,7 +107,7 @@ export const useShowArtwork = (showName: string): Track['artwork'] => {
     artwork: Track['artwork'];
   }>({
     showName,
-    artwork: SHOW_IMAGES[showName],
+    artwork: '',
   });
   const [retryCount, setRetryCount] = useState(0);
   const hasRemoteImage =
@@ -169,7 +163,5 @@ export const useShowArtwork = (showName: string): Track['artwork'] => {
   }, [showName, retryCount]);
 
   // Ensure we're getting the correct show artwork
-  return showArtwork.showName === showName
-    ? showArtwork.artwork
-    : SHOW_IMAGES[showName];
+  return showArtwork.showName === showName ? showArtwork.artwork : undefined;
 };

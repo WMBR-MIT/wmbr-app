@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   View,
   Text,
@@ -29,6 +29,11 @@ export default function AboutPage() {
 
   const svgColor =
     colorScheme === 'dark' ? CORE_COLORS.WHITE : CORE_COLORS.BLACK;
+
+  const linkTextStyle = useMemo(
+    () => (colorScheme === 'dark' ? styles.linkText : styles.linkTextDark),
+    [colorScheme],
+  );
 
   return (
     <View style={styles.gradient}>
@@ -65,7 +70,7 @@ export default function AboutPage() {
                 color={COLORS.TEXT.PRIMARY}
               />
               <View style={styles.textBlock}>
-                <Text style={styles.linkText}>(617) 253-8810</Text>
+                <Text style={linkTextStyle}>(617) 253-8810</Text>
                 <Text style={styles.smallText}>Requests Line</Text>
               </View>
             </TouchableOpacity>
@@ -85,7 +90,7 @@ export default function AboutPage() {
                 color={COLORS.TEXT.PRIMARY}
               />
               <View style={styles.textBlock}>
-                <Text style={styles.linkText}>music@wmbr.org</Text>
+                <Text style={linkTextStyle}>music@wmbr.org</Text>
                 <Text style={styles.smallText}>Music Department</Text>
               </View>
             </TouchableOpacity>
@@ -104,7 +109,7 @@ export default function AboutPage() {
                 color={COLORS.TEXT.PRIMARY}
               />
               <View style={styles.textBlock}>
-                <Text style={styles.linkText}>press@wmbr.org</Text>
+                <Text style={linkTextStyle}>press@wmbr.org</Text>
                 <Text style={styles.smallText}>News Department</Text>
               </View>
             </TouchableOpacity>
@@ -236,6 +241,10 @@ const styles = StyleSheet.create({
   buttonOutlineText: { color: COLORS.BUTTON.PRIMARY.TEXT },
   socialRow: { flexDirection: 'row', marginTop: 18, columnGap: 12 },
   linkText: { color: COLORS.TEXT.LINK, textDecorationLine: 'underline' },
+  linkTextDark: {
+    color: CORE_COLORS.WMBR_GREEN,
+    textDecorationLine: 'underline',
+  },
   smallText: { color: COLORS.TEXT.SECONDARY, fontSize: 12, marginTop: 2 },
   section: { marginTop: 12, marginBottom: 8 },
   sectionTitle: {

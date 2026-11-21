@@ -12,6 +12,7 @@ module.exports = {
           '@utils': './src/utils',
           '@customTypes': './src/types',
           '@app': './src/app',
+          '@assets': './assets',
         },
       },
     ],

@@ -165,7 +165,7 @@ export default function HomeScreen() {
       return {
         title: `${showInfo.currentArtist} - ${showInfo.currentSong}`,
         artist: `${titleWithHosts || 'Live Radio'} | ${DEFAULT_NAME}`,
-        artwork: require('../../../assets/cover.png'),
+        artwork: require('@assets/cover.png'),
       };
     }
 
@@ -176,7 +176,7 @@ export default function HomeScreen() {
     return {
       title: titleWithHosts || DEFAULT_NAME,
       artist: currentShow ? DEFAULT_NAME : 'Live Radio',
-      artwork: require('../../../assets/cover.png'),
+      artwork: require('@assets/cover.png'),
     };
   }, [hosts, showInfo, currentShow]);
 

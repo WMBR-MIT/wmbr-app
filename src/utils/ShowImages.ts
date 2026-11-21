@@ -122,7 +122,9 @@ export const useShowArtwork = (showName: string): Track['artwork'] => {
     artwork: SHOW_IMAGES[showName],
   });
   const [retryCount, setRetryCount] = useState(0);
-  const hasRemoteImage = typeof showArtwork === 'string';
+  const hasRemoteImage =
+    showArtwork.showName === showName &&
+    typeof showArtwork.artwork === 'string';
 
   // A new show starts its retries from scratch.
   useEffect(() => {

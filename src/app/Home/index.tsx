@@ -16,6 +16,7 @@ import {
 } from 'react-native-safe-area-context';
 import TrackPlayer, {
   State,
+  Track,
   useActiveTrack,
   usePlaybackState,
 } from 'react-native-track-player';
@@ -157,18 +158,37 @@ export default function HomeScreen() {
     return () => metadataService.stopPolling();
   }, [appState, isPlaying, activeTrack?.id]);
 
+  // The show's artwork is looked up asynchronously (it may check the server), so
+  // it's kept in state and filled in once the lookup finishes.
+  const [liveShowArtwork, setLiveShowArtwork] = useState<Track['artwork']>(
+    require('@assets/cover.png'),
+  );
+
+  useEffect(() => {
+    // Ignore a lookup that finishes after the show has already changed.
+    let isCurrentLookup = true;
+
+    getShowImage(currentShow).then(artwork => {
+      if (isCurrentLookup) {
+        setLiveShowArtwork(artwork);
+      }
+    });
+
+    return () => {
+      isCurrentLookup = false;
+    };
+  }, [currentShow]);
+
   const liveMetadata = useMemo(() => {
     if (showInfo?.currentSong && showInfo?.currentArtist) {
       const titleWithHosts = currentShow
         ? `${currentShow}${hosts ? ` with ${hosts}` : ''}`
         : DEFAULT_NAME;
 
-      const liveArtwork = getShowImage(currentShow);
-
       return {
         title: `${showInfo.currentArtist} - ${showInfo.currentSong}`,
         artist: `${titleWithHosts || 'Live Radio'} | ${DEFAULT_NAME}`,
-        artwork: liveArtwork,
+        artwork: liveShowArtwork,
       };
     }
 
@@ -181,7 +201,7 @@ export default function HomeScreen() {
       artist: currentShow ? DEFAULT_NAME : 'Live Radio',
       artwork: require('@assets/cover.png'),
     };
-  }, [hosts, showInfo, currentShow]);
+  }, [hosts, showInfo, currentShow, liveShowArtwork]);
 
   // Separate useEffect for updating track metadata when show changes
   useEffect(() => {

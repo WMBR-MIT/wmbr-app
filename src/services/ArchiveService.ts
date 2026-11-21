@@ -68,7 +68,7 @@ export class ArchiveService {
         ? `${show.name}${hosts ? ` with ${hosts}` : ''}`
         : DEFAULT_NAME;
 
-      const archiveArtwork = getShowImage(show.name);
+      const archiveArtwork = await getShowImage(show.name);
 
       // Create archive track.
       //

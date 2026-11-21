@@ -160,6 +160,11 @@ export default function HomeScreen() {
   const liveShowArtwork = useShowArtwork(currentShow);
 
   const liveMetadata = useMemo(() => {
+    const artworkMetadata = {
+      // Fall back to the generic WMBR cover when the show has no artwork of its own.
+      artwork: liveShowArtwork ?? require('@assets/cover.png'),
+    };
+
     if (showInfo?.currentSong && showInfo?.currentArtist) {
       const titleWithHosts = currentShow
         ? `${currentShow}${hosts ? ` with ${hosts}` : ''}`
@@ -168,8 +173,7 @@ export default function HomeScreen() {
       return {
         title: `${showInfo.currentArtist} - ${showInfo.currentSong}`,
         artist: `${titleWithHosts || 'Live Radio'} | ${DEFAULT_NAME}`,
-        // Fall back to the generic WMBR cover when the show has no artwork of its own.
-        artwork: liveShowArtwork ?? require('@assets/cover.png'),
+        ...artworkMetadata,
       };
     }
 
@@ -180,7 +184,7 @@ export default function HomeScreen() {
     return {
       title: titleWithHosts || DEFAULT_NAME,
       artist: currentShow ? DEFAULT_NAME : 'Live Radio',
-      artwork: require('@assets/cover.png'),
+      ...artworkMetadata,
     };
   }, [hosts, showInfo, currentShow, liveShowArtwork]);
 

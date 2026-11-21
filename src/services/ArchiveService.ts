@@ -68,10 +68,6 @@ export class ArchiveService {
         ? `${show.name}${hosts ? ` with ${hosts}` : ''}`
         : DEFAULT_NAME;
 
-      // Fall back to the generic WMBR cover when the show has no artwork of its own.
-      const archiveArtwork =
-        (await getShowImage(show.name)) ?? require('@assets/cover.png');
-
       // Create archive track.
       //
       // We set an explicit `duration` (show length is in minutes) so iOS has a
@@ -81,12 +77,15 @@ export class ArchiveService {
       // controls before that happens — showing play/pause/stop but hiding the
       // skip-interval buttons and scrubber for the rest of the session. RNTP
       // corrects this value once the real duration is known.
+      //
+      // The track starts with the generic WMBR cover so playback doesn't wait on
+      // the server. The show's own artwork is applied below once it's found.
       const archiveTrack: Track = {
         id: `${show.name}-${archive.date}`,
         url: archive.url,
         title: `${titleWithHosts}: ${showDate}`,
         artist: DEFAULT_NAME,
-        artwork: archiveArtwork,
+        artwork: require('@assets/cover.png'),
         userAgent: getUserAgent(),
         ...(show.length > 0 && { duration: show.length * 60 }),
       };
@@ -104,9 +103,38 @@ export class ArchiveService {
       };
 
       this.notifyCallbacks();
+
+      // Not awaited: the artwork can arrive after playback has started.
+      this.applyShowArtwork(archive, show);
     } catch (error) {
       debugError('Error playing archive:', error);
       throw error;
+    }
+  }
+
+  // Looks up the show's own artwork and applies it to the archive track that
+  // was started with the cover. Skips the update if this archive is no longer
+  // the one playing, since the track at index 0 would then be something else.
+  private async applyShowArtwork(archive: Archive, show: Show): Promise<void> {
+    try {
+      const showArtwork = await getShowImage(show.name);
+
+      // Shows with no artwork of their own keep the cover.
+      //
+      // Stop if this archive is no longer the one playing: a live switch clears
+      // currentArchive, and a newer archive replaces it. Index 0 would then be a
+      // different track, so the update would land on the wrong one.
+      if (
+        !showArtwork ||
+        this.currentState.currentArchive?.url !== archive.url
+      ) {
+        return;
+      }
+
+      // The queue holds only this archive after the reset, so it's at index 0.
+      await TrackPlayer.updateMetadataForTrack(0, { artwork: showArtwork });
+    } catch (error) {
+      debugError('Error applying show artwork:', error);
     }
   }
 

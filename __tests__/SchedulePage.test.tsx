@@ -7,9 +7,11 @@ import { styles as scheduleStyles } from '@app/Schedule/SchedulePage';
 
 describe('SchedulePage', () => {
   beforeAll(() => {
-    // Freeze time so the schedule always starts on Tuesday, which keeps these
-    // tests deterministic even though the UI now starts at "today".
     jest.useFakeTimers();
+  });
+
+  beforeEach(() => {
+    // Keep tests deterministic even though the UI now starts at "today".
     jest.setSystemTime(new Date('2025-11-11T12:00:00Z'));
   });
 
@@ -27,6 +29,7 @@ describe('SchedulePage', () => {
   });
 
   test('shows the next air date only for inactive alternating shows', async () => {
+    jest.setSystemTime(new Date('2025-11-16T12:00:00Z'));
     await renderAsync(<ScheduleStack />, { wrapper: TestWrapper });
 
     // November 16 is week 2 of the mock season: Sound and Fury (week 1)
@@ -41,6 +44,7 @@ describe('SchedulePage', () => {
   });
 
   test('applies inactiveShowLabel styling only to inactive show names and hosts', async () => {
+    jest.setSystemTime(new Date('2025-11-16T12:00:00Z'));
     await renderAsync(<ScheduleStack />, { wrapper: TestWrapper });
 
     // Check the named style's presence, not its values, so its appearance
@@ -59,6 +63,24 @@ describe('SchedulePage', () => {
     expect(screen.getByText('with Marc Stern').props.style).not.toContain(
       scheduleStyles.inactiveShowLabel,
     );
+  });
+
+  test('displays formatted time for noon (12:00n -> 12:00pm)', async () => {
+    await renderAsync(<ScheduleStack />, { wrapper: TestWrapper });
+
+    // The mock data includes a show at noon with time_str="12:00n"
+    // which should be displayed as "12:00pm"
+    expect(screen.getByText('Noon Day Sun')).toBeTruthy();
+    expect(screen.getByText('12:00pm')).toBeTruthy();
+  });
+
+  test('displays formatted time for midnight (12:00m -> 12:00am)', async () => {
+    await renderAsync(<ScheduleStack />, { wrapper: TestWrapper });
+
+    // The mock data includes a show at midnight with time_str="12:00m"
+    // which should be displayed as "12:00am"
+    expect(screen.getByText('Midnight Special')).toBeTruthy();
+    expect(screen.getByText('12:00am')).toBeTruthy();
   });
 
   test('navigates to ShowDetails when tapping a show with archives', async () => {
